@@ -1,0 +1,101 @@
+<div class="app" id="app">
+  <header class="top">
+    <div>
+      <div class="eyebrow">CSCE 4201 · Session 20 · Pushdown automata</div>
+      <h1>Pushdown Theatre<span class="stk" aria-hidden="true"><i></i><i></i><i></i></span></h1>
+      <p class="sub">A PDA run, one move at a time: the state it is in, the input it reads, and the stack it keeps. When the machine has to guess, every guess becomes its own branch.</p>
+    </div>
+    <div class="head-actions">
+      <button class="btn" id="fsBtn" type="button" title="Fullscreen for the projector">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Present</button>
+    </div>
+  </header>
+
+  <nav class="machines" id="tabs" role="tablist" aria-label="Machines"></nav>
+
+  <section class="panel mcard" id="mcard">
+    <div>
+      <div class="lang" id="mLang"></div>
+      <p class="idea" id="mIdea"></p>
+      <div class="tuple" id="mTuple"></div>
+      <div class="chips" id="mChips"></div>
+    </div>
+    <div>
+      <div class="dlabel">Transitions δ</div>
+      <ul class="delta" id="mDelta"></ul>
+    </div>
+  </section>
+
+  <section class="panel editor" id="editor" hidden>
+    <div>
+      <div class="ph"><h2>Write your own machine</h2><span class="hint">Same notation as the slides</span></div>
+      <textarea id="src" spellcheck="false" aria-label="Machine definition"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <button class="btn primary" id="buildBtn" type="button">Build and run</button>
+        <button class="btn" id="loadBtn" type="button">Start from the aⁿbⁿ machine</button>
+      </div>
+      <div class="errors" id="errs"></div>
+    </div>
+    <div class="help">
+      <p>One transition per line, written the way the slides write them:</p>
+      <p><code>δ(q0, a, Z) = (q0, XZ)</code><br><code>δ(q0, ε, X) = {(q1, X), (q2, ε)}</code></p>
+      <p>The pushed string is written <b>top first</b>, so <code>XZ</code> puts X above Z. Use <code>ε</code> (or <code>eps</code>) for "read nothing" and for "push nothing".</p>
+      <p>Three header lines: <code>start: q0</code>, <code>bottom: Z</code>, and either <code>accept: q2</code> (final state) or <code>accept: empty stack</code>. Lines starting with <code>#</code> are comments.</p>
+      <p>The page draws the diagram, checks both determinism rules, and runs every branch.</p>
+    </div>
+  </section>
+
+  <section class="controls" aria-label="Run controls">
+    <div class="inputbox"><label for="inp">Input w</label><input id="inp" autocomplete="off" spellcheck="false" maxlength="14"></div>
+    <div class="examples" id="examples"></div>
+    <div class="transport">
+      <span class="counter" id="counter">move 0/0</span>
+      <button class="ibtn" id="bReset" type="button" title="Back to the start (Home)" aria-label="Back to the start"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+      <button class="ibtn" id="bBack" type="button" title="One move back (←)" aria-label="One move back"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 5v14L7 12z"/></svg></button>
+      <button class="ibtn play" id="bPlay" type="button" title="Play / pause (Space)" aria-label="Play"><svg viewBox="0 0 24 24" fill="currentColor" id="playIcon"><path d="M7 4v16l13-8z"/></svg></button>
+      <button class="ibtn" id="bStep" type="button" title="One move forward (→)" aria-label="One move forward"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5v14l11-7z"/></svg></button>
+      <button class="ibtn" id="bEnd" type="button" title="Jump to the verdict (End)" aria-label="Jump to the verdict"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+      <label class="speed" for="speed">Speed <input type="range" id="speed" min="0.4" max="3" step="0.1" value="1"></label>
+    </div>
+  </section>
+
+  <main class="stage">
+    <section class="panel run" aria-label="The machine">
+      <div class="ph"><h2>The machine</h2><span class="hint" id="modeHint"></span></div>
+      <div class="tape" id="tape" aria-label="Input tape"></div>
+      <div class="diagram" id="diagram"></div>
+      <div class="narr" aria-live="polite"><span class="step" id="nStep">start</span><p id="nText"></p></div>
+      <div class="stamp" id="stamp" hidden></div>
+    </section>
+
+    <section class="panel stackp" aria-label="The stack">
+      <div class="ph"><h2>The stack</h2></div>
+      <div class="tower-wrap"><div style="width:30px"></div><div class="tower" id="tower"></div></div>
+      <div class="written">Written top first, as in the IDs:<code id="written"></code></div>
+    </section>
+
+    <section class="panel tracep" aria-label="The trace">
+      <div class="ph"><h2>The trace</h2><span class="hint">( q , unread w , stack ) · top on the LEFT</span></div>
+      <div class="trace" id="trace"></div>
+    </section>
+  </main>
+
+  <section class="lower">
+    <section class="panel" aria-label="Every branch">
+      <div class="ph"><h2>Every branch the machine could take</h2><span class="hint">Click any node to follow that branch</span></div>
+      <div class="tree-wrap" id="treeWrap"></div>
+      <div class="mvstats" id="mvstats"></div>
+    </section>
+    <section class="panel" aria-label="Stack over time">
+      <div class="ph"><h2>The stack over time</h2><span class="hint">One column per ID on this branch</span></div>
+      <div class="sky-wrap" id="skyWrap"></div>
+      <div class="legend" id="legend"></div>
+    </section>
+  </section>
+
+  <footer>
+    <span>Notation from CSCE 4201 S20: M = (Q, Σ, Γ, δ, q₀, Z₀, F), IDs (q, w, α) with the top of the stack written on the left, ⊢ for one move. A branch with no applicable transition is stuck, and stuck means reject.</span>
+    <span><kbd>Space</kbd> play · <kbd>→</kbd> step · <kbd>←</kbd> back · <kbd>Home</kbd> restart · <kbd>End</kbd> verdict</span>
+  </footer>
+</div>
+

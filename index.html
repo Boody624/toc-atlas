@@ -1,0 +1,1644 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="An interactive atlas of CSCE 4201 Theory of Computing: run the machines, play the proofs.">
+<style>:root{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Automata Atlas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<style>
+
+/* Layout: a "stage" — the machine (tape + diagram) on the left, the stack tower in the middle,
+   the written trace on the right; below it the multiverse of branches and the stack skyline,
+   both sharing one time axis (move number). Cool paper + ink, amber marks "now". */
+:root{
+  --paper:#f3f5fa; --surface:#ffffff; --surface-2:#f7f8fc; --ink:#141b33; --muted:#5b6482; --faint:#a3aac2; --line:#dde2ee;
+  --now:#e2961c; --now-soft:#fdf0d8; --accept:#139169; --accept-soft:#dcf3ea; --reject:#cf3f55; --reject-soft:#fbe3e7;
+  --sym-X:#6a55e0; --sym-Z:#56607e; --sym-A:#2c78dc; --sym-B:#e06b23; --sym-P:#139169; --sym-N:#cf3f55;
+  --sym-1:#0e8fa6; --sym-2:#b14fc4; --sym-3:#8a6d16; --sym-4:#3a8f2f;
+  --plate-ink:#ffffff;
+  --display:"Bricolage Grotesque", "Space Grotesk", system-ui, sans-serif;
+  --body:"Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#0d1222; --surface:#151c31; --surface-2:#1a2239; --ink:#e7ebf7; --muted:#9aa3c0; --faint:#5d6688; --line:#29324e;
+  --now:#f3ac3c; --now-soft:#3a2d14; --accept:#2fc392; --accept-soft:#11352a; --reject:#ef6177; --reject-soft:#3b1a22;
+  --sym-X:#8a78ff; --sym-Z:#6d7799; --sym-A:#4a92f0; --sym-B:#f0843d; --sym-P:#22a87c; --sym-N:#e2546b;
+  --sym-1:#22a9c0; --sym-2:#c46ad6; --sym-3:#b0912e; --sym-4:#4fae43;
+  color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --paper:#0d1222; --surface:#151c31; --surface-2:#1a2239; --ink:#e7ebf7; --muted:#9aa3c0; --faint:#5d6688; --line:#29324e;
+  --now:#f3ac3c; --now-soft:#3a2d14; --accept:#2fc392; --accept-soft:#11352a; --reject:#ef6177; --reject-soft:#3b1a22;
+  --sym-X:#8a78ff; --sym-Z:#6d7799; --sym-A:#4a92f0; --sym-B:#f0843d; --sym-P:#22a87c; --sym-N:#e2546b;
+  --sym-1:#22a9c0; --sym-2:#c46ad6; --sym-3:#b0912e; --sym-4:#4fae43;
+  color-scheme:dark; }
+
+*{box-sizing:border-box}
+html,body{background:var(--paper)}
+body{color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5;margin:0}
+.app{max-width:1500px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--now);outline-offset:2px}
+.mono{font-family:var(--mono)}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.eyebrow{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(30px,4.2vw,46px);line-height:1;margin:4px 0 6px;letter-spacing:-.02em;text-wrap:balance}
+h1 .stk{display:inline-flex;flex-direction:column;vertical-align:-0.08em;gap:2px;margin-left:.18em}
+h1 .stk i{display:block;width:.55em;height:.16em;border-radius:3px;background:var(--sym-X)}
+h1 .stk i:nth-child(2){background:var(--sym-X);opacity:.75}
+h1 .stk i:last-child{background:repeating-linear-gradient(135deg,var(--sym-Z) 0 3px,transparent 3px 6px),var(--surface);border:1px solid var(--sym-Z)}
+.sub{margin:0;color:var(--muted);max-width:68ch}
+.head-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 14px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:background .15s,border-color .15s}
+.btn:hover{border-color:var(--faint)}
+.btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn svg{width:16px;height:16px}
+
+/* machine tabs */
+.machines{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:thin}
+.tab{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;cursor:pointer;display:flex;align-items:baseline;gap:8px;white-space:nowrap}
+.tab b{font-family:var(--mono);font-weight:700}
+.tab span{color:var(--muted);font-size:12px}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tab[aria-selected="true"] span{color:inherit;opacity:.75}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;min-width:0}
+.ph{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.ph h2{font-family:var(--display);font-size:16px;font-weight:700;margin:0;letter-spacing:-.01em}
+.ph .hint{font-size:12px;color:var(--muted)}
+
+/* machine card */
+.mcard{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px}
+.lang{font-family:var(--mono);font-size:20px;font-weight:700}
+.idea{margin:4px 0 10px;color:var(--muted);max-width:62ch}
+.tuple{font-family:var(--mono);font-size:13px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;overflow-x:auto;white-space:nowrap}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chip{font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;border:1px solid var(--line);background:var(--surface-2)}
+.chip.good{background:var(--accept-soft);color:var(--accept);border-color:transparent}
+.chip.bad{background:var(--reject-soft);color:var(--reject);border-color:transparent}
+.chip.mode{background:var(--now-soft);color:var(--ink);border-color:transparent}
+.delta{list-style:none;margin:0;padding:0;font-family:var(--mono);font-size:13px;display:grid;gap:2px}
+.delta li{padding:3px 8px;border-radius:7px;display:flex;gap:10px;justify-content:space-between;transition:background .2s}
+.delta li em{font-style:normal;color:var(--muted);font-family:var(--body);font-size:12px;text-align:right}
+.delta li.on{background:var(--now-soft);box-shadow:inset 3px 0 0 var(--now)}
+.dlabel{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:4px}
+
+/* editor */
+.editor{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px}
+.editor textarea{width:100%;min-height:230px;resize:vertical;font-family:var(--mono);font-size:13px;line-height:1.55;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.editor .help{color:var(--muted);font-size:13px}
+.editor .help code{font-family:var(--mono);font-size:12.5px;background:var(--surface-2);padding:1px 5px;border-radius:5px;border:1px solid var(--line)}
+.errors{color:var(--reject);font-family:var(--mono);font-size:12.5px;white-space:pre-wrap;margin:8px 0 0}
+
+/* controls */
+.controls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center}
+.inputbox{display:flex;align-items:center;gap:8px}
+.inputbox label{font-weight:600;font-size:13px}
+.inputbox input{font-family:var(--mono);font-size:16px;width:12ch;padding:7px 10px;border-radius:10px;border:1px solid var(--line);background:var(--surface)}
+.examples{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.examples .lbl{font-size:12px;color:var(--muted)}
+.ex{font-family:var(--mono);font-size:13px;border:1px dashed var(--line);border-radius:8px;background:transparent;padding:3px 8px;cursor:pointer}
+.ex:hover{border-color:var(--faint)}
+.ex small{font-family:var(--body);margin-left:4px}
+.ex .y{color:var(--accept)} .ex .n{color:var(--reject)}
+.transport{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-left:auto}
+.ibtn{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer}
+.ibtn svg{width:18px;height:18px}
+.ibtn.play{width:48px;background:var(--now);border-color:var(--now);color:#1b1404}
+.ibtn:disabled{opacity:.4;cursor:default}
+.speed{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.speed input{width:90px;accent-color:var(--now)}
+.counter{font-family:var(--mono);font-size:13px;color:var(--muted);min-width:9ch;text-align:right}
+
+/* stage */
+.stage{display:grid;grid-template-columns:minmax(0,1.55fr) 210px minmax(0,1fr);gap:14px;align-items:stretch}
+.run{display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden}
+.tape{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;padding:6px 0 18px;position:relative}
+.cell{width:40px;height:44px;border:1.5px solid var(--line);border-radius:8px;display:grid;place-items:center;font-family:var(--mono);font-size:20px;font-weight:700;background:var(--surface-2);position:relative;transition:all .25s}
+.cell.read{color:var(--faint);background:transparent;border-style:dashed}
+.cell.head{border-color:var(--now);background:var(--now-soft);transform:translateY(-3px)}
+.cell.head::after{content:"";position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);border:7px solid transparent;border-bottom-color:var(--now)}
+.cell.end{border-style:dotted;color:var(--faint);font-size:13px;font-weight:600}
+.diagram{width:100%;overflow-x:auto}
+.diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}
+.st-circle{fill:var(--surface);stroke:var(--ink);stroke-width:2;transition:fill .25s,stroke .25s}
+.st.cur .st-circle{fill:var(--now);stroke:var(--now)}
+.st.cur .st-ring{stroke:var(--now)}
+.st-ring{fill:none;stroke:var(--ink);stroke-width:2}
+.st-text{font-family:var(--mono);font-size:17px;font-weight:700;fill:var(--ink)}
+.st.cur .st-text{fill:#1b1404}
+.st.done-acc .st-circle{fill:var(--accept);stroke:var(--accept)} .st.done-acc .st-text{fill:#fff} .st.done-acc .st-ring{stroke:var(--accept)}
+.st.done-rej .st-circle{fill:var(--reject);stroke:var(--reject)} .st.done-rej .st-text{fill:#fff}
+.halo{fill:none;stroke:var(--now);stroke-width:2;opacity:0}
+.st.cur .halo{animation:halo 1.6s ease-out infinite}
+@keyframes halo{0%{opacity:.7;r:31px}100%{opacity:0;r:50px}}
+.edge{fill:none;stroke:var(--faint);stroke-width:1.8;transition:stroke .2s,stroke-width .2s}
+.edge.on{stroke:var(--now);stroke-width:3.2}
+.elabel{font-family:var(--mono);font-size:13.5px;fill:var(--muted)}
+.elabel.on{fill:var(--ink);font-weight:700}
+.elabel-bg{fill:var(--now-soft);opacity:0}
+.elabel-bg.on{opacity:1}
+.startlbl{font-family:var(--body);font-size:12px;fill:var(--muted)}
+.token{fill:var(--now);stroke:var(--surface);stroke-width:2}
+.narr{border-top:1px solid var(--line);padding-top:10px;min-height:66px;display:flex;gap:12px;align-items:flex-start}
+.narr .step{font-family:var(--mono);font-size:12px;font-weight:700;background:var(--ink);color:var(--paper);border-radius:6px;padding:2px 7px;white-space:nowrap}
+.narr p{margin:0;font-size:15px;text-wrap:pretty}
+.narr p b{font-family:var(--mono)}
+.narr .why{color:var(--muted);display:block;font-size:13.5px;margin-top:2px}
+.stamp{position:absolute;right:18px;top:58px;font-family:var(--display);font-weight:800;font-size:26px;letter-spacing:.06em;padding:4px 14px;border:3px solid currentColor;border-radius:10px;transform:rotate(-6deg) scale(1);opacity:1;pointer-events:none;background:var(--surface)}
+.stamp.acc{color:var(--accept)} .stamp.rej{color:var(--reject)}
+.stamp.pop{animation:stamp .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes stamp{0%{transform:rotate(-6deg) scale(2.2);opacity:0}100%{transform:rotate(-6deg) scale(1);opacity:1}}
+
+/* stack */
+.stackp{display:flex;flex-direction:column}
+.tower-wrap{flex:1;display:flex;gap:6px;min-height:300px}
+.tower{flex:1;position:relative;border:2px solid var(--line);border-top:none;border-radius:0 0 12px 12px;display:flex;flex-direction:column-reverse;align-items:center;gap:4px;padding:6px 6px 8px;background:linear-gradient(to top,var(--surface-2),transparent)}
+.plate{width:100%;max-width:120px;height:var(--ph,30px);border-radius:7px;display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:min(17px,calc(var(--ph,30px) * .6));color:var(--plate-ink);flex:0 0 auto;box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.plate.bottom{background:repeating-linear-gradient(135deg,rgba(255,255,255,.18) 0 4px,transparent 4px 9px),var(--c)}
+.plate.in{animation:drop .38s cubic-bezier(.2,1.3,.4,1)}
+@keyframes drop{0%{transform:translateY(-60px);opacity:0}100%{transform:none;opacity:1}}
+.plate.out{position:absolute;animation:lift .4s ease-in forwards}
+@keyframes lift{to{transform:translateY(-70px) rotate(8deg);opacity:0}}
+.topmark{position:absolute;left:-2px;font-size:11px;font-weight:700;color:var(--now);transform:translate(-100%,-50%);white-space:nowrap;transition:top .3s}
+.tower-empty{position:absolute;inset:auto 0 12px;text-align:center;color:var(--muted);font-size:12px;font-weight:600}
+.written{margin-top:10px;font-size:12px;color:var(--muted)}
+.written code{display:block;font-family:var(--mono);font-size:16px;color:var(--ink);margin-top:2px;word-break:break-all}
+.written code i{font-style:normal;color:var(--now);text-decoration:underline;text-underline-offset:3px}
+
+/* trace */
+.tracep{display:flex;flex-direction:column}
+.trace{font-family:var(--mono);font-size:13px;overflow:auto;max-height:420px;flex:1;scroll-behavior:smooth;padding-right:4px}
+.idr{display:grid;grid-template-columns:16px auto;column-gap:6px;padding:3px 6px;border-radius:7px;white-space:pre}
+.idr .tu{color:var(--muted)}
+.idr .why{grid-column:2;font-size:11.5px;color:var(--muted)}
+.idr.cur{background:var(--now-soft)}
+.idr.blank{color:var(--faint)}
+.idr.verdict{display:block;font-family:var(--display);font-weight:700;font-size:14px;white-space:normal;margin-top:4px}
+.idr.verdict.acc{color:var(--accept)} .idr.verdict.rej{color:var(--reject)}
+
+/* lower */
+.lower{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:14px}
+.tree-wrap,.sky-wrap{overflow:auto;max-height:360px;min-height:200px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line)}
+.tree-wrap svg,.sky-wrap svg{display:block}
+.tnode circle{fill:var(--surface);stroke:var(--faint);stroke-width:1.5;cursor:pointer}
+.tnode text{font-family:var(--mono);font-size:11px;fill:var(--muted);pointer-events:none;font-weight:700}
+.tnode.path circle{stroke:var(--now);stroke-width:2.5}
+.tnode.cur circle{fill:var(--now);stroke:var(--now)}
+.tnode.cur text{fill:#1b1404}
+.tnode.acc circle{fill:var(--accept);stroke:var(--accept)} .tnode.acc text{fill:#fff}
+.tnode.dead circle{stroke:var(--reject);stroke-dasharray:2 2}
+.tnode.hide{opacity:0;pointer-events:none}
+.tedge{fill:none;stroke:var(--faint);stroke-width:1.4}
+.tedge.path{stroke:var(--now);stroke-width:2.6}
+.tedge.hide{opacity:0}
+.tedge.fate-dead{stroke-dasharray:3 3}
+.tmark{font-family:var(--body);font-size:13px;font-weight:800}
+.tmark.acc{fill:var(--accept)} .tmark.rej{fill:var(--reject)}
+.tlabel{font-family:var(--mono);font-size:11px;font-weight:700;fill:var(--muted)}
+.tnode, .tedge{transition:opacity .3s}
+.mvstats{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:8px}
+.mvstats b{color:var(--ink);font-family:var(--mono)}
+.sky-block{stroke:var(--surface);stroke-width:1}
+.sky-col.future{opacity:.13}
+.sky-axis{font-family:var(--mono);font-size:11.5px;fill:var(--muted)}
+.sky-cur{fill:none;stroke:var(--now);stroke-width:2;rx:5}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+
+footer{color:var(--muted);font-size:12.5px;display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
+footer kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;background:var(--surface)}
+
+/* presenter mode */
+:root.present .app{max-width:none}
+:root.present .mcard .idea, :root.present footer{display:none}
+
+@media (max-width:1150px){
+  .stage{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .run{grid-column:1 / -1}
+  .lower,.mcard,.editor{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:640px){
+  .stage{grid-template-columns:minmax(0,1fr)}
+  .transport{margin-left:0}
+  .cell{width:32px;height:38px;font-size:17px}
+  .tower-wrap{min-height:240px}
+  .stamp{font-size:18px;top:8px;right:8px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+
+/* ---- Automata Atlas: site shell (tokens come from theatre.css) ---- */
+.site{max-width:1500px;margin:0 auto;padding-block:0 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:19px;letter-spacing:-.01em;color:var(--ink);text-decoration:none;cursor:pointer;background:none;border:0;padding:0}
+.logo .mark{display:inline-flex;flex-direction:column;gap:2px}
+.logo .mark i{display:block;width:18px;height:5px;border-radius:2px;background:var(--sym-X)}
+.logo .mark i:nth-child(2){background:var(--sym-A)} .logo .mark i:nth-child(3){background:var(--now)}
+.bar-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pass-pill{font-size:12.5px;font-weight:600;border:1px solid var(--line);border-radius:999px;padding:5px 12px;background:var(--surface);display:inline-flex;gap:8px;align-items:center}
+.pass-pill b{font-family:var(--mono)}
+.meter{width:70px;height:6px;border-radius:9px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accept);border-radius:9px;transition:width .4s}
+a{color:inherit}
+.view{display:flex;flex-direction:column;gap:16px}
+
+/* home */
+.hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;align-items:end;padding:10px 0 4px}
+.hero h1{font-size:clamp(34px,5vw,60px)}
+.hero .lede{font-size:16px;color:var(--muted);max-width:60ch;margin:8px 0 0}
+.facts{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.facts li{border-left:3px solid var(--now);padding:2px 0 2px 12px;font-size:13.5px;color:var(--muted)}
+.facts li b{color:var(--ink);display:block;font-family:var(--display);font-size:15px}
+.mapwrap{overflow-x:auto}
+.mapwrap svg{display:block;width:100%;min-width:760px;height:auto}
+.region{stroke-width:1.5;rx:26}
+.r0{fill:var(--surface);stroke:var(--line)}
+.r1{fill:var(--surface-2);stroke:var(--line)}
+.r2{fill:color-mix(in srgb,var(--sym-A) 9%,var(--surface));stroke:color-mix(in srgb,var(--sym-A) 45%,var(--line))}
+.r3{fill:color-mix(in srgb,var(--now) 14%,var(--surface));stroke:color-mix(in srgb,var(--now) 60%,var(--line))}
+.rlabel{font-family:var(--display);font-weight:700;font-size:15px;fill:var(--ink)}
+.rsub{font-family:var(--body);font-size:11.5px;fill:var(--muted)}
+.rland{font-family:var(--mono);font-size:11.5px;fill:var(--muted)}
+.route{fill:none;stroke:var(--faint);opacity:.6;stroke-width:2;stroke-dasharray:2 7;stroke-linecap:round}
+.stop{cursor:pointer}
+.stop circle{fill:var(--surface);stroke:var(--ink);stroke-width:2.2;transition:all .15s}
+.stop:hover circle,.stop:focus-visible circle{fill:var(--now);stroke:var(--now)}
+.stop text{font-family:var(--body);font-size:12px;font-weight:600;fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-opacity:.8;stroke-linejoin:round}
+.stop .tick{stroke:none}
+.stop .ses{font-family:var(--mono);font-size:10px;font-weight:400;fill:var(--muted)}
+.stop.soon circle{stroke:var(--faint);stroke-dasharray:3 3}
+.stop.soon text{fill:var(--muted)}
+.stop.done circle{fill:var(--accept);stroke:var(--accept)}
+.stop .tick{fill:#fff;font-size:12px;font-weight:800;pointer-events:none}
+.wall{font-family:var(--body);font-size:10.5px;fill:var(--reject);font-weight:700;letter-spacing:.04em}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.card{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:14px 16px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:6px;transition:border-color .15s,transform .15s}
+.card:hover{border-color:var(--faint);transform:translateY(-2px)}
+.card .ses{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.card h3{font-family:var(--display);font-size:17px;margin:0;font-weight:700}
+.card p{margin:0;color:var(--muted);font-size:13px}
+.card .foot{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:6px;font-size:12px}
+.card.soon{cursor:default;opacity:.72;border-style:dashed}
+.card.soon:hover{transform:none;border-color:var(--line)}
+.tag{font-size:11px;font-weight:700;border-radius:999px;padding:2px 9px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted)}
+.tag.live{background:var(--accept-soft);color:var(--accept);border-color:transparent}
+.dots{display:inline-flex;gap:4px}
+.dots i{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--faint);display:block}
+.dots i.on{background:var(--accept);border-color:var(--accept)}
+h2.sec{font-family:var(--display);font-size:22px;margin:14px 0 0;letter-spacing:-.01em}
+.secsub{color:var(--muted);margin:0}
+
+/* station shell */
+.crumb{display:flex;gap:10px;align-items:center;font-size:13px;color:var(--muted)}
+.crumb button{background:none;border:0;color:var(--muted);cursor:pointer;padding:0;font-weight:600}
+.crumb button:hover{color:var(--ink)}
+.st-head h1{font-size:clamp(28px,4vw,44px)}
+.st-head .sub{font-size:15px}
+.steps-nav{display:flex;gap:8px;overflow-x:auto;position:sticky;top:env(safe-area-inset-top,0px);background:var(--paper);padding:8px 0;z-index:5}
+.steps-nav button{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 13px;cursor:pointer;font-weight:600;font-size:13px}
+.steps-nav button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.blk{display:flex;flex-direction:column;gap:12px;scroll-margin-top:60px}
+.blk > .kicker{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.blk > h2{font-family:var(--display);font-size:24px;margin:-8px 0 0;letter-spacing:-.01em}
+.prose{max-width:72ch;color:var(--ink);font-size:15px}
+.prose p{margin:0 0 8px}
+.prose code,.kbd{font-family:var(--mono);font-size:13.5px;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:1px 6px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.recipe{counter-reset:r;list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.recipe li{counter-increment:r;display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start}
+.recipe li::before{content:counter(r);font-family:var(--mono);font-weight:700;width:26px;height:26px;border-radius:8px;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-size:13px}
+.recipe li small{display:block;color:var(--muted);font-size:12.5px}
+.nextprev{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px}
+.note{border-left:3px solid var(--now);background:var(--now-soft);padding:8px 12px;border-radius:0 10px 10px 0;font-size:13.5px}
+.note.bad{border-color:var(--reject);background:var(--reject-soft)}
+.note.good{border-color:var(--accept);background:var(--accept-soft)}
+select,.txt{font-family:var(--mono);font-size:14px;padding:6px 8px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.seq{font-family:var(--mono);font-size:14px;display:flex;flex-wrap:wrap;gap:4px 2px;align-items:center;min-height:30px}
+.seq span{padding:2px 7px;border-radius:7px;border:1px solid var(--line);background:var(--surface-2)}
+.seq span.cur{background:var(--now-soft);border-color:var(--now);font-weight:700}
+.seq span.acc{background:var(--accept);border-color:var(--accept);color:#fff;font-weight:700}
+.seq span.rej{background:var(--reject);border-color:var(--reject);color:#fff;font-weight:700}
+.seq em{font-style:normal;color:var(--muted);font-size:11.5px;padding:0 2px}
+table.dt{border-collapse:collapse;font-family:var(--mono);font-size:13.5px}
+table.dt th,table.dt td{border:1px solid var(--line);padding:5px 9px;text-align:center}
+table.dt th{background:var(--surface-2);font-weight:600}
+table.dt input[type=text]{width:6ch;font-family:var(--mono);font-size:13px;border:1px solid var(--line);border-radius:6px;padding:3px 5px;background:var(--surface);color:var(--ink);text-align:center}
+table.dt select{padding:3px 5px;font-size:13px}
+table.dt td.miss select{border-color:var(--reject);background:var(--reject-soft)}
+.tablewrap{overflow-x:auto}
+
+/* quick-fire */
+.qf{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.qf-card{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.qf-card .who{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.qf-card .claim{font-size:15px;font-weight:500;margin:0}
+.qf-card .why{font-size:13.5px;margin:0;padding:8px 10px;border-radius:9px}
+.qf-card.right .why{background:var(--accept-soft)} .qf-card.wrong .why{background:var(--reject-soft)}
+.qf-card .res{font-weight:700;font-size:13px}
+.qf-card.right .res{color:var(--accept)} .qf-card.wrong .res{color:var(--reject)}
+
+/* stamps */
+.stamps{display:flex;gap:8px;flex-wrap:wrap}
+.stp{display:inline-flex;align-items:center;gap:6px;border:1.5px dashed var(--faint);color:var(--muted);border-radius:10px;padding:5px 10px;font-size:12.5px;font-weight:600}
+.stp.on{border-style:solid;border-color:var(--accept);color:var(--accept);background:var(--accept-soft)}
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translate(-50%,30px);opacity:0;background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:12px;font-weight:600;transition:all .35s;z-index:50;pointer-events:none;max-width:90vw}
+.toast.show{transform:translate(-50%,0);opacity:1}
+
+/* adversary game */
+.game{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:14px;align-items:start}
+.log{display:flex;flex-direction:column;gap:10px}
+.move{display:grid;grid-template-columns:92px minmax(0,1fr);gap:12px;align-items:start}
+.move .who{font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:5px 0;text-align:center;border-radius:8px}
+.move.adv .who{background:var(--reject-soft);color:var(--reject)}
+.move.you .who{background:var(--accept-soft);color:var(--accept)}
+.move.sys .who{background:var(--surface-2);color:var(--muted)}
+.move .body{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;min-width:0}
+.move.in{animation:drop .35s ease-out}
+.move .body p{margin:0 0 6px} .move .body p:last-child{margin:0}
+.opts{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.opt{font-family:var(--mono);font-size:14px;border:1.5px solid var(--line);background:var(--surface-2);border-radius:10px;padding:7px 12px;cursor:pointer}
+.opt:hover{border-color:var(--now)}
+.opt:disabled{opacity:.5;cursor:default}
+.opt.sel{border-color:var(--now);background:var(--now-soft);opacity:1}
+.wstr{font-family:var(--mono);font-size:19px;font-weight:700;display:flex;flex-wrap:wrap;gap:2px;margin:6px 0;align-items:flex-end}
+.wstr span{min-width:22px;height:30px;display:grid;place-items:center;border-radius:6px;background:var(--surface-2);border:1px solid var(--line)}
+.wstr .x{background:color-mix(in srgb,var(--sym-A) 18%,var(--surface));border-color:var(--sym-A)}
+.wstr .y{background:var(--now-soft);border-color:var(--now)}
+.wstr .y2{background:var(--now);border-color:var(--now);color:#1b1404}
+.wstr .z{background:color-mix(in srgb,var(--sym-X) 15%,var(--surface));border-color:var(--sym-X)}
+.wstr .gap{min-width:8px;border:0;background:none}
+.wstr.pick span{cursor:pointer}
+.keyline{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.keyline i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.board{position:sticky;top:60px;display:flex;flex-direction:column;gap:10px}
+.order{font-family:var(--mono);font-size:13.5px;display:grid;gap:4px}
+.order div{padding:5px 9px;border-radius:8px;border:1px solid var(--line);display:flex;justify-content:space-between;gap:8px}
+.order div.on{border-color:var(--now);background:var(--now-soft);font-weight:700}
+.order div.done{color:var(--muted)}
+.big{font-family:var(--display);font-weight:800;font-size:22px}
+.big.win{color:var(--accept)} .big.lose{color:var(--reject)}
+
+@media (max-width:1000px){ .hero,.two,.three,.game{grid-template-columns:minmax(0,1fr)} .board{position:static} }
+@media (max-width:560px){ .move{grid-template-columns:minmax(0,1fr)} .move .who{justify-self:start;padding:3px 10px} }
+.view > *, .blk > *{min-width:0;max-width:100%}
+
+</style>
+<div class="site">
+  <div class="bar">
+    <button class="logo" type="button" id="logoBtn" aria-label="Automata Atlas, home"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>Automata Atlas</button>
+    <div class="bar-right"><span class="pass-pill" id="passPill"></span></div>
+  </div>
+  <div class="view" id="view"></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* Automata Atlas core: registry, router, passport (progress), shared widgets */
+"use strict";
+const SVGNS = "http://www.w3.org/2000/svg";
+const EPS = "ε";
+function svg(tag, attrs, parent, text){ const e=document.createElementNS(SVGNS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); if(text!=null) e.textContent=text; if(parent) parent.appendChild(e); return e; }
+function h(tag, cls, html){ const e=document.createElement(tag); if(cls) e.className=cls; if(html!=null) e.innerHTML=html; return e; }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const Atlas = {
+  stations: {}, order: [], cleanups: [],
+  register(def){ this.stations[def.id]=def; this.order.push(def.id); },
+  /* ---- passport ---- */
+  _load(){ try{ return JSON.parse(localStorage.getItem("atlas.passport")||"{}"); }catch(e){ return {}; } },
+  _mem: null,
+  passport(){ if(!this._mem) this._mem=this._load(); return this._mem; },
+  has(st, id){ const p=this.passport(); return !!(p[st] && p[st][id]); },
+  stamp(st, id){
+    if(this.has(st,id)) return false;
+    const p=this.passport(); (p[st]=p[st]||{})[id]=1;
+    try{ localStorage.setItem("atlas.passport", JSON.stringify(p)); }catch(e){}
+    const def=this.stations[st]; const s=def && def.stamps.find(x=>x.id===id);
+    if(s) this.toast("Passport stamp: "+s.label); this.refreshBar();
+    document.querySelectorAll(`.stp[data-st="${st}"][data-id="${id}"]`).forEach(e=>e.classList.add("on"));
+    return true;
+  },
+  count(st){ const def=this.stations[st]; if(!def||!def.stamps) return [0,0]; return [def.stamps.filter(s=>this.has(st,s.id)).length, def.stamps.length]; },
+  totals(){ let a=0,b=0; this.order.forEach(id=>{ const [x,y]=this.count(id); a+=x; b+=y; }); return [a,b]; },
+  toast(msg){ const t=document.getElementById("toast"); if(!t) return; t.textContent=msg; t.classList.add("show"); clearTimeout(this._tt); this._tt=setTimeout(()=>t.classList.remove("show"),2600); },
+  refreshBar(){ const [a,b]=this.totals(); const pill=document.getElementById("passPill"); if(pill) pill.innerHTML=`Passport <b>${a}/${b}</b><span class="meter"><i style="width:${b?100*a/b:0}%"></i></span>`; },
+  stampRow(st){ const def=this.stations[st]; const row=h("div","stamps"); def.stamps.forEach(s=>{ const e=h("span","stp"+(this.has(st,s.id)?" on":""),"◉ "+esc(s.label)); e.dataset.st=st; e.dataset.id=s.id; row.appendChild(e); }); return row; },
+  /* ---- router ---- */
+  go(id){ if(location.hash.slice(1)===id) this.route(); else location.hash=id; },
+  onCleanup(fn){ this.cleanups.push(fn); },
+  route(){
+    this.cleanups.splice(0).forEach(fn=>{ try{ fn(); }catch(e){} });
+    const id=location.hash.slice(1); const view=document.getElementById("view"); view.innerHTML="";
+    const def=this.stations[id];
+    if(def && def.mount){ this.mountStation(def, view); } else { Home.mount(view); }
+    window.scrollTo(0,0); this.refreshBar();
+  },
+  mountStation(def, view){
+    const built=this.order.filter(i=>this.stations[i].mount); const k=built.indexOf(def.id);
+    const crumb=h("div","crumb"); const back=h("button",null,"← Atlas"); back.type="button"; back.onclick=()=>this.go("home"); crumb.appendChild(back);
+    crumb.appendChild(h("span",null,"· "+esc(def.region)+" · "+esc(def.sessions)));
+    view.appendChild(crumb);
+    const head=h("header","st-head",`<div class="eyebrow">${esc(def.module)}</div><h1>${esc(def.title)}</h1><p class="sub">${esc(def.blurb)}</p>`);
+    view.appendChild(head); view.appendChild(this.stampRow(def.id));
+    const body=h("div","view"); view.appendChild(body);
+    def.mount(body);
+    const np=h("div","nextprev");
+    const mk=(i,lbl)=>{ const b=h("button","btn",lbl); b.type="button"; b.onclick=()=>this.go(i); return b; };
+    np.appendChild(k>0 ? mk(built[k-1],"← "+esc(this.stations[built[k-1]].title)) : mk("home","← Atlas"));
+    np.appendChild(k<built.length-1 ? mk(built[k+1],esc(this.stations[built[k+1]].title)+" →") : mk("home","Back to the atlas →"));
+    view.appendChild(np);
+  }
+};
+
+/* ---- section helper: a titled block ---- */
+function block(parent, kicker, title, id){ const b=h("section","blk"); if(id) b.id="blk-"+id; b.appendChild(h("div","kicker",esc(kicker))); b.appendChild(h("h2",null,esc(title))); parent.appendChild(b); return b; }
+
+/* ---- quick-fire: "A student claims ..." (her midterm format) ---- */
+function quickFire(parent, items, onAll){
+  const grid=h("div","qf"); parent.appendChild(grid); let answered=0, correct=0;
+  items.forEach(it=>{
+    const c=h("div","qf-card"); c.appendChild(h("div","who","A student claims"));
+    c.appendChild(h("p","claim",it.claim));
+    const row=h("div","row"); const b1=h("button","btn","That is right"), b2=h("button","btn","That is wrong"); b1.type=b2.type="button";
+    row.appendChild(b1); row.appendChild(b2); c.appendChild(row);
+    const done=(saidRight)=>{ if(c.dataset.done) return; c.dataset.done=1; b1.disabled=b2.disabled=true; const ok=saidRight===it.ok;
+      c.classList.add(ok?"right":"wrong"); answered++; if(ok) correct++;
+      c.appendChild(h("div","res",(ok?"Correct. ":"Not quite. ")+"The claim is "+(it.ok?"true.":"false.")));
+      c.appendChild(h("p","why",it.why));
+      if(answered===items.length && onAll) onAll(correct, items.length); };
+    b1.onclick=()=>done(true); b2.onclick=()=>done(false);
+    grid.appendChild(c);
+  });
+}
+
+/* ---- finite-automaton diagram (states in a row; her drawing conventions) ---- */
+// M: {states:[], start, accept:[], edges:[{from,to,label}]}  -> handle {setState(s,cls), edge(from,to)}
+function drawFA(box, M, opts){
+  opts=opts||{}; box.innerHTML="";
+  const s=svg("svg",{role:"img","aria-label":"State diagram"}); box.appendChild(s);
+  const uid="m"+Math.random().toString(36).slice(2,8);
+  const defs=svg("defs",{},s);
+  [["a","var(--faint)"],["b","var(--now)"]].forEach(([k,c])=>{ const mk=svg("marker",{id:uid+k,viewBox:"0 0 10 10",refX:"9",refY:"5",markerWidth:"11",markerHeight:"11",markerUnits:"userSpaceOnUse",orient:"auto-start-reverse"},defs); svg("path",{d:"M0,0 L10,5 L0,10 z",style:`fill:${c}`},mk); });
+  const R0=28, n=M.states.length, GAP=n>4?150:(n>3?170:200);
+  const pos={}; M.states.forEach((q,i)=>pos[q]={x:i*GAP,y:0});
+  const groups=new Map();
+  M.edges.forEach(e=>{ if(pos[e.from]===undefined||pos[e.to]===undefined) return; const k=e.from+"→"+e.to; if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(e.label); });
+  const bb={x0:-78,x1:(n-1)*GAP+44,y0:-44,y1:44}; const grow=(x,y)=>{bb.x0=Math.min(bb.x0,x);bb.x1=Math.max(bb.x1,x);bb.y0=Math.min(bb.y0,y);bb.y1=Math.max(bb.y1,y);};
+  const eL=svg("g",{},s), lL=svg("g",{},s), sL=svg("g",{},s); const edges={}, labels={};
+  for(const [k,ls] of groups){
+    const [a,b]=k.split("→"); const A=pos[a], B=pos[b]; let d, lx, ly;
+    const txt=ls.join(", ");
+    if(a===b){ d=`M${A.x-13},${A.y-25} C${A.x-42},${A.y-92} ${A.x+42},${A.y-92} ${A.x+13},${A.y-25}`; lx=A.x; ly=A.y-82; }
+    else{
+      const ia=M.states.indexOf(a), ib=M.states.indexOf(b), fwd=ib>ia, span=Math.abs(ib-ia), rev=groups.has(b+"→"+a);
+      const bend = fwd ? (span===1 ? (rev?-30:0) : -44-34*span) : (span===1 ? 30 : 44+34*span);
+      const mx=(A.x+B.x)/2, cy=A.y+bend*2;
+      const u=(px,py,qx,qy)=>{const dx=qx-px,dy=qy-py,L=Math.hypot(dx,dy)||1;return [dx/L,dy/L];};
+      const [ux,uy]=u(A.x,A.y,mx,bend===0?A.y:cy), [vx,vy]=u(B.x,B.y,mx,bend===0?B.y:cy);
+      const sx=A.x+ux*R0, sy=A.y+uy*R0, ex=B.x+vx*(R0+3), ey=B.y+vy*(R0+3);
+      d = bend===0 ? `M${sx},${sy} L${ex},${ey}` : `M${sx},${sy} Q${mx},${cy} ${ex},${ey}`;
+      lx=mx; ly = bend===0 ? A.y-10 : A.y+bend+(bend<0?-8:20);
+    }
+    edges[k]=svg("path",{d,class:"edge","marker-end":`url(#${uid}a)`},eL);
+    const w=txt.length*8.3+12;
+    const bg=svg("rect",{x:lx-w/2,y:ly-14,width:w,height:18,rx:5,class:"elabel-bg"},lL);
+    const tx=svg("text",{x:lx,y:ly,"text-anchor":"middle",class:"elabel"},lL,txt);
+    labels[k]={bg,tx}; grow(lx-w/2,ly-18); grow(lx+w/2,ly+8);
+  }
+  const S=pos[M.start];
+  if(S){ svg("path",{d:`M${S.x-74},${S.y} L${S.x-R0-3},${S.y}`,class:"edge","marker-end":`url(#${uid}a)`},eL); svg("text",{x:S.x-74,y:S.y-8,class:"startlbl"},lL,"start"); }
+  const sts={};
+  M.states.forEach(q=>{ const P=pos[q]; const g=svg("g",{class:"st"},sL);
+    svg("circle",{cx:P.x,cy:P.y,r:R0,class:"halo"},g); svg("circle",{cx:P.x,cy:P.y,r:R0,class:"st-circle"},g);
+    if(M.accept.includes(q)) svg("circle",{cx:P.x,cy:P.y,r:R0-5,class:"st-ring"},g);
+    const m=/^([^\d]+)(\d+)$/.exec(q); const tx=svg("text",{x:P.x,y:P.y+6,"text-anchor":"middle",class:"st-text"},g);
+    if(q.length>4) tx.setAttribute("style","font-size:12px");
+    if(m && q.length<=4){ svg("tspan",{},tx,m[1]); svg("tspan",{dy:"4","font-size":"12"},tx,m[2]); } else tx.textContent=q;
+    sts[q]=g; });
+  const pad=14, W=bb.x1-bb.x0+pad*2, H=bb.y1-bb.y0+pad*2;
+  s.setAttribute("viewBox",`${bb.x0-pad} ${bb.y0-pad} ${W} ${H}`); s.setAttribute("width",W); s.style.maxHeight=(opts.maxH||260)+"px";
+  const token=svg("circle",{r:7,class:"token",opacity:0},s);
+  return {
+    setState(q, cls){ Object.values(sts).forEach(g=>g.classList.remove("cur","done-acc","done-rej")); if(sts[q]) sts[q].classList.add(cls||"cur"); },
+    edge(from,to,animate){ Object.entries(edges).forEach(([k,p])=>{ p.classList.remove("on"); p.setAttribute("marker-end",`url(#${uid}a)`); labels[k].tx.classList.remove("on"); labels[k].bg.classList.remove("on"); });
+      const k=from+"→"+to, p=edges[k]; if(!p) return; p.classList.add("on"); p.setAttribute("marker-end",`url(#${uid}b)`); labels[k].tx.classList.add("on"); labels[k].bg.classList.add("on");
+      if(animate && !reduceMotion){ const L=p.getTotalLength(), t0=performance.now(); token.setAttribute("opacity",1);
+        (function f(now){ const kk=Math.min(1,(now-t0)/420); const pt=p.getPointAtLength(kk*L); token.setAttribute("cx",pt.x); token.setAttribute("cy",pt.y); if(kk<1) requestAnimationFrame(f); else token.setAttribute("opacity",0); })(t0); } },
+    clearEdge(){ this.edge("",""); }
+  };
+}
+
+/* ---- DFA utilities ---- */
+// D: {states, sigma, start, accept, delta:{q:{a:q'}}}
+function dfaEdges(D){ const out=[]; D.states.forEach(q=>D.sigma.forEach(a=>{ const t=D.delta[q] && D.delta[q][a]; if(t) out.push({from:q,to:t,label:a}); })); return out; }
+function dfaRun(D, w){ const seq=[D.start]; let q=D.start; for(const c of w){ q = D.delta[q] ? D.delta[q][c] : undefined; if(q===undefined){ seq.push(null); break; } seq.push(q); } return seq; }
+function dfaAccepts(D, w){ const seq=dfaRun(D,w); const last=seq[seq.length-1]; return last!==null && seq.length===[...w].length+1 && D.accept.includes(last); }
+function allStrings(sigma, maxLen){ const out=[""]; let layer=[""]; for(let L=1;L<=maxLen;L++){ const nx=[]; layer.forEach(s=>sigma.forEach(a=>nx.push(s+a))); out.push(...nx); layer=nx; } return out; }
+function dfaMinSize(D){ // reachable states, then partition refinement (Session 3)
+  const reach=new Set([D.start]); const st=[D.start]; while(st.length){ const q=st.pop(); D.sigma.forEach(a=>{ const t=D.delta[q][a]; if(!reach.has(t)){ reach.add(t); st.push(t); } }); }
+  const R=[...reach]; let part=new Map(); R.forEach(q=>part.set(q, D.accept.includes(q)?1:0));
+  for(;;){ const sig=new Map(); const ids=new Map(); R.forEach(q=>{ const k=part.get(q)+"|"+D.sigma.map(a=>part.get(D.delta[q][a])).join(","); if(!ids.has(k)) ids.set(k,ids.size); sig.set(q,ids.get(k)); });
+    const before=new Set(part.values()).size; part=sig; if(ids.size===before) return {min:ids.size, reachable:R.length}; }
+}
+
+/* ---- a runner: tape + diagram + state sequence, for any DFA ---- */
+function faRunner(parent, D, opts){
+  opts=opts||{}; const wrap=h("div","panel run"); parent.appendChild(wrap);
+  const top=h("div","controls"); wrap.appendChild(top);
+  const ib=h("div","inputbox"); const uid="in"+Math.random().toString(36).slice(2,7);
+  ib.innerHTML=`<label for="${uid}">Input w</label><input id="${uid}" autocomplete="off" spellcheck="false" maxlength="14">`; top.appendChild(ib);
+  const inp=ib.querySelector("input"); inp.value=opts.input||"";
+  const exs=h("div","examples"); top.appendChild(exs);
+  (opts.examples||[]).forEach(w=>{ const ok=dfaAccepts(D,w); const b=h("button","ex",`${esc(w||EPS)}<small class="${ok?"y":"n"}">${ok?"✓":"✗"}</small>`); b.type="button"; b.onclick=()=>{ inp.value=w; reset(); play(); }; exs.appendChild(b); });
+  const tr=h("div","transport"); top.appendChild(tr);
+  const mk=(lbl,path,cls)=>{ const b=h("button","ibtn"+(cls?" "+cls:""),`<svg viewBox="0 0 24 24" fill="currentColor"><path d="${path}"/></svg>`); b.type="button"; b.setAttribute("aria-label",lbl); b.title=lbl; tr.appendChild(b); return b; };
+  const bR=mk("Back to the start","M6 5h2v14H6zM20 5v14L9 12z"), bB=mk("One symbol back","M18 5v14L7 12z"), bP=mk("Play","M7 4v16l13-8z","play"), bS=mk("Read one symbol","M6 5v14l11-7z");
+  const tape=h("div","tape"); wrap.appendChild(tape);
+  const dia=h("div","diagram"); wrap.appendChild(dia);
+  const seqEl=h("div","seq"); wrap.appendChild(seqEl);
+  const narr=h("div","narr"); narr.innerHTML=`<span class="step">start</span><p></p>`; wrap.appendChild(narr);
+  const handle=drawFA(dia,{states:D.states,start:D.start,accept:D.accept,edges:dfaEdges(D)});
+  let w="", seq=[], t=0, timer=null;
+  function reset(){ stop(); w=inp.value.replace(/\s+/g,""); seq=dfaRun(D,w); t=0; render(false); }
+  function render(anim){
+    const chars=[...w]; tape.innerHTML="";
+    chars.forEach((c,i)=>tape.appendChild(h("div","cell"+(i<t?" read":"")+(i===t?" head":""),esc(c))));
+    tape.appendChild(h("div","cell end"+(t>=chars.length?" head":""),"end"));
+    const last = t===seq.length-1; const q=seq[t]; const stuck = q===null;
+    const acc = last && !stuck && seq.length===chars.length+1 && D.accept.includes(q);
+    if(stuck){ handle.setState(seq[t-1],"done-rej"); handle.clearEdge(); }
+    else { handle.setState(q, last ? (acc?"done-acc":"done-rej") : "cur"); if(t>0) handle.edge(seq[t-1],q,anim); else handle.clearEdge(); }
+    seqEl.innerHTML=""; seq.slice(0,t+1).forEach((s,i)=>{ if(i>0) seqEl.appendChild(h("em",null,"—"+esc(chars[i-1])+"→")); seqEl.appendChild(h("span", i===t ? (last?(acc?"acc":"rej"):"cur") : "", s===null?"no arrow":esc(s))); });
+    const st=narr.querySelector(".step"), p=narr.querySelector("p");
+    if(t===0 && !last){ st.textContent="start"; p.innerHTML=`Start in <b>${esc(D.start)}</b>. Nothing has been read yet.`; }
+    else if(stuck){ st.textContent="stuck"; p.innerHTML=`There is no arrow for <b>${esc(chars[t-1])}</b> out of ${esc(seq[t-1])}. A missing arrow does not mean reject: this is not a DFA yet.`; }
+    else { st.textContent = t===0 ? "start" : "δ"; let txt = t===0 ? `The input is ε, so the machine never leaves <b>${esc(D.start)}</b>.` : `δ(${esc(seq[t-1])}, ${esc(chars[t-1])}) = <b>${esc(q)}</b>` + (D.facts && D.facts[q] ? `<span class="why">${esc(q)}: ${esc(D.facts[q])}</span>` : "");
+      if(last) txt += `<span class="why" style="color:var(--ink);font-weight:600">Input exhausted in ${esc(q)}, which is ${acc?"":"not "}in F: ${acc?"ACCEPT":"REJECT"}. Only the last state matters.</span>`;
+      p.innerHTML=txt; }
+    bB.disabled=bR.disabled=t===0; bS.disabled=last;
+    if(last && opts.onEnd) opts.onEnd(acc, w);
+  }
+  function step(){ if(t<seq.length-1){ t++; render(true); } }
+  function play(){ if(timer) return; if(t>=seq.length-1){ t=0; render(false); } timer=setInterval(()=>{ step(); if(t>=seq.length-1) stop(); },850); }
+  function stop(){ clearInterval(timer); timer=null; }
+  bS.onclick=()=>{ stop(); step(); }; bB.onclick=()=>{ stop(); if(t>0){ t--; render(false); } }; bR.onclick=()=>{ stop(); t=0; render(false); }; bP.onclick=()=> timer?stop():play();
+  inp.addEventListener("input",reset); inp.addEventListener("keydown",e=>{ if(e.key==="Enter"){ reset(); play(); } });
+  Atlas.onCleanup(stop);
+  reset();
+  return {setInput(v){ inp.value=v; reset(); }, play, el:wrap};
+}
+
+/* Station registry (course order) and the home page with the hierarchy map */
+"use strict";
+[
+  {id:"dfa", title:"Deterministic finite automata", short:"DFAs", sessions:"S1–S2", module:"Module 1 · Finite automata", region:"Regular", x:100, y:262,
+   blurb:"A machine with no memory beyond its state. Run her machines one symbol at a time, then design your own and let the checker hunt for a string that breaks it.",
+   stamps:[{id:"run",label:"Ran a machine"},{id:"design1",label:"First correct design"},{id:"design3",label:"Three designs"},{id:"minimal",label:"A minimal machine"},{id:"claims",label:"DFA claims"}]},
+  {id:"min", title:"Minimisation", short:"Minimisation", sessions:"S3", module:"Module 1 · Finite automata", region:"Regular", x:175, y:392,
+   blurb:"Two machines, one language: merge the states nobody can tell apart, by partition refinement and by table filling."},
+  {id:"nfa", title:"NFAs and ε-moves", short:"NFAs and ε", sessions:"S4–S6", module:"Module 2 · Nondeterminism", region:"Regular", x:250, y:262,
+   blurb:"Machines that guess, and why guessing buys nothing here: Subset Race, Closure Chains, Kill the ε."},
+  {id:"mm", title:"Moore and Mealy machines", short:"Moore and Mealy", sessions:"S7", module:"Module 3 · Machines with output", region:"Regular", x:325, y:392,
+   blurb:"Machines that write, not just judge. Convert one into the other and match the output."},
+  {id:"regex", title:"Regular expressions", short:"Regular expressions", sessions:"S9–S11", module:"Module 4 · Regular expressions", region:"Regular", x:400, y:262,
+   blurb:"A second way to say the same thing: Regex Golf, state elimination in any order, and the machine built from the inside out."},
+  {id:"closure", title:"Closure properties", short:"Closure", sessions:"S12", module:"Module 5 · Properties of regular languages", region:"Regular", x:440, y:420,
+   blurb:"Seven operations that stay inside the class, and one product machine with three accepting sets."},
+  {id:"pumping", title:"The pumping lemma", short:"Pumping lemma", sessions:"S13", module:"Module 5 · Properties of regular languages", region:"The edge of Regular", x:486, y:330, wall:true,
+   blurb:"Proving that no machine exists is a game against an adversary. You choose w and i. The adversary chooses p and the split. Play both sides.",
+   stamps:[{id:"anbn",label:"Beat aⁿbⁿ"},{id:"equal",label:"Beat EQUAL"},{id:"three",label:"Three languages proved"},{id:"survive",label:"Fell for a bad w"},{id:"adversary",label:"Won as the adversary"},{id:"claims",label:"Proof claims"}]},
+  {id:"cfg", title:"Grammars and derivation trees", short:"Grammars", sessions:"S17–S18", module:"Module 6 · Grammars", region:"Context-free", x:560, y:262,
+   blurb:"Generate instead of recognise. Build derivations, find two trees for one string, and clean a grammar in four steps."},
+  {id:"cnf", title:"Normal forms", short:"Normal forms", sessions:"S19", module:"Module 6 · Grammars", region:"Context-free", x:625, y:392,
+   blurb:"Every grammar in the same shape: the CNF Conversion Relay, one step at a time."},
+  {id:"pda", title:"Pushdown automata", short:"Pushdown automata", sessions:"S20–S21", module:"Module 7 · Pushdown automata", region:"Context-free", x:690, y:262,
+   blurb:"A finite automaton with one addition, a stack. Watch every move, every guess, and the stack over time.",
+   stamps:[{id:"run",label:"Watched a full run"},{id:"guess",label:"Saw one guess survive"},{id:"stuck",label:"Saw a branch get stuck"},{id:"own",label:"Built your own machine"}]},
+  {id:"cyk", title:"The CYK algorithm", short:"CYK", sessions:"S24", module:"Module 8 · Context-free limits", region:"Context-free", x:755, y:392,
+   blurb:"A table that answers the membership question: CYK Table Sprint."},
+  {id:"cflpump", title:"Closure and pumping for CFLs", short:"CFL limits", sessions:"S22–S23", module:"Module 8 · Context-free limits", region:"The edge of Context-free", x:812, y:320, wall:true,
+   blurb:"Three pieces became five. Break the Language: the pumping game one level up."},
+  {id:"tm", title:"Turing machines", short:"Turing machines", sessions:"S25", module:"Module 9 · Turing machines", region:"Recursively enumerable", x:985, y:262,
+   blurb:"A tape instead of a stack. Tape Walk, and design by mark, cross, return."},
+  {id:"halt", title:"The halting problem", short:"Halting problem", sessions:"S25+", module:"Module 9 · Turing machines", region:"Beyond", x:1050, y:400,
+   blurb:"Accept, reject, or neither: the question no machine can answer."}
+].forEach(d=>{ d.stamps=d.stamps||[]; Atlas.register(d); });
+
+const Home = {
+  mount(view){
+    const hero=h("section","hero");
+    hero.innerHTML=`<div><div class="eyebrow">CSCE 4201 · Theory of Computing · Fall 2026</div>
+      <h1>Automata Atlas</h1>
+      <p class="lede">The whole course on one map. Every session is a stop where you can run the machine, break it, and play the in-class activity. What separates the regions is memory.</p></div>
+      <ul class="facts">
+        <li><b>Not all problems are solvable.</b>Some well-posed yes/no questions have no algorithm at all.</li>
+        <li><b>Not all solvable problems are practical.</b></li>
+        <li><b>Not all systems can be fully verified.</b>These are mathematical limits, not engineering weaknesses.</li>
+      </ul>`;
+    view.appendChild(hero);
+
+    const mapP=h("section","panel"); mapP.innerHTML=`<div class="ph"><h2>The map of the semester</h2><span class="hint">The Chomsky hierarchy. Click a stop to open it. Dashed stops are still being built.</span></div>`;
+    const mw=h("div","mapwrap"); mapP.appendChild(mw); view.appendChild(mapP);
+    const s=svg("svg",{viewBox:"0 0 1120 520",role:"img","aria-label":"Map of the course across the Chomsky hierarchy"},mw);
+    const regs=[
+      ["r0",10,10,1100,500,"Type 0 · Recursively enumerable","Turing machine · unbounded tape","⟨M,w⟩ : M halts on w"],
+      ["r1",24,62,932,434,"Type 1 · Context-sensitive","Linear-bounded automaton · bounded tape","aⁿbⁿcⁿ"],
+      ["r2",38,114,762,368,"Type 2 · Context-free","Pushdown automaton · a stack","aⁿbⁿ"],
+      ["r3",52,166,422,302,"Type 3 · Regular","Finite automaton · no memory beyond the state","even number of a's"]];
+    regs.forEach(([c,x,y,w,hh,l,sub,land])=>{ svg("rect",{x,y,width:w,height:hh,class:"region "+c},s);
+      svg("text",{x:x+18,y:y+24,class:"rlabel"},s,l); svg("text",{x:x+18,y:y+40,class:"rsub"},s,sub);
+      svg("text",{x:x+w-16,y:y+24,"text-anchor":"end",class:"rland"},s,"landmark: "+land); });
+    const pts=Atlas.order.map(id=>Atlas.stations[id]);
+    svg("polyline",{points:pts.map(p=>p.x+","+p.y).join(" "),class:"route"},s);
+    pts.forEach(p=>{
+      const built=!!p.mount; const [a,b]=Atlas.count(p.id); const done=built && b>0 && a===b;
+      const g=svg("g",{class:"stop"+(built?"":" soon")+(done?" done":""),tabindex:"0",role:"button","aria-label":p.title+(built?"":" (coming next)")},s);
+      svg("circle",{cx:p.x,cy:p.y,r:13},g);
+      if(done) svg("text",{x:p.x,y:p.y+4,"text-anchor":"middle",class:"tick"},g,"✓");
+      svg("text",{x:p.x,y:p.y+30,"text-anchor":"middle"},g,p.short);
+      svg("text",{x:p.x,y:p.y+43,"text-anchor":"middle",class:"ses"},g,p.sessions+(built && b? ` · ${a}/${b}`:""));
+      if(p.wall) svg("text",{x:p.x,y:p.y+57,"text-anchor":"middle",class:"wall"},g,"THE WALL");
+      const open=()=>{ if(built) Atlas.go(p.id); else Atlas.toast(p.short+" is being built next"); };
+      g.addEventListener("click",open); g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); open(); } });
+    });
+
+    view.appendChild(h("h2","sec","Every stop"));
+    view.appendChild(h("p","secsub","Each one has the idea in the course notation, a live lab, a challenge, and the ways an answer goes wrong. Finished challenges stamp your passport, which is saved on this device."));
+    const cards=h("div","cards"); view.appendChild(cards);
+    pts.forEach(p=>{ const built=!!p.mount; const [a,b]=Atlas.count(p.id);
+      const c=h(built?"button":"div","card"+(built?"":" soon")); if(built){ c.type="button"; c.onclick=()=>Atlas.go(p.id); }
+      const dots=p.stamps.map(st=>`<i class="${Atlas.has(p.id,st.id)?"on":""}"></i>`).join("");
+      c.innerHTML=`<span class="ses">${esc(p.sessions)} · ${esc(p.region)}</span><h3>${esc(p.title)}</h3><p>${esc(p.blurb)}</p>
+        <div class="foot"><span class="tag ${built?"live":""}">${built?"Open":"Coming next"}</span><span class="dots">${dots}</span></div>`;
+      cards.appendChild(c); });
+  }
+};
+
+/* Station: DFAs (S1–S2) */
+"use strict";
+(function(){
+const MACHINES = [
+  {id:"m1", name:"M₁", tag:"her first machine", lang:"Run it before you decide what it recognises.", reveal:"M₁ accepts the strings that contain at least one 1 and have an even number of 0s after the last 1.",
+   states:["q1","q2","q3"], sigma:["0","1"], start:"q1", accept:["q2"],
+   delta:{q1:{0:"q1",1:"q2"},q2:{0:"q3",1:"q2"},q3:{0:"q2",1:"q2"}}, examples:["01001","1101","100","0010",""], def:"01001"},
+  {id:"d1", name:"D₁", tag:"contains 01", lang:"L = { w ∈ {0,1}* : w contains 01 as a substring }",
+   states:["N","Z","Y"], sigma:["0","1"], start:"N", accept:["Y"],
+   delta:{N:{0:"Z",1:"N"},Z:{0:"Z",1:"Y"},Y:{0:"Y",1:"Y"}},
+   facts:{N:"no 01 yet, and the last symbol was not a 0",Z:"no 01 yet, but the last symbol WAS a 0",Y:"01 has already occurred"}, examples:["1101","01","10","010",""], def:"1101"},
+  {id:"d3", name:"D₃", tag:"ends with 01", lang:"L = { w ∈ {0,1}* : w ends with 01 }",
+   states:["S","A","B"], sigma:["0","1"], start:"S", accept:["B"],
+   delta:{S:{0:"A",1:"S"},A:{0:"A",1:"B"},B:{0:"A",1:"S"}},
+   facts:{S:"does not end in 0, and does not end in 01",A:"ends in 0",B:"ends in 01"}, examples:["0101","010","011","01",""], def:"0101"},
+  {id:"d2", name:"D₂", tag:"even length", lang:"L = { w ∈ {a,b}* : |w| is even }",
+   states:["E","O"], sigma:["a","b"], start:"E", accept:["E"],
+   delta:{E:{a:"O",b:"O"},O:{a:"E",b:"E"}}, facts:{E:"the length so far is even",O:"the length so far is odd"}, examples:["ab","a","abba",""], def:"abba"},
+  {id:"z3", name:"M", tag:"0's divisible by 3", lang:"L = { w ∈ {0,1}* : the number of 0's is divisible by 3 }",
+   states:["z0","z1","z2"], sigma:["0","1"], start:"z0", accept:["z0"],
+   delta:{z0:{0:"z1",1:"z0"},z1:{0:"z2",1:"z1"},z2:{0:"z0",1:"z2"}},
+   facts:{z0:"the number of 0's so far leaves remainder 0",z1:"remainder 1",z2:"remainder 2"}, examples:["000","10101","0110","1",""], def:"010010"},
+  {id:"trap", name:"M", tag:"a trap state", lang:"L = { w ∈ {a,b}* : no a is followed by a b }",
+   states:["s","p","dead"], sigma:["a","b"], start:"s", accept:["s","p"],
+   delta:{s:{a:"p",b:"s"},p:{a:"p",b:"dead"},dead:{a:"dead",b:"dead"}},
+   facts:{s:"no violation yet, and the last symbol was not an a",p:"no violation yet, and the last symbol WAS an a, so a b now would be fatal",dead:"a violation has already occurred, and nothing can undo it"}, examples:["bbaa","aab","ba","abab"], def:"bbaab"}
+];
+const cnt=(w,c)=>{ let n=0; for(const x of w) if(x===c) n++; return n; };
+const TARGETS = [
+  {id:"contains01", sigma:["0","1"], name:"contains 01", lang:"{ w ∈ {0,1}* : w contains 01 as a substring }", test:w=>w.includes("01"), min:3, hint:"Ask the question in the only useful form: as I read left to right, what do I need to know? Have I already seen 01? If not, is a 0 pending?"},
+  {id:"ends01", sigma:["0","1"], name:"ends with 01", lang:"{ w ∈ {0,1}* : w ends with 01 }", test:w=>w.endsWith("01"), min:3, hint:"The facts are about the suffix, not the history. Check twice what a 0 does after you have just seen 01."},
+  {id:"evenlen", sigma:["a","b"], name:"even length", lang:"{ w ∈ {a,b}* : |w| is even }", test:w=>w.length%2===0, min:2, hint:"Notice what the machine can ignore completely: which symbols they were."},
+  {id:"two_a", sigma:["a","b"], name:"at least two a's", lang:"{ w ∈ {a,b}* : w contains at least two a's }", test:w=>cnt(w,"a")>=2, min:3, hint:"How many a's do you actually need to count up to?"},
+  {id:"zeros3", sigma:["0","1"], name:"0's divisible by 3", lang:"{ w ∈ {0,1}* : the number of 0's is divisible by 3 }", test:w=>cnt(w,"0")%3===0, min:3, hint:"You do not need to count the 0's. You need only their remainder on division by three. And ε has zero 0's."},
+  {id:"starts_a", sigma:["a","b"], name:"starts with a", lang:"{ w ∈ {a,b}* : w starts with a }", test:w=>w[0]==="a", min:3, hint:"After a first b the string is doomed, but a missing arrow is not a DFA. Send doomed transitions to a dead state."}
+];
+
+Atlas.stations.dfa.mount = function(root){
+  /* ---------- idea ---------- */
+  const b1=block(root,"The idea","A machine with no memory beyond its state","idea");
+  const two=h("div","two"); b1.appendChild(two);
+  const pA=h("div","panel"); pA.innerHTML=`<div class="ph"><h2>The formal definition</h2></div>
+    <div class="tuple" style="font-size:15px">M = ( Q , Σ , δ , q₀ , F )</div>
+    <div class="prose" style="margin-top:10px"><p><code>Q</code> a finite set of states, fixed before any input.</p><p><code>Σ</code> the alphabet, the symbols it may read.</p>
+    <p><code>δ : Q × Σ → Q</code> exactly one value for every (state, symbol) pair. That is "deterministic".</p>
+    <p><code>q₀ ∈ Q</code> the start state: an element, not a subset.</p><p><code>F ⊆ Q</code> the accepting states: a subset, possibly empty.</p></div>
+    <div class="note" style="margin-top:8px">M is a tuple, not a set: use ( ), never { }. And F = {q₂} is a set while q₀ = q₁ is an element.</div>`;
+  const pB=h("div","panel"); pB.innerHTML=`<div class="ph"><h2>Deciding acceptance: the procedure</h2></div>
+    <ol class="recipe"><li><div>Put the machine in its start state q₀. Read nothing yet.<small>one state, not a set</small></div></li>
+    <li><div>Read the leftmost unread symbol.<small>left to right, never back</small></div></li>
+    <li><div>Apply δ to the current state and that symbol.<small>exactly one answer</small></div></li>
+    <li><div>Repeat until the input is exhausted.<small>n symbols → n+1 states</small></div></li>
+    <li><div>Look at the state you finished in. In F → accept. Not in F → reject.<small>only the LAST state matters</small></div></li></ol>`;
+  two.appendChild(pA); two.appendChild(pB);
+
+  /* ---------- lab ---------- */
+  const b2=block(root,"Lab","Run a machine, one symbol at a time","lab");
+  const tabs=h("div","machines"); b2.appendChild(tabs);
+  const info=h("div","panel mcard"); b2.appendChild(info);
+  const host=h("div"); b2.appendChild(host);
+  let runs=0;
+  function show(m){
+    [...tabs.children].forEach(t=>t.setAttribute("aria-selected", t.dataset.id===m.id?"true":"false"));
+    const rows=m.states.map(q=>`<tr><th>${q===m.start?"→ ":""}${m.accept.includes(q)?"* ":""}${esc(q)}</th>${m.sigma.map(a=>`<td>${esc(m.delta[q][a])}</td>`).join("")}</tr>`).join("");
+    info.innerHTML=`<div><div class="lang" style="font-size:17px">${esc(m.lang)}</div>
+      <div class="tuple" style="margin-top:10px">${esc(m.name)} = ( {${m.states.join(", ")}}, {${m.sigma.join(", ")}}, δ, ${m.start}, {${m.accept.join(", ")}} )</div>
+      <p class="idea" style="margin-top:10px">The same machine three ways: the diagram below, this 5-tuple, and the table on the right. All three carry exactly the same information.</p>
+      ${m.reveal?`<div class="row"><button class="btn" type="button" id="revealBtn">What does it recognise?</button><span id="revealTxt" class="idea" style="margin:0"></span></div>`:""}</div>
+      <div><div class="dlabel">Transition table · → start · * accepting</div><div class="tablewrap"><table class="dt"><tr><th>state</th>${m.sigma.map(a=>`<th>${esc(a)}</th>`).join("")}</tr>${rows}</table></div>
+      <p class="idea" style="margin-top:8px">No empty cells: |Q| × |Σ| = ${m.states.length} × ${m.sigma.length} = ${m.states.length*m.sigma.length} entries.</p></div>`;
+    const rb=info.querySelector("#revealBtn"); if(rb) rb.onclick=()=>{ info.querySelector("#revealTxt").textContent=m.reveal; };
+    host.innerHTML="";
+    faRunner(host, m, {input:m.def, examples:m.examples, onEnd(){ runs++; if(runs>=2) Atlas.stamp("dfa","run"); }});
+  }
+  MACHINES.forEach(m=>{ const t=h("button","tab",`<b>${esc(m.name)}</b><span>${esc(m.tag)}</span>`); t.type="button"; t.dataset.id=m.id; t.setAttribute("role","tab"); t.onclick=()=>show(m); tabs.appendChild(t); });
+  show(MACHINES[0]);
+
+  /* ---------- challenge ---------- */
+  const b3=block(root,"Challenge","Design a DFA. The checker hunts for a string that breaks it.","design");
+  const rec=h("div","panel"); rec.innerHTML=`<div class="ph"><h2>Designing a DFA: the procedure</h2><span class="hint">Decide the facts first. The arrows then write themselves.</span></div>
+    <ol class="recipe" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">
+    <li><div>Name the facts the machine must remember about the input read so far, and nothing more.<small>the only creative step</small></div></li>
+    <li><div>Give each possible answer its own state, and name the state after the fact.<small>k answers → k states</small></div></li>
+    <li><div>Fix the start state: what is true before you have read anything?</div></li>
+    <li><div>Draw one arrow out of every state for every symbol of Σ.<small>|Q| × |Σ| arrows, exactly</small></div></li>
+    <li><div>Mark F, then test ε and two more strings.</div></li></ol>`;
+  b3.appendChild(rec);
+  const ttabs=h("div","machines"); b3.appendChild(ttabs);
+  const ed=h("div","panel"); b3.appendChild(ed);
+  const solved=()=>TARGETS.filter(t=>Atlas.has("dfa","t_"+t.id)).length;
+  let T=null, D=null;
+  function pick(t){
+    T=t; [...ttabs.children].forEach(x=>x.setAttribute("aria-selected", x.dataset.id===t.id?"true":"false"));
+    D={states:["q0","q1","q2"].slice(0,Math.max(2,t.min)), sigma:t.sigma, start:"q0", accept:[], delta:{}}; D.states.forEach(q=>D.delta[q]={});
+    renderEd();
+  }
+  function renderEd(msg){
+    ed.innerHTML=`<div class="ph"><h2>Target: ${esc(T.name)}</h2><span class="hint">L = ${esc(T.lang)}</span></div>`;
+    const two=h("div","two"); ed.appendChild(two);
+    const left=h("div"); two.appendChild(left); const right=h("div"); two.appendChild(right);
+    const tw=h("div","tablewrap"); left.appendChild(tw);
+    const tb=h("table","dt"); tw.appendChild(tb);
+    tb.innerHTML=`<tr><th>start</th><th>in F</th><th>state</th>${D.sigma.map(a=>`<th>δ( · , ${esc(a)})</th>`).join("")}</tr>`;
+    D.states.forEach((q,i)=>{ const tr=h("tr"); tb.appendChild(tr);
+      const c1=h("td"); const r=h("input"); r.type="radio"; r.name="startq"; r.checked=D.start===q; r.setAttribute("aria-label","start state "+q); r.onchange=()=>{ D.start=q; draw(); }; c1.appendChild(r); tr.appendChild(c1);
+      const c2=h("td"); const cb=h("input"); cb.type="checkbox"; cb.checked=D.accept.includes(q); cb.setAttribute("aria-label",q+" accepting"); cb.onchange=()=>{ D.accept=cb.checked?[...D.accept,q]:D.accept.filter(x=>x!==q); draw(); }; c2.appendChild(cb); tr.appendChild(c2);
+      const c3=h("td"); const nm=h("input"); nm.type="text"; nm.value=q; nm.maxLength=5; nm.setAttribute("aria-label","name of state "+(i+1));
+      nm.onchange=()=>{ const v=nm.value.trim(); if(!v || D.states.includes(v)){ nm.value=q; return; } rename(q,v); renderEd(); }; c3.appendChild(nm); tr.appendChild(c3);
+      D.sigma.forEach(a=>{ const td=h("td", D.delta[q][a]?"":"miss"); const sel=h("select"); sel.setAttribute("aria-label",`delta ${q} ${a}`);
+        sel.innerHTML=`<option value="">?</option>`+D.states.map(s=>`<option ${D.delta[q][a]===s?"selected":""}>${esc(s)}</option>`).join("");
+        sel.onchange=()=>{ if(sel.value) D.delta[q][a]=sel.value; else delete D.delta[q][a]; td.className=sel.value?"":"miss"; draw(); }; td.appendChild(sel); tr.appendChild(td); });
+    });
+    const row=h("div","row"); row.style.marginTop="10px"; left.appendChild(row);
+    const add=h("button","btn","+ state"), del=h("button","btn","− state"), chk=h("button","btn primary","Check my machine"), hint=h("button","btn","Hint");
+    [add,del,chk,hint].forEach(b=>{ b.type="button"; row.appendChild(b); });
+    add.disabled=D.states.length>=6; del.disabled=D.states.length<=1;
+    add.onclick=()=>{ let k=0; while(D.states.includes("q"+k)) k++; D.states.push("q"+k); D.delta["q"+k]={}; renderEd(); };
+    del.onclick=()=>{ const q=D.states.pop(); delete D.delta[q]; D.accept=D.accept.filter(x=>x!==q); if(D.start===q) D.start=D.states[0]; D.states.forEach(s=>D.sigma.forEach(a=>{ if(D.delta[s][a]===q) delete D.delta[s][a]; })); renderEd(); };
+    const out=h("div"); out.style.marginTop="10px"; left.appendChild(out); if(msg) out.appendChild(msg);
+    hint.onclick=()=>{ out.innerHTML=""; out.appendChild(h("div","note",esc(T.hint))); };
+    chk.onclick=()=>check(out);
+    right.appendChild(h("div","dlabel","Your machine, drawn live"));
+    const dia=h("div","diagram"); right.appendChild(dia);
+    const tryBox=h("div"); right.appendChild(tryBox);
+    function draw(){ drawFA(dia,{states:D.states,start:D.start,accept:D.accept,edges:dfaEdges(D)},{maxH:230}); tryBox.innerHTML=""; }
+    draw();
+    ed._try=(w)=>{ tryBox.innerHTML=""; faRunner(tryBox, D, {input:w}).play(); };
+  }
+  function rename(q,v){ D.states=D.states.map(s=>s===q?v:s); D.delta[v]=D.delta[q]; delete D.delta[q]; D.accept=D.accept.map(s=>s===q?v:s); if(D.start===q) D.start=v;
+    D.states.forEach(s=>D.sigma.forEach(a=>{ if(D.delta[s][a]===q) D.delta[s][a]=v; })); }
+  function check(out){
+    out.innerHTML="";
+    const missing=[]; D.states.forEach(q=>D.sigma.forEach(a=>{ if(!D.delta[q][a]) missing.push(`δ(${q}, ${a})`); }));
+    if(missing.length){ out.appendChild(h("div","note bad",`<b>Not a DFA yet.</b> ${esc(missing.slice(0,4).join(", "))}${missing.length>4?" and more":""} ${missing.length>1?"are":"is"} undefined. δ is a function Q × Σ → Q: a missing arrow does not mean reject. You need exactly ${D.states.length} × ${D.sigma.length} = ${D.states.length*D.sigma.length} transitions.`)); return; }
+    const bad=allStrings(D.sigma,10).find(w=>dfaAccepts(D,w)!==T.test(w));
+    if(bad!==undefined){
+      const acc=dfaAccepts(D,bad); const seq=dfaRun(D,bad).join(" → ");
+      const n=h("div","note bad",`<b>Counterexample: ${esc(bad||EPS)}</b>. Your machine ${acc?"accepts":"rejects"} it, but it is ${T.test(bad)?"":"not "}in L.<br><span class="mono">${esc(seq)}</span>${bad===""?"<br>The empty string finishes in q₀, so ε ∈ L(M) exactly when q₀ ∈ F. Check it every single time.":""}`);
+      const b=h("button","btn","Watch it run on your machine"); b.type="button"; b.style.marginTop="8px"; b.onclick=()=>ed._try(bad); n.appendChild(h("br")); n.appendChild(b);
+      out.appendChild(n); return; }
+    const ms=dfaMinSize(D);
+    let extra = ms.reachable<D.states.length ? ` ${D.states.length-ms.reachable} of your states can never be reached.` : "";
+    extra += D.states.length>T.min ? ` It has ${D.states.length} states, and the smallest machine for this language has ${T.min}. Which of your states remember the same fact? Session 3 turns that question into a procedure.` : ` And it is minimal: no DFA for this language has fewer than ${T.min} states.`;
+    out.appendChild(h("div","note good",`<b>Correct.</b> Your machine agrees with L on every one of the ${allStrings(D.sigma,10).length} strings up to length 10.${esc(extra)}`));
+    Atlas.stamp("dfa","t_"+T.id); Atlas.stamp("dfa","design1"); if(solved()>=3) Atlas.stamp("dfa","design3"); if(D.states.length===T.min) Atlas.stamp("dfa","minimal");
+    [...ttabs.children].forEach(x=>{ if(x.dataset.id===T.id) x.querySelector("span").textContent="solved ✓"; });
+  }
+  TARGETS.forEach(t=>{ const b=h("button","tab",`<b>${esc(t.name)}</b><span>${Atlas.has("dfa","t_"+t.id)?"solved ✓":"Σ = {"+t.sigma.join(",")+"}"}</span>`); b.type="button"; b.dataset.id=t.id; b.onclick=()=>pick(t); ttabs.appendChild(b); });
+  pick(TARGETS[0]);
+
+  /* ---------- how it goes wrong ---------- */
+  const b4=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  quickFire(b4,[
+    {claim:"“My machine passed through an accepting state while reading the string, so the string is accepted.”", ok:false, why:"Only the LAST state matters. Passing through an accepting state part-way means nothing at all."},
+    {claim:"“I left out the b-arrow from the start state. The string is doomed after a b anyway, so the missing arrow means reject.”", ok:false, why:"A missing transition does not mean reject. It means the object you drew is not a DFA at all. Add one non-accepting dead state with self-loops and send every doomed transition to it."},
+    {claim:"“ε ∈ L(M) exactly when q₀ ∈ F.”", ok:true, why:"The empty string reads nothing and finishes in q₀. Check the ε case every single time."},
+    {claim:"“M = { Q, Σ, δ, q₀, F } with q₀ = {q₁}.”", ok:false, why:"Two errors. M is a tuple, so it is written with ( ), never { }. And q₀ is an element of Q, not a subset: q₀ = q₁. F is the one that is a set."},
+    {claim:"“A string of n symbols takes the machine through n + 1 states, counting the start state.”", ok:true, why:"One state before reading anything, then one new current state per symbol."},
+    {claim:"“In the machine for ‘ends with 01’, the accepting state needs a self-loop, like in ‘contains 01’.”", ok:false, why:"In ‘contains 01’ acceptance is monotone, so Y is absorbing. In ‘ends with 01’ every symbol changes what the string ends with, so B is left on every input: δ(B, 0) = A and δ(B, 1) = S."}
+  ], (c,n)=>{ if(c>=n-1) Atlas.stamp("dfa","claims"); else Atlas.toast(`${c} of ${n} right. Reload the stop to try again.`); });
+};
+// hidden per-target stamps so progress per language is remembered
+TARGETS.forEach(t=>Atlas.stations.dfa._targets=(Atlas.stations.dfa._targets||[]).concat(t.id));
+})();
+
+/* Station: the pumping lemma as the Adversary Game (S13) */
+"use strict";
+(function(){
+const cnt=(w,c)=>{ let n=0; for(const x of w) if(x===c) n++; return n; };
+const rep=(s,n)=>s.repeat(Math.max(0,n));
+const isPal=w=>w===[...w].reverse().join("");
+const LANGS = [
+  {id:"anbn", name:"{ aⁿbⁿ : n ≥ 0 }", sigma:"ab", test:w=>/^a*b*$/.test(w)&&cnt(w,"a")===cnt(w,"b"),
+   ws:[{l:"aᵖbᵖ",f:p=>rep("a",p)+rep("b",p)},{l:"a^⌈p/2⌉ b^⌈p/2⌉",f:p=>rep("a",Math.ceil(p/2))+rep("b",Math.ceil(p/2))},{l:"ab",f:()=>"ab"}],
+   proof:"w = aᵖbᵖ. Since |xy| ≤ p, y = aᵝ with β ≥ 1. Take i = 0: xz = aᵖ⁻ᵝbᵖ has fewer a's than b's, so xz ∉ L."},
+  {id:"anbn1", name:"L₁ = { aⁿbⁿ⁺¹ }", sigma:"ab", test:w=>/^a*b*$/.test(w)&&cnt(w,"a")+1===cnt(w,"b"),
+   ws:[{l:"aᵖbᵖ⁺¹",f:p=>rep("a",p)+rep("b",p+1)},{l:"b",f:()=>"b"},{l:"a²b³",f:()=>"aabbb"}],
+   proof:"w = aᵖbᵖ⁺¹. |xy| ≤ p forces y = aᵝ, β ≥ 1. Take i = 0: b's − a's = β + 1 ≥ 2 ≠ 1, so xz ∉ L₁."},
+  {id:"equal", name:"EQUAL = { w : #a(w) = #b(w) }", sigma:"ab", test:w=>/^[ab]*$/.test(w)&&cnt(w,"a")===cnt(w,"b"),
+   ws:[{l:"(ab)ᵖ",f:p=>rep("ab",p)},{l:"aᵖbᵖ",f:p=>rep("a",p)+rep("b",p)},{l:"bᵖaᵖ",f:p=>rep("b",p)+rep("a",p)}],
+   proof:"w = aᵖbᵖ again. y = aᵝ, and i = 0 leaves aᵖ⁻ᵝbᵖ with unequal counts. With w = (ab)ᵖ the adversary picks x = ε, y = ab and survives every i."},
+  {id:"akbak", name:"N = { aᵏbaᵏ : k ≥ 0 }", sigma:"ab", test:w=>{ const m=/^(a*)b(a*)$/.exec(w); return !!m && m[1].length===m[2].length; },
+   ws:[{l:"aᵖbaᵖ",f:p=>rep("a",p)+"b"+rep("a",p)},{l:"aba",f:()=>"aba"},{l:"a^⌈p/2⌉ b a^⌈p/2⌉",f:p=>rep("a",Math.ceil(p/2))+"b"+rep("a",Math.ceil(p/2))}],
+   proof:"w = aᵖbaᵖ. The single b is beyond the first p symbols, so y = aᵝ from the prefix. i = 0 leaves aᵖ⁻ᵝbaᵖ, which is unbalanced."},
+  {id:"anb2n", name:"{ aⁿb²ⁿ : n ≥ 0 }", sigma:"ab", test:w=>/^a*b*$/.test(w)&&2*cnt(w,"a")===cnt(w,"b"),
+   ws:[{l:"aᵖb²ᵖ",f:p=>rep("a",p)+rep("b",2*p)},{l:"abb",f:()=>"abb"},{l:"a²b⁴",f:()=>"aabbbb"}],
+   proof:"w = aᵖb²ᵖ, |w| = 3p ≥ p. y = aᵝ, β ≥ 1. i = 0 gives p − β a's against 2p b's, and 2(p − β) ≠ 2p."},
+  {id:"pal", name:"PALINDROME over {a, b}", sigma:"ab", test:w=>/^[ab]*$/.test(w)&&isPal(w),
+   ws:[{l:"aᵖ",f:p=>rep("a",p)},{l:"aᵖbaᵖ",f:p=>rep("a",p)+"b"+rep("a",p)},{l:"(ab)ᵖa",f:p=>rep("ab",p)+"a"}],
+   proof:"w = aᵖbaᵖ. y = aᵝ inside the first block, and i = 0 gives aᵖ⁻ᵝbaᵖ, which is not a palindrome. (The slides do it by closure: PALINDROME ∩ L(a*ba*) = { aᵏbaᵏ }.)"}
+];
+const SUP="⁰¹²³⁴⁵⁶⁷⁸⁹";
+function splits(w,p){ const out=[]; for(let a=0;a<Math.min(p,w.length);a++) for(let b=1;a+b<=Math.min(p,w.length);b++) out.push({x:w.slice(0,a),y:w.slice(a,a+b),z:w.slice(a+b)}); return out; }
+const pump=(s,i)=>s.x+rep(s.y,i)+s.z;
+function killers(L,s,max){ const k=[]; for(let i=0;i<=max;i++) if(!L.test(pump(s,i))) k.push(i); return k; }
+function wHTML(s,i,cls){ // colour x / y^i / z
+  const span=(str,c)=>[...str].map(ch=>`<span class="${c}">${esc(ch)}</span>`).join("");
+  let out=span(s.x,"x")+(s.x?'<span class="gap"></span>':"");
+  if(i===undefined) out+=span(s.y,"y"); else for(let k=0;k<i;k++) out+=span(s.y,k===0?"y":"y2");
+  if(i===0) out+='<span class="gap"></span>';
+  out+=(s.z?'<span class="gap"></span>':"")+span(s.z,"z");
+  return `<div class="wstr ${cls||""}">${out||'<span>ε</span>'}</div>`;
+}
+const KEY=`<div class="keyline"><span><i style="background:var(--sym-A)"></i>x</span><span><i style="background:var(--now)"></i>y, the part that is pumped</span><span><i style="background:var(--sym-X)"></i>z</span></div>`;
+
+Atlas.stations.pumping.mount = function(root){
+  /* ---------- idea ---------- */
+  const b1=block(root,"The idea","You choose two things. The adversary chooses two.","idea");
+  const three=h("div","three"); b1.appendChild(three);
+  three.appendChild(h("div","panel",`<div class="ph"><h2>The adversary chooses</h2></div><div class="prose"><p><b>p</b>, the pumping length. Some number. In a written proof you never learn its value.</p><p>The <b>decomposition w = xyz</b>, subject only to <code>|y| ≥ 1</code> and <code>|xy| ≤ p</code>.</p><p>So your argument must cover EVERY legal decomposition, not one you like.</p></div>`));
+  three.appendChild(h("div","panel",`<div class="ph"><h2>You choose</h2></div><div class="prose"><p><b>w</b>, any string in L with <code>|w| ≥ p</code>. Choose it so that |xy| ≤ p traps y where you want it.</p><p><b>i</b>, the pump count. You may pick a different i for each decomposition.</p><p>Choose w badly and no i will save you.</p></div>`));
+  three.appendChild(h("div","panel",`<div class="ph"><h2>You win if</h2></div><div class="order"><div>adversary: p</div><div>you: w ∈ L, |w| ≥ p</div><div>adversary: x, y, z</div><div>you: i</div><div><b>you win iff xyⁱz ∉ L</b></div></div><p class="idea" style="margin-top:10px">The order of the moves is the order of the quantifiers: ∀p ∃w ∀xyz ∃i. It cannot be rearranged.</p>`));
+
+  /* ---------- the game ---------- */
+  const b2=block(root,"Challenge","The Adversary Game: prove the language is not regular","game");
+  const ltabs=h("div","machines"); b2.appendChild(ltabs);
+  const game=h("div","game"); b2.appendChild(game);
+  const log=h("div","log"); game.appendChild(log);
+  const board=h("div","board"); game.appendChild(board);
+  let L=null, G=null;
+  const wins=()=>LANGS.filter(l=>Atlas.has("pumping","w_"+l.id)).length;
+  function say(who, html){ const m=h("div","move "+who+" in"); m.appendChild(h("div","who", who==="adv"?"Adversary":who==="you"?"You":"Referee")); const b=h("div","body",html); m.appendChild(b); log.appendChild(m); return b; }
+  function setBoard(stage, verdict){
+    const steps=["adversary: p","you: w ∈ L, |w| ≥ p","adversary: x, y, z","you: i"];
+    board.innerHTML=`<div class="panel"><div class="ph"><h2>Move order</h2></div><div class="order">${steps.map((s,i)=>`<div class="${i===stage?"on":i<stage?"done":""}"><span>${s}</span><span>${i<stage?"✓":""}</span></div>`).join("")}</div>
+      ${G&&G.w!==undefined?`<p class="idea" style="margin:10px 0 0">p = <b class="mono">${G.p}</b> · w = <b class="mono">${esc(G.w)}</b> · |w| = ${G.w.length}</p>`:""}
+      ${verdict||""}</div>
+      <div class="panel"><div class="ph"><h2>How this becomes a written proof</h2></div><p class="idea" style="margin:0">${esc(L.proof)}</p></div>`;
+  }
+  function start(l){
+    L=l; [...ltabs.children].forEach(x=>x.setAttribute("aria-selected", x.dataset.id===l.id?"true":"false"));
+    log.innerHTML=""; G={p:3+Math.floor(Math.random()*3), beaten:0};
+    say("sys",`<p>We are trying to prove that <b class="mono">${esc(L.name)}</b> is not regular. Suppose it were. Then the pumping lemma hands the adversary a constant.</p>`);
+    say("adv",`<p>My pumping length is <b class="mono">p = ${G.p}</b>.</p><p class="idea" style="margin:0">In a real proof p stays unknown. It is shown here so we can play, which is why the good choices of w are written in terms of p.</p>`);
+    chooseW();
+  }
+  function chooseW(){
+    setBoard(1);
+    const b=say("you",`<p>Choose <b>w ∈ L</b> with |w| ≥ ${G.p}.</p>`);
+    const opts=h("div","opts"); b.appendChild(opts);
+    const lock=()=>opts.querySelectorAll("button,input").forEach(x=>x.disabled=true);
+    L.ws.forEach(o=>{ const w=o.f(G.p); const bt=h("button","opt",`${esc(o.l)} <span style="color:var(--muted);font-size:12px">= ${esc(w)}</span>`); bt.type="button";
+      bt.onclick=()=>{ if(w.length<G.p){ Atlas.toast(`|w| = ${w.length} < p = ${G.p}. The lemma says nothing about strings that short.`); bt.disabled=true; return; } bt.classList.add("sel"); lock(); G.w=w; adversarySplit(); }; opts.appendChild(bt); });
+    const own=h("input","txt"); own.placeholder="or type your own w"; own.maxLength=16; own.setAttribute("aria-label","your own w"); own.style.width="19ch"; opts.appendChild(own);
+    const go=h("button","opt","use it"); go.type="button"; opts.appendChild(go);
+    go.onclick=()=>{ const w=own.value.trim(); if(!w) return;
+      if(!L.test(w)){ Atlas.toast(`${w} is not in L. You must choose a member of the language.`); return; }
+      if(w.length<G.p){ Atlas.toast(`|w| = ${w.length} < p = ${G.p}. Too short.`); return; }
+      lock(); G.w=w; adversarySplit(); };
+  }
+  function adversarySplit(){
+    setBoard(2);
+    const all=splits(G.w,G.p).map(s=>({...s,k:killers(L,s,6)}));
+    G.all=all; G.safe=all.filter(s=>s.k.length===0);
+    // hardest first: fewest winning i's; avoid repeating a split
+    G.queue=all.slice().sort((a,b)=>a.k.length-b.k.length || b.y.length-a.y.length);
+    G.kinds=new Set(all.map(s=>[...new Set(s.y)].sort().join("")));
+    nextSplit();
+  }
+  function nextSplit(){
+    const s=G.queue.shift(); G.cur=s; setBoard(3);
+    const taunt = s.k.length===0 ? "Try to pump your way out of this one." : (G.beaten? "Fine. A different split." : "Here is my split.");
+    say("adv",`<p>${taunt} <span class="mono">x = ${esc(s.x||EPS)}, y = ${esc(s.y)}, z = ${esc(s.z||EPS)}</span> · |xy| = ${s.x.length+s.y.length} ≤ ${G.p}, |y| = ${s.y.length} ≥ 1</p>${wHTML(s)}${KEY}`);
+    const b=say("you",`<p>Choose <b>i</b> so that xyⁱz leaves the language.</p>`);
+    const opts=h("div","opts"); b.appendChild(opts); const res=h("div"); b.appendChild(res); let tries=0;
+    [0,1,2,3].forEach(i=>{ const bt=h("button","opt","i = "+i); bt.type="button"; opts.appendChild(bt);
+      bt.onclick=()=>{ tries++; const out=pump(s,i), inL=L.test(out);
+        res.innerHTML=`<p style="margin-top:8px" class="mono">xy${SUP[i]}z = ${esc(out||EPS)}</p>${wHTML(s,i)}`;
+        if(i===1){ res.innerHTML+=`<div class="note">i = 1 gives back w itself, which is in L by your own choice. It can never win.</div>`; bt.disabled=true; return; }
+        if(!inL){ opts.querySelectorAll("button").forEach(x=>x.disabled=true); bt.classList.add("sel");
+          res.innerHTML+=`<div class="note good"><b>${esc(out||EPS)} ∉ L.</b> This split is beaten.</div>`; G.beaten++; afterBeat(); }
+        else { bt.disabled=true; res.innerHTML+=`<div class="note bad"><b>${esc(out||EPS)} ∈ L.</b> Still inside the language.</div>`;
+          if(s.k.length===0 && tries>=2){ opts.querySelectorAll("button").forEach(x=>x.disabled=true); survived(s); } }
+      }; });
+  }
+  function afterBeat(){
+    if(G.safe.length===0 && (G.beaten>=3 || G.queue.length===0)) return sweep();
+    const b=say("sys",`<p>One split down. The adversary may try another: your w has to beat <b>every</b> legal split (there are ${G.all.length}).</p>`);
+    const o=h("div","opts"); b.appendChild(o);
+    const n=h("button","opt","Next split"); n.type="button"; n.onclick=()=>{ o.querySelectorAll("button").forEach(x=>x.disabled=true); nextSplit(); }; o.appendChild(n);
+    if(G.safe.length===0){ const a=h("button","opt","Check all the rest for me"); a.type="button"; a.onclick=()=>{ o.querySelectorAll("button").forEach(x=>x.disabled=true); sweep(); }; o.appendChild(a); }
+  }
+  function sweep(){
+    const kinds=[...G.kinds]; const one=kinds.length===1;
+    const zero=G.all.filter(s=>s.k.includes(0)).length;
+    say("sys",`<p class="big win">You win. ${esc(L.name)} is not regular.</p>
+      <p>Checked by machine: at p = ${G.p} there are <b>${G.all.length}</b> legal decompositions of ${esc(G.w)}, and every one of them is beaten by some i (i = 0 defeats ${zero} of them).</p>
+      <p>${one?`Every legal y is made of <b>${esc(kinds[0])}</b>'s only. That is what a good w buys: |xy| ≤ p trapped y in one block, so the written proof needs a single case, y = ${esc(kinds[0])}ᵝ with β ≥ 1.`
+        :`But look at the y's the adversary could choose: ${kinds.map(k=>"<b>"+esc(k.length>1?"a mix of "+k.split("").join(" and "):"all "+k+"'s")+"</b>").join(", ")}. You won the game, yet a written proof with this w needs ${kinds.length} cases. A w whose first p symbols are all the same letter leaves one.`}</p>`);
+    setBoard(4,`<p class="big win" style="margin:10px 0 0">Not regular ∎</p>`);
+    Atlas.stamp("pumping","w_"+L.id); if(L.id==="anbn") Atlas.stamp("pumping","anbn"); if(L.id==="equal") Atlas.stamp("pumping","equal"); if(wins()>=3) Atlas.stamp("pumping","three");
+    [...ltabs.children].forEach(x=>{ if(x.dataset.id===L.id) x.querySelector("span").textContent="proved ✓"; });
+    again("Play this language again");
+  }
+  function survived(s){
+    say("adv",`<p>My split survives. <span class="mono">xyⁱz</span> stays in the language for every i:</p><p class="mono">${[0,1,2,3].map(i=>"i="+i+": "+esc(pump(s,i)||EPS)).join(" · ")}</p>`);
+    say("sys",`<p class="big lose">This w lost.</p><p>At p = ${G.p}, <b>${G.safe.length} of the ${G.all.length}</b> legal splits of ${esc(G.w)} survive every i.</p>
+      <p>A surviving split does <b>not</b> mean the language is regular. It means that w was the wrong choice, and the proof must restart with a better one. The fix is always the same: pick a w whose first p symbols are all the same letter.</p>`);
+    setBoard(4,`<p class="big lose" style="margin:10px 0 0">Choose a better w</p>`);
+    Atlas.stamp("pumping","survive");
+    again("Choose a different w", true);
+  }
+  function again(label, sameP){ const b=say("sys",""); const o=h("div","opts"); b.appendChild(o); const bt=h("button","opt",label); bt.type="button"; o.appendChild(bt);
+    bt.onclick=()=>{ if(sameP){ bt.disabled=true; G.beaten=0; delete G.w; chooseW(); } else start(L); }; }
+  LANGS.forEach(l=>{ const t=h("button","tab",`<b>${esc(l.name)}</b><span>${Atlas.has("pumping","w_"+l.id)?"proved ✓":""}</span>`); t.type="button"; t.dataset.id=l.id; t.onclick=()=>start(l); ltabs.appendChild(t); });
+  start(LANGS[0]);
+
+  /* ---------- swap roles ---------- */
+  const b3=block(root,"Swap roles","Now you are the adversary","swap");
+  b3.appendChild(h("div","prose",`<p>These languages <b>are</b> regular, so the lemma holds and the adversary can always win. The prover hands you a w. Pick the split: click the first and the last symbol of y. Then the prover tries every i.</p>`));
+  const REG=[
+    {id:"astarbstar", name:"L(a*b*)", test:w=>/^a*b*$/.test(w), w:p=>rep("a",Math.ceil(p/2))+rep("b",p), why:"The DFA for a*b* loops on a in its first state. Any y made only of a's (or only of b's) is one trip round a loop."},
+    {id:"evena", name:"even number of a's", test:w=>/^[ab]*$/.test(w)&&cnt(w,"a")%2===0, w:p=>"ab"+rep("a",p-1)+(p%2?"":"a")+"b", why:"y must contain an even number of a's, for example a single b, or aa. That is a loop in the two-state parity machine."},
+    {id:"abstar", name:"L((ab)*)", test:w=>/^(ab)*$/.test(w), w:p=>rep("ab",p), why:"y = ab is one full trip round the loop of the machine. y = a alone breaks the alternation."},
+    {id:"trick", name:"{ aⁱbʲcᵏ : if i = 1 then j = k }", test:w=>{ const m=/^(a*)(b*)(c*)$/.exec(w); return !!m && (m[1].length!==1 || m[2].length===m[3].length); }, w:p=>"a"+rep("b",p)+rep("c",p),
+     why:"You survived, and so does the adversary on every w: this language satisfies the pumping lemma with p = 2. But it is NOT regular. L ∩ L(ab*c*) = { abⁿcⁿ }, which is not regular, so L cannot be. Satisfying the lemma proves nothing.", twist:true}
+  ];
+  const rtabs=h("div","machines"); b3.appendChild(rtabs);
+  const arena=h("div","panel"); b3.appendChild(arena);
+  function advStart(R){
+    [...rtabs.children].forEach(x=>x.setAttribute("aria-selected", x.dataset.id===R.id?"true":"false"));
+    const p=R.twist?2:3+Math.floor(Math.random()*2); const w=R.w(p); let a=null, b=null;
+    arena.innerHTML=`<div class="ph"><h2>${esc(R.name)}</h2><span class="hint">p = ${p} · |xy| ≤ ${p}, so y must lie within the first ${p} symbols</span></div>
+      <p class="idea" style="margin:0 0 4px">The prover says: “My string is <b class="mono">${esc(w)}</b>.” Click where y starts, then where it ends.</p>`;
+    const strip=h("div","wstr pick"); arena.appendChild(strip); const out=h("div"); arena.appendChild(out);
+    function paint(){ strip.innerHTML=""; [...w].forEach((ch,i)=>{ const inY=a!==null && i>=a && i<=(b===null?a:b); const sp=h("span", inY?"y":(a!==null&&b!==null?(i<a?"x":"z"):""), esc(ch));
+        if(i>=p) sp.style.opacity=.45; sp.setAttribute("role","button"); sp.tabIndex=0;
+        const clk=()=>{ if(i>=p){ Atlas.toast(`|xy| ≤ ${p}: y cannot reach position ${i+1}.`); return; } if(a===null||b!==null){ a=i; b=null; out.innerHTML=""; paint(); } else { if(i<a){ a=i; paint(); return; } b=i; paint(); judge(); } };
+        sp.onclick=clk; sp.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); clk(); } }; strip.appendChild(sp); }); }
+    function judge(){ const s={x:w.slice(0,a),y:w.slice(a,b+1),z:w.slice(b+1)}; const k=killers(R,s,8);
+      const rows=[0,2,3].map(i=>`<span class="mono">i=${i}: ${esc(pump(s,i)||EPS)} ${R.test(pump(s,i))?"∈":"∉"} L</span>`).join(" · ");
+      if(k.length){ out.innerHTML=`<div class="note bad" style="margin-top:8px"><b>The prover wins this round with i = ${k[0]}:</b> ${esc(pump(s,k[0])||EPS)} ∉ L.<br>${rows}<br>A careless adversary. A split that survives does exist, because the language is regular. Click to choose again.</div>`; }
+      else { out.innerHTML=`<div class="note good" style="margin-top:8px"><b>Your split survives every i.</b> x = ${esc(s.x||EPS)}, y = ${esc(s.y)}, z = ${esc(s.z||EPS)}<br>${rows}<br>${esc(R.why)}</div>`;
+        Atlas.stamp("pumping","adv_"+R.id); if(REG.filter(r=>Atlas.has("pumping","adv_"+r.id)).length>=2) Atlas.stamp("pumping","adversary"); } }
+    paint();
+  }
+  REG.forEach(R=>{ const t=h("button","tab",`<b>${esc(R.name)}</b><span>${R.twist?"the twist":"regular"}</span>`); t.type="button"; t.dataset.id=R.id; t.onclick=()=>advStart(R); rtabs.appendChild(t); });
+  advStart(REG[0]);
+
+  /* ---------- how it goes wrong ---------- */
+  const b4=block(root,"How it goes wrong","Four ways to write a proof that proves nothing","claims");
+  quickFire(b4,[
+    {claim:"“Let y = a. Then xy²z has p + 1 a's, which is more than the b's, so L is not regular.”", ok:false, why:"That is the adversary's move. Handling one split leaves every other split unaddressed. Write y = aᵝ with β ≥ 1: if no Greek letter appears in your y, you have probably taken the adversary's turn."},
+    {claim:"“For EQUAL I chose w = (ab)ᵖ and no i worked, so EQUAL must be regular.”", ok:false, why:"A surviving split means w was the wrong choice, nothing more. With w = (ab)ᵖ the adversary picks x = ε, y = ab. With w = aᵖbᵖ every split is defeated."},
+    {claim:"“For w = aᵖbᵖ, the cases ‘y is all b's’ and ‘y straddles the middle’ cannot occur.”", ok:true, why:"|xy| ≤ p puts y inside the first p symbols, which are all a's. You may list the other cases, but say why they are impossible."},
+    {claim:"“This language satisfies the pumping lemma, so it is regular.”", ok:false, why:"The lemma is a necessary condition. L regular ⟹ L pumps. The converse is invalid, and { aⁱbʲcᵏ : if i = 1 then j = k } is a witness: it pumps and it is not regular."},
+    {claim:"“I may choose a different i for each decomposition the adversary could pick.”", ok:true, why:"The quantifier order is ∀ decomposition ∃ i, so i may depend on the split. Try i = 0 first: it works more often than i = 2."},
+    {claim:"“First I fix p = 5, then I choose w = a⁵b⁵.”", ok:false, why:"p is not yours. The adversary supplies it, and every step must be valid for every possible value. That is why w is written in terms of p."}
+  ], (c,n)=>{ if(c>=n-1) Atlas.stamp("pumping","claims"); else Atlas.toast(`${c} of ${n} right. Reload the stop to try again.`); });
+};
+})();
+
+const THEATRE_HTML="<div class=\"app\" id=\"app\" style=\"padding:0;max-width:none;margin:0;width:100%\">\n  <div class=\"row\" style=\"justify-content:flex-end\"><button class=\"btn\" id=\"fsBtn\" type=\"button\" title=\"Fullscreen for the projector\">Present fullscreen</button></div>\n\n  <nav class=\"machines\" id=\"tabs\" role=\"tablist\" aria-label=\"Machines\"></nav>\n\n  <section class=\"panel mcard\" id=\"mcard\">\n    <div>\n      <div class=\"lang\" id=\"mLang\"></div>\n      <p class=\"idea\" id=\"mIdea\"></p>\n      <div class=\"tuple\" id=\"mTuple\"></div>\n      <div class=\"chips\" id=\"mChips\"></div>\n    </div>\n    <div>\n      <div class=\"dlabel\">Transitions \u03b4</div>\n      <ul class=\"delta\" id=\"mDelta\"></ul>\n    </div>\n  </section>\n\n  <section class=\"panel editor\" id=\"editor\" hidden>\n    <div>\n      <div class=\"ph\"><h2>Write your own machine</h2><span class=\"hint\">Same notation as the slides</span></div>\n      <textarea id=\"src\" spellcheck=\"false\" aria-label=\"Machine definition\"></textarea>\n      <div style=\"display:flex;gap:8px;margin-top:8px;flex-wrap:wrap\">\n        <button class=\"btn primary\" id=\"buildBtn\" type=\"button\">Build and run</button>\n        <button class=\"btn\" id=\"loadBtn\" type=\"button\">Start from the a\u207fb\u207f machine</button>\n      </div>\n      <div class=\"errors\" id=\"errs\"></div>\n    </div>\n    <div class=\"help\">\n      <p>One transition per line, written the way the slides write them:</p>\n      <p><code>\u03b4(q0, a, Z) = (q0, XZ)</code><br><code>\u03b4(q0, \u03b5, X) = {(q1, X), (q2, \u03b5)}</code></p>\n      <p>The pushed string is written <b>top first</b>, so <code>XZ</code> puts X above Z. Use <code>\u03b5</code> (or <code>eps</code>) for \"read nothing\" and for \"push nothing\".</p>\n      <p>Three header lines: <code>start: q0</code>, <code>bottom: Z</code>, and either <code>accept: q2</code> (final state) or <code>accept: empty stack</code>. Lines starting with <code>#</code> are comments.</p>\n      <p>The page draws the diagram, checks both determinism rules, and runs every branch.</p>\n    </div>\n  </section>\n\n  <section class=\"controls\" aria-label=\"Run controls\">\n    <div class=\"inputbox\"><label for=\"inp\">Input w</label><input id=\"inp\" autocomplete=\"off\" spellcheck=\"false\" maxlength=\"14\"></div>\n    <div class=\"examples\" id=\"examples\"></div>\n    <div class=\"transport\">\n      <span class=\"counter\" id=\"counter\">move 0/0</span>\n      <button class=\"ibtn\" id=\"bReset\" type=\"button\" title=\"Back to the start (Home)\" aria-label=\"Back to the start\"><svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M6 5h2v14H6zM20 5v14L9 12z\"/></svg></button>\n      <button class=\"ibtn\" id=\"bBack\" type=\"button\" title=\"One move back (\u2190)\" aria-label=\"One move back\"><svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M18 5v14L7 12z\"/></svg></button>\n      <button class=\"ibtn play\" id=\"bPlay\" type=\"button\" title=\"Play / pause (Space)\" aria-label=\"Play\"><svg viewBox=\"0 0 24 24\" fill=\"currentColor\" id=\"playIcon\"><path d=\"M7 4v16l13-8z\"/></svg></button>\n      <button class=\"ibtn\" id=\"bStep\" type=\"button\" title=\"One move forward (\u2192)\" aria-label=\"One move forward\"><svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M6 5v14l11-7z\"/></svg></button>\n      <button class=\"ibtn\" id=\"bEnd\" type=\"button\" title=\"Jump to the verdict (End)\" aria-label=\"Jump to the verdict\"><svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M16 5h2v14h-2zM4 5v14l11-7z\"/></svg></button>\n      <label class=\"speed\" for=\"speed\">Speed <input type=\"range\" id=\"speed\" min=\"0.4\" max=\"3\" step=\"0.1\" value=\"1\"></label>\n    </div>\n  </section>\n\n  <main class=\"stage\">\n    <section class=\"panel run\" aria-label=\"The machine\">\n      <div class=\"ph\"><h2>The machine</h2><span class=\"hint\" id=\"modeHint\"></span></div>\n      <div class=\"tape\" id=\"tape\" aria-label=\"Input tape\"></div>\n      <div class=\"diagram\" id=\"diagram\"></div>\n      <div class=\"narr\" aria-live=\"polite\"><span class=\"step\" id=\"nStep\">start</span><p id=\"nText\"></p></div>\n      <div class=\"stamp\" id=\"verdictStamp\" hidden></div>\n    </section>\n\n    <section class=\"panel stackp\" aria-label=\"The stack\">\n      <div class=\"ph\"><h2>The stack</h2></div>\n      <div class=\"tower-wrap\"><div style=\"width:30px\"></div><div class=\"tower\" id=\"tower\"></div></div>\n      <div class=\"written\">Written top first, as in the IDs:<code id=\"written\"></code></div>\n    </section>\n\n    <section class=\"panel tracep\" aria-label=\"The trace\">\n      <div class=\"ph\"><h2>The trace</h2><span class=\"hint\">( q , unread w , stack ) \u00b7 top on the LEFT</span></div>\n      <div class=\"trace\" id=\"trace\"></div>\n    </section>\n  </main>\n\n  <section class=\"lower\">\n    <section class=\"panel\" aria-label=\"Every branch\">\n      <div class=\"ph\"><h2>Every branch the machine could take</h2><span class=\"hint\">Click any node to follow that branch</span></div>\n      <div class=\"tree-wrap\" id=\"treeWrap\"></div>\n      <div class=\"mvstats\" id=\"mvstats\"></div>\n    </section>\n    <section class=\"panel\" aria-label=\"Stack over time\">\n      <div class=\"ph\"><h2>The stack over time</h2><span class=\"hint\">One column per ID on this branch</span></div>\n      <div class=\"sky-wrap\" id=\"skyWrap\"></div>\n      <div class=\"legend\" id=\"legend\"></div>\n    </section>\n  </section>\n\n  <footer>\n    <span>Notation from CSCE 4201 S20: M = (Q, \u03a3, \u0393, \u03b4, q\u2080, Z\u2080, F), IDs (q, w, \u03b1) with the top of the stack written on the left, \u22a2 for one move. A branch with no applicable transition is stuck, and stuck means reject.</span>\n    <span><kbd>Space</kbd> play \u00b7 <kbd>\u2192</kbd> step \u00b7 <kbd>\u2190</kbd> back \u00b7 <kbd>Home</kbd> restart \u00b7 <kbd>End</kbd> verdict</span>\n  </footer>\n</div>\n\n";
+
+Atlas.stations.pda.mount=function(root){
+root.insertAdjacentHTML("beforeend",THEATRE_HTML);
+
+
+/* ---------- machines from the S20 slides ---------- */
+// Rule fields: from, read ('' = ε), pop (a symbol, or '*' meaning "any stack symbol X"), push (top-first string, '*' = that same symbol), to, note
+const PRESETS = [
+  { id:"anbn", tab:"aⁿbⁿ", tabSub:"counter", lang:"L = { aⁿbⁿ : n ≥ 1 }",
+    idea:"The stack is a unary counter: one X per a, and the bottom marker Z tells the machine the count is back to zero. The switch to popping happens on the first b, which is visible, so nothing is guessed.",
+    states:["q0","q1","q2"], start:"q0", bottom:"Z", accept:["q2"], mode:"final",
+    rules:[
+      {from:"q0",read:"a",pop:"Z",push:"XZ",to:"q0",note:"first a: push X on top of Z"},
+      {from:"q0",read:"a",pop:"X",push:"XX",to:"q0",note:"later a's: one more X each"},
+      {from:"q0",read:"b",pop:"X",push:"",to:"q1",note:"first b: switch to popping"},
+      {from:"q1",read:"b",pop:"X",push:"",to:"q1",note:"each b cancels one a"},
+      {from:"q1",read:"",pop:"Z",push:"Z",to:"q2",note:"Z on top means the counts matched"}],
+    examples:["aabb","aaabbb","aab","abab"], def:"aabb" },
+  { id:"anb2n", tab:"aⁿb²ⁿ", tabSub:"ratio", lang:"L = { aⁿb²ⁿ : n ≥ 1 }",
+    idea:"Twice as many b's as a's. Each a pushes TWO X's, so each b can pop one. When a ratio is involved, put it in the push rather than in the states.",
+    states:["q0","q1","q2"], start:"q0", bottom:"Z", accept:["q2"], mode:"final",
+    rules:[
+      {from:"q0",read:"a",pop:"Z",push:"XXZ",to:"q0",note:"first a: two X's"},
+      {from:"q0",read:"a",pop:"X",push:"XXX",to:"q0",note:"later a's: two more"},
+      {from:"q0",read:"b",pop:"X",push:"",to:"q1",note:"first b: switch, pop one"},
+      {from:"q1",read:"b",pop:"X",push:"",to:"q1",note:"later b's: pop one each"},
+      {from:"q1",read:"",pop:"Z",push:"Z",to:"q2",note:"bottom reached: accept"}],
+    examples:["aabbbb","abb","aabbb","abbb"], def:"aabbbb" },
+  { id:"eqab", tab:"#a = #b", tabSub:"empty stack", lang:"L = { w : #a(w) = #b(w) }",
+    idea:"One state, because the whole memory is on the stack: P for each surplus a, N for each surplus b, never both at once. It accepts by EMPTY stack, and the ε-move that removes Z is what makes it nondeterministic (rule 2).",
+    states:["q0"], start:"q0", bottom:"Z", accept:[], mode:"empty",
+    rules:[
+      {from:"q0",read:"a",pop:"Z",push:"PZ",to:"q0",note:"surplus becomes +1"},
+      {from:"q0",read:"b",pop:"Z",push:"NZ",to:"q0",note:"surplus becomes −1"},
+      {from:"q0",read:"a",pop:"P",push:"PP",to:"q0",note:"one more surplus a"},
+      {from:"q0",read:"b",pop:"N",push:"NN",to:"q0",note:"one more surplus b"},
+      {from:"q0",read:"a",pop:"N",push:"",to:"q0",note:"an a cancels a surplus b"},
+      {from:"q0",read:"b",pop:"P",push:"",to:"q0",note:"a b cancels a surplus a"},
+      {from:"q0",read:"",pop:"Z",push:"",to:"q0",note:"removes the marker"}],
+    examples:["abba","aabbba","ba","aab"], def:"abba" },
+  { id:"wcwr", tab:"wcwᴿ", tabSub:"marked middle", lang:"L = { wcwᴿ : w ∈ {a,b}* }",
+    idea:"Push each symbol as you read it, in a form you can recognise later. The c marks the middle, so the machine never has to guess. Deterministic.",
+    states:["q0","q1","q2"], start:"q0", bottom:"Z", accept:["q2"], mode:"final",
+    rules:[
+      {from:"q0",read:"a",pop:"*",push:"A*",to:"q0",note:"push: remember an a"},
+      {from:"q0",read:"b",pop:"*",push:"B*",to:"q0",note:"push: remember a b"},
+      {from:"q0",read:"c",pop:"*",push:"*",to:"q1",note:"switch: c marks the middle"},
+      {from:"q1",read:"a",pop:"A",push:"",to:"q1",note:"match: a against A"},
+      {from:"q1",read:"b",pop:"B",push:"",to:"q1",note:"match: b against B"},
+      {from:"q1",read:"",pop:"Z",push:"Z",to:"q2",note:"accept: everything matched"}],
+    examples:["abcba","abbcbba","c","abcab"], def:"abcba" },
+  { id:"wwr", tab:"wwᴿ", tabSub:"has to guess", lang:"L = { wwᴿ : w ∈ {a,b}* }",
+    idea:"Delete the c and the machine cannot see the middle, so the switch becomes an ε-move taken on a guess. It tries every midpoint at once, and the string is accepted because one attempt survives.",
+    states:["q1","q2"], start:"q1", bottom:"Z", accept:[], mode:"empty",
+    rules:[
+      {from:"q1",read:"a",pop:"*",push:"A*",to:"q1",note:"push: remember an a"},
+      {from:"q1",read:"b",pop:"*",push:"B*",to:"q1",note:"push: remember a b"},
+      {from:"q1",read:"",pop:"*",push:"*",to:"q2",note:"switch: GUESS this is the middle"},
+      {from:"q2",read:"a",pop:"A",push:"",to:"q2",note:"match: a against A"},
+      {from:"q2",read:"b",pop:"B",push:"",to:"q2",note:"match: b against B"},
+      {from:"q2",read:"",pop:"Z",push:"",to:"q2",note:"accept: empty the stack"}],
+    examples:["abba","baab","abab","aba"], def:"abba" }
+];
+
+const CUSTOM_SRC = `# The aⁿbⁿ machine from the slides. Edit it, then press Build and run.
+start: q0
+bottom: Z
+accept: q2            # or:  accept: empty stack
+
+δ(q0, a, Z) = (q0, XZ)
+δ(q0, a, X) = (q0, XX)
+δ(q0, b, X) = (q1, ε)
+δ(q1, b, X) = (q1, ε)
+δ(q1, ε, Z) = (q2, Z)
+`;
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+
+function el(tag, attrs, parent, text){ const e=document.createElementNS(SVGNS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); if(text!=null) e.textContent=text; if(parent) parent.appendChild(e); return e; }
+function h_(tag, cls, text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e; }
+function tokenize(s){ s=(s||"").replace(/\s+/g,""); if(s===""||s===EPS||/^eps(ilon)?$/i.test(s)) return []; return s.match(/[A-Z][0-9₀-₉']*|\*|./gu)||[]; }
+const str = arr => arr.length ? arr.join("") : EPS;
+const sym = s => s===""?EPS:s;
+function stateHTML(s){ const m=/^([^\d₀-₉]+)([\d₀-₉]+)$/.exec(s); return m ? `${m[1]}<sub>${m[2]}</sub>` : s; }
+const FIXED = {X:"--sym-X",Z:"--sym-Z",A:"--sym-A",B:"--sym-B",P:"--sym-P",N:"--sym-N"};
+const SPARE = ["--sym-1","--sym-2","--sym-3","--sym-4","--sym-X","--sym-A","--sym-B"];
+function symVar(s){ if(FIXED[s[0]] && s.length===1) return FIXED[s]; if(s[0]==="Z") return "--sym-Z"; let hsh=0; for(const c of s) hsh=(hsh*31+c.codePointAt(0))>>>0; return SPARE[hsh%SPARE.length]; }
+const symColor = s => `var(${symVar(s)})`;
+
+
+/* ---------- build a machine ---------- */
+function buildMachine(def){
+  const m = {...def};
+  m.display = def.rules.map((r,i)=>({...r, idx:i, pushArr:tokenize(r.push)}));
+  const gamma = new Set([def.bottom]);
+  m.display.forEach(r=>{ if(r.pop!=="*") gamma.add(r.pop); r.pushArr.forEach(s=>{ if(s!=="*") gamma.add(s); }); });
+  m.gamma=[...gamma].sort((a,b)=> (a===def.bottom)-(b===def.bottom) || a.localeCompare(b));
+  const sigma=new Set(); m.display.forEach(r=>{ if(r.read) sigma.add(r.read); });
+  m.sigma=[...sigma].sort();
+  const states=[...(def.states||[])]; const addS=s=>{ if(s && !states.includes(s)) states.push(s); };
+  addS(def.start); m.display.forEach(r=>{addS(r.from);addS(r.to);}); (def.accept||[]).forEach(addS);
+  m.states=states;
+  m.varName = m.gamma.includes("X") ? "□" : "X";
+  m.concrete=[];
+  m.display.forEach(r=>{
+    const pops = r.pop==="*" ? m.gamma : [r.pop];
+    pops.forEach(p=> m.concrete.push({from:r.from, read:r.read, pop:p, push:r.pushArr.map(s=>s==="*"?p:s), to:r.to, src:r.idx}));
+  });
+  m.det = checkDeterminism(m);
+  return m;
+}
+function checkDeterminism(m){
+  const issues=[]; const groups=new Map();
+  m.concrete.forEach(r=>{ const k=r.from+"|"+r.read+"|"+r.pop; groups.set(k,(groups.get(k)||0)+1); });
+  for(const [k,n] of groups){ if(n>1){ const [q,a,Z]=k.split("|"); issues.push(`Rule 1 fails: δ(${q}, ${sym(a)}, ${Z}) has ${n} choices`); } }
+  const seen=new Set();
+  m.concrete.forEach(r=>{ if(r.read!=="") return; const k=r.from+"|"+r.pop; if(seen.has(k)) return;
+    if(m.concrete.some(o=>o.from===r.from && o.pop===r.pop && o.read!=="")){ seen.add(k); issues.push(`Rule 2 fails at (${r.from}, ${r.pop}): an ε-move and a reading move are both defined`); } });
+  return issues;
+}
+
+/* ---------- explore every branch ---------- */
+const LIM = {depth:60, stack:40, nodes:700};
+function explore(m, input){
+  const nodes=[]; const root={id:0,state:m.start,pos:0,stack:[m.bottom],depth:0,parent:null,rule:null,children:[]};
+  nodes.push(root); const queue=[root]; let truncated=false;
+  while(queue.length){
+    const n=queue.shift();
+    const consumed = n.pos===input.length;
+    if(consumed && (m.mode==="final" ? m.accept.includes(n.state) : n.stack.length===0)){ n.status="accept"; continue; }
+    if(n.stack.length===0){ n.status="stuck"; continue; }
+    if(n.depth>=LIM.depth || nodes.length>=LIM.nodes){ n.status="cut"; truncated=true; continue; }
+    const top=n.stack[0], next=input[n.pos];
+    const moves=m.concrete.filter(r=>r.from===n.state && r.pop===top && (r.read==="" || r.read===next));
+    if(!moves.length){ n.status="stuck"; continue; }
+    n.status="inner";
+    for(const r of moves){
+      const st=r.push.concat(n.stack.slice(1));
+      if(st.length>LIM.stack){ truncated=true; continue; }
+      const c={id:nodes.length,state:r.to,pos:n.pos+(r.read?1:0),stack:st,depth:n.depth+1,parent:n,rule:r,children:[]};
+      n.children.push(c); nodes.push(c); queue.push(c);
+      if(nodes.length>=LIM.nodes){ truncated=true; break; }
+    }
+    if(!n.children.length){ n.status="cut"; }
+  }
+  // fate: does this subtree contain an accepting leaf?
+  (function fate(n){ if(!n.children.length){ n.good = n.status==="accept"; return n.good; } let g=false; n.children.forEach(c=>{ if(fate(c)) g=true; }); n.good=g; return g; })(root);
+  const leaves=nodes.filter(n=>!n.children.length);
+  return {root,nodes,leaves,truncated,accepted:root.good,input};
+}
+function bestLeaf(n){
+  let best=null;
+  (function walk(x){ if(!x.children.length){
+      const score = (x.status==="accept"?1e6:0) - (x.status==="accept"?x.depth:0) + (x.status!=="accept"? x.pos*1000 + x.depth : 0);
+      if(!best || score>best.score) best={x,score}; return; }
+    x.children.forEach(walk); })(n);
+  return best.x;
+}
+function pathTo(leaf){ const p=[]; for(let x=leaf;x;x=x.parent) p.unshift(x); return p; }
+
+/* ---------- state ---------- */
+let M=null, R=null, path=[], t=0, playing=false, timer=null, current="anbn", lastStack=null, lastT=-1;
+
+/* ---------- formatting ---------- */
+function deltaText(r, varName){
+  const pop = r.pop==="*" ? varName : r.pop;
+  const push = r.pushArr ? (r.pushArr.length? r.pushArr.map(s=>s==="*"?varName:s).join("") : EPS) : str(r.push);
+  return `δ(${r.from}, ${sym(r.read)}, ${pop}) = (${r.to}, ${push})`;
+}
+function concreteText(r){ return `δ(${r.from}, ${sym(r.read)}, ${r.pop}) = (${r.to}, ${str(r.push)})`; }
+function edgeLabel(r, varName){
+  const pop = r.pop==="*" ? varName : r.pop;
+  const push = r.pushArr.length? r.pushArr.map(s=>s==="*"?varName:s).join("") : EPS;
+  return `${sym(r.read)}, ${pop} → ${push}`;
+}
+function idText(n, wIn, wSt){
+  const rest = R.input.slice(n.pos) || EPS;
+  const st = str(n.stack);
+  return `( ${n.state} , ${rest.padStart(wIn)} , ${st.padEnd(wSt)} )`;
+}
+function opWords(r){
+  const top=r.pop, p=r.push;
+  if(p.length===0) return `pop <b>${top}</b>`;
+  if(p.length===1 && p[0]===top) return `leave the stack alone`;
+  if(p[p.length-1]===top && p.length>1) return `push <b>${p.slice(0,-1).join("")}</b> on top of ${top}`;
+  return `replace <b>${top}</b> by <b>${p.join("")}</b>`;
+}
+
+/* ---------- UI: tabs ---------- */
+function renderTabs(){
+  const tabs=$("tabs"); tabs.innerHTML="";
+  [...PRESETS.map(p=>({id:p.id,tab:p.tab,sub:p.tabSub})),{id:"custom",tab:"δ",sub:"write your own"}].forEach(p=>{
+    const b=h_("button","tab"); b.type="button"; b.setAttribute("role","tab"); b.dataset.id=p.id;
+    b.setAttribute("aria-selected", p.id===current ? "true":"false");
+    b.innerHTML=`<b>${p.tab}</b><span>${p.sub}</span>`;
+    b.onclick=()=>selectMachine(p.id,true);
+    tabs.appendChild(b);
+  });
+}
+
+function selectMachine(id, setHash){
+  stop(); current=id; renderTabs();
+  $("editor").hidden = id!=="custom";
+  
+  if(id==="custom"){
+    if(!$("src").value) $("src").value=CUSTOM_SRC;
+    if(!buildCustom()) return;
+  } else {
+    const def=PRESETS.find(p=>p.id===id); M=buildMachine(def);
+    renderMachineCard(); renderExamples(def.examples); $("inp").value=def.def; run();
+  }
+}
+
+/* ---------- custom parser ---------- */
+function buildCustom(){
+  const errs=[]; const lines=$("src").value.split("\n");
+  let start=null,bottom=null,accept=null,mode="final"; const rules=[];
+  lines.forEach((raw,i)=>{
+    const line=raw.replace(/#.*$/,"").trim(); if(!line) return;
+    let mm;
+    if((mm=/^(start|bottom|accept)\s*:\s*(.*)$/i.exec(line))){
+      const k=mm[1].toLowerCase(), v=mm[2].trim();
+      if(k==="start") start=v; else if(k==="bottom") bottom=v;
+      else { if(/empty/i.test(v)){ mode="empty"; accept=[]; } else { mode="final"; accept=v.split(/[\s,{}]+/).filter(Boolean); } }
+      return;
+    }
+    if((mm=/^(?:δ|d|delta)\s*\(\s*([^,]+?)\s*,\s*([^,]*?)\s*,\s*([^,)]+?)\s*\)\s*=\s*(.+)$/i.exec(line))){
+      const from=mm[1], readRaw=mm[2], pop=mm[3]; const read=(readRaw===EPS||/^eps(ilon)?$/i.test(readRaw)||readRaw==="")?"":readRaw;
+      if(read.length>1){ errs.push(`line ${i+1}: input symbols are single characters ("${readRaw}")`); return; }
+      const re=/\(\s*([^,()]+?)\s*,\s*([^()]*?)\s*\)/g; let pm, any=false;
+      while((pm=re.exec(mm[4]))){ any=true; rules.push({from,read,pop,push:tokenize(pm[2]).join(""),to:pm[1]}); }
+      if(!any) errs.push(`line ${i+1}: could not read the right-hand side; write it as (q1, XZ)`);
+      return;
+    }
+    errs.push(`line ${i+1}: not understood → ${line}`);
+  });
+  if(!rules.length) errs.push("No transitions yet. Add a line like δ(q0, a, Z) = (q0, XZ).");
+  if(accept===null) errs.push('Add an "accept:" line, for example accept: q2 or accept: empty stack.');
+  $("errs").textContent=errs.join("\n");
+  if(errs.length) return false;
+  const def={id:"custom",lang:"Your machine",idea:"Built from the transitions you wrote. Every branch is explored, up to "+LIM.depth+" moves.",
+    states:[], start:start||rules[0].from, bottom:bottom||"Z", accept, mode, rules, examples:[], def:""};
+  M=buildMachine(def);
+  renderMachineCard();
+  const ex=[]; const s=M.sigma; if(s.length){ ex.push(s[0]+s[0]+(s[1]||s[0])+(s[1]||s[0])); ex.push(s.join("")); }
+  renderExamples(ex);
+  if(!$("inp").value) $("inp").value=ex[0]||"";
+  run(); return true;
+}
+
+/* ---------- machine card ---------- */
+function renderMachineCard(){
+  $("mLang").textContent=M.lang; $("mIdea").textContent=M.idea;
+  const F = M.mode==="final" ? `{${M.accept.join(", ")}}` : "∅";
+  $("mTuple").textContent=`M = ( {${M.states.join(", ")}}, {${M.sigma.join(", ")}}, {${M.gamma.join(", ")}}, δ, ${M.start}, ${M.bottom}, ${F} )`;
+  const chips=$("mChips"); chips.innerHTML="";
+  const c1=h_("span","chip mode", M.mode==="final" ? "Accepts by final state" : "Accepts by empty stack"); chips.appendChild(c1);
+  if(M.det.length){ const c=h_("span","chip bad","Nondeterministic"); c.title=M.det.join("\n"); chips.appendChild(c);
+    const c3=h_("span","chip", M.det[0]); chips.appendChild(c3); }
+  else chips.appendChild(h_("span","chip good","Deterministic: rules 1 and 2 hold"));
+  const ul=$("mDelta"); ul.innerHTML="";
+  M.display.forEach(r=>{ const li=h_("li"); li.dataset.idx=r.idx;
+    let t=deltaText(r,M.varName); if(r.pop==="*") t+=`   ${M.varName} ∈ Γ`;
+    li.appendChild(h_("span",null,t)); if(r.note) li.appendChild(h_("em",null,r.note)); ul.appendChild(li); });
+  $("modeHint").textContent = M.mode==="final" ? `F = {${M.accept.join(", ")}}` : "F = ∅, accept when the stack is empty";
+  renderDiagram();
+}
+function renderExamples(list){
+  const box=$("examples"); box.innerHTML=""; if(!list.length) return;
+  box.appendChild(h_("span","lbl","Try:"));
+  list.forEach(w=>{ const res=explore(M,w); const b=h_("button","ex"); b.type="button";
+    b.innerHTML=`${w||EPS}<small class="${res.accepted?"y":"n"}">${res.accepted?"✓":"✗"}</small>`;
+    b.title = res.accepted ? "in the language" : "not in the language";
+    b.onclick=()=>{ $("inp").value=w; run(); start(); }; box.appendChild(b); });
+}
+
+/* ---------- diagram ---------- */
+let geo=null;
+function renderDiagram(){
+  const box=$("diagram"); box.innerHTML="";
+  const svg=el("svg",{role:"img","aria-label":"State diagram"}); box.appendChild(svg);
+  const defs=el("defs",{},svg);
+  [["arr","var(--faint)"],["arrOn","var(--now)"]].forEach(([id,c])=>{
+    const mk=el("marker",{id,viewBox:"0 0 10 10",refX:"9",refY:"5",markerWidth:"11",markerHeight:"11",markerUnits:"userSpaceOnUse",orient:"auto-start-reverse"},defs);
+    el("path",{d:"M0,0 L10,5 L0,10 z",style:`fill:${c}`},mk); });
+  const R0=30, GAP=Math.max(230, 120+ (M.states.length>3?0:20)), LH=19;
+  const pos={}; M.states.forEach((s,i)=>pos[s]={x:i*GAP,y:0});
+  const groups=new Map();
+  M.display.forEach(r=>{ const k=r.from+"→"+r.to; if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(r); });
+  const bb={x0:-80,x1:(M.states.length-1)*GAP+50,y0:-50,y1:50};
+  const grow=(x,y)=>{bb.x0=Math.min(bb.x0,x);bb.x1=Math.max(bb.x1,x);bb.y0=Math.min(bb.y0,y);bb.y1=Math.max(bb.y1,y);};
+  const edgeLayer=el("g",{},svg), labelLayer=el("g",{},svg), stateLayer=el("g",{},svg);
+  geo={edges:{},labels:{},states:{}};
+  const textW = s => s.length*8.3;
+  for(const [k,rs] of groups){
+    const [a,b]=k.split("→"); const A=pos[a], B=pos[b]; let d, lx, ly, dir=-1;
+    if(a===b){
+      d=`M${A.x-14},${A.y-26} C${A.x-46},${A.y-100} ${A.x+46},${A.y-100} ${A.x+14},${A.y-26}`;
+      lx=A.x; ly=A.y-90;
+    } else {
+      const ia=M.states.indexOf(a), ib=M.states.indexOf(b); const fwd=ib>ia; const span=Math.abs(ib-ia);
+      const reverse=groups.has(b+"→"+a);
+      const bend = fwd ? (span===1 ? (reverse? -34:0) : -60-30*span) : (34+30*span);
+      const mx=(A.x+B.x)/2, cy=A.y+bend*2; // quadratic control
+      const u=(px,py,qx,qy)=>{const dx=qx-px,dy=qy-py,L=Math.hypot(dx,dy)||1;return [dx/L,dy/L];};
+      const [ux,uy]=u(A.x,A.y,mx,bend===0?A.y:cy), [vx,vy]=u(B.x,B.y,mx,bend===0?B.y:cy);
+      const sx=A.x+ux*R0, sy=A.y+uy*R0, ex=B.x+vx*(R0+3), ey=B.y+vy*(R0+3);
+      d = bend===0 ? `M${sx},${sy} L${ex},${ey}` : `M${sx},${sy} Q${mx},${cy} ${ex},${ey}`;
+      lx=mx; ly = bend===0 ? A.y-12 : A.y+bend - (bend<0?10:-22); dir = bend>0 ? 1 : -1;
+    }
+    const p=el("path",{d,class:"edge","marker-end":"url(#arr)"},edgeLayer);
+    rs.forEach(r=>geo.edges[r.idx]=p);
+    // labels stacked
+    rs.forEach((r,i)=>{
+      const txt=edgeLabel(r,M.varName); const w=textW(txt)+12;
+      const y = dir<0 ? ly - (rs.length-1-i)*LH : ly + i*LH;
+      const bg=el("rect",{x:lx-w/2,y:y-14,width:w,height:18,rx:5,class:"elabel-bg"},labelLayer);
+      const tx=el("text",{x:lx,y:y,"text-anchor":"middle",class:"elabel"},labelLayer,txt);
+      geo.labels[r.idx]={tx,bg}; grow(lx-w/2,y-16); grow(lx+w/2,y+6);
+    });
+  }
+  // start arrow
+  const S=pos[M.start];
+  el("path",{d:`M${S.x-80},${S.y} L${S.x-R0-3},${S.y}`,class:"edge","marker-end":"url(#arr)"},edgeLayer);
+  el("text",{x:S.x-80,y:S.y-8,class:"startlbl"},labelLayer,"start");
+  M.states.forEach(s=>{
+    const P=pos[s]; const g=el("g",{class:"st"},stateLayer);
+    el("circle",{cx:P.x,cy:P.y,r:R0,class:"halo"},g);
+    el("circle",{cx:P.x,cy:P.y,r:R0,class:"st-circle"},g);
+    if(M.mode==="final" && M.accept.includes(s)) el("circle",{cx:P.x,cy:P.y,r:R0-5,class:"st-ring"},g);
+    const m=/^([^\d₀-₉]+)([\d₀-₉]+)$/.exec(s);
+    const tx=el("text",{x:P.x,y:P.y+6,"text-anchor":"middle",class:"st-text"},g);
+    if(m){ el("tspan",{},tx,m[1]); el("tspan",{dy:"4","font-size":"12"},tx,m[2]); } else tx.textContent=s;
+    geo.states[s]=g;
+  });
+  const pad=16; const W=bb.x1-bb.x0+pad*2, H=bb.y1-bb.y0+pad*2;
+  svg.setAttribute("viewBox",`${bb.x0-pad} ${bb.y0-pad} ${W} ${H}`);
+  svg.setAttribute("width",W); svg.style.maxHeight="300px";
+  geo.svg=svg; geo.token=el("circle",{r:7,class:"token",opacity:0},svg);
+}
+
+/* ---------- run ---------- */
+function run(){
+  stop();
+  const w=$("inp").value.replace(/\s+/g,"");
+  R=explore(M,w);
+  path=pathTo(bestLeaf(R.root)); t=0; lastStack=null; lastT=-1;
+  renderTree(); render(false);
+}
+function follow(node){
+  stop();
+  path=pathTo(bestLeaf(node)); t=node.depth; lastStack=null; render(false);
+}
+
+/* ---------- render a moment ---------- */
+function render(animate){
+  const n=path[t]; const last=t===path.length-1; const leaf=path[path.length-1];
+  $("counter").textContent=`move ${t}/${path.length-1}`;
+  $("bBack").disabled=$("bReset").disabled=t===0; $("bStep").disabled=$("bEnd").disabled=last;
+  // tape
+  const tape=$("tape"); tape.innerHTML="";
+  const chars=[...R.input];
+  chars.forEach((c,i)=>{ const d=h_("div","cell"+(i<n.pos?" read":"")+(i===n.pos?" head":""),c); tape.appendChild(d); });
+  const end=h_("div","cell end"+(n.pos===chars.length?" head":""),"end"); end.title="end of input"; tape.appendChild(end);
+  // states + edges
+  Object.entries(geo.states).forEach(([s,g])=>{ g.classList.remove("cur","done-acc","done-rej");
+    if(s===n.state){ if(last && leaf.status==="accept") g.classList.add("done-acc"); else if(last && leaf.status!=="accept") g.classList.add("done-rej"); else g.classList.add("cur"); } });
+  Object.values(geo.edges).forEach(p=>{p.classList.remove("on");p.setAttribute("marker-end","url(#arr)");});
+  Object.values(geo.labels).forEach(l=>{l.tx.classList.remove("on");l.bg.classList.remove("on");});
+  document.querySelectorAll("#mDelta li").forEach(li=>li.classList.remove("on"));
+  if(n.rule){ const i=n.rule.src; const p=geo.edges[i]; p.classList.add("on"); p.setAttribute("marker-end","url(#arrOn)");
+    geo.labels[i].tx.classList.add("on"); geo.labels[i].bg.classList.add("on");
+    const li=document.querySelector(`#mDelta li[data-idx="${i}"]`); if(li) li.classList.add("on");
+    if(animate && !reduceMotion) moveToken(p); }
+  // narration
+  narrate(n,last,leaf);
+  // stamp
+  const stamp=$("verdictStamp");
+  if(last){ const acc=leaf.status==="accept"; stamp.hidden=false; if(t>0||path.length===1){ Atlas.stamp("pda","run"); if(acc && R.leaves.length>1) Atlas.stamp("pda","guess"); if(!acc) Atlas.stamp("pda","stuck"); } stamp.className="stamp "+(acc?"acc":"rej")+(animate?" pop":""); stamp.textContent = acc?"ACCEPT":(R.accepted?"STUCK":"REJECT"); }
+  else stamp.hidden=true;
+  renderStack(n.stack, animate);
+  renderTrace();
+  updateTree();
+  renderSky();
+  lastT=t;
+}
+function narrate(n,last,leaf){
+  const step=$("nStep"), p=$("nText");
+  if(!n.rule){ step.textContent="start";
+    p.innerHTML=`Start in <b>${n.state}</b> with only the bottom marker <b>${M.bottom}</b> on the stack and all of <b>${R.input||EPS}</b> unread.<span class="why">${M.idea.split(".")[0]}.</span>`; }
+  else { const r=n.rule; step.textContent="move "+t;
+    const read = r.read ? `Read <b>${r.read}</b>` : `ε-move (read nothing)`;
+    const stc = r.from===r.to ? `stay in ${r.from}` : `go ${r.from} → ${r.to}`;
+    const note = M.display[r.src].note;
+    p.innerHTML=`${read} with <b>${r.pop}</b> on top: ${opWords(r)}, ${stc}.<span class="why">${concreteText(r)}${note? " · "+note:""}</span>`; }
+  if(last){
+    let msg;
+    if(leaf.status==="accept") msg = M.mode==="final" ? `Input exhausted and ${leaf.state} ∈ F, so ACCEPT.` : `Input exhausted and the stack is EMPTY, so ACCEPT.`;
+    else if(leaf.status==="cut") msg = `This branch was cut off after ${LIM.depth} moves.`;
+    else { const top=leaf.stack[0]; const nx=R.input[leaf.pos];
+      msg = leaf.stack.length===0 ? `The stack is empty but input <b>${R.input.slice(leaf.pos)}</b> is left. No move is possible: stuck.` :
+        (leaf.pos===R.input.length ? `Input exhausted, but no rule fires from (${leaf.state}, ε, ${top}) and this is not acceptance: stuck.` :
+        `No transition for <b>${nx}</b> with <b>${top}</b> on top in ${leaf.state}: stuck. Stuck means reject, not error.`);
+      msg += R.accepted ? ` <span class="why">Another branch accepts, and one success is enough. Click its green node below.</span>` :
+        ` <span class="why">Every branch dies, so the machine rejects ${R.input||EPS}.</span>`; }
+    p.innerHTML += `<span class="why" style="color:var(--ink);font-weight:600">${msg}</span>`;
+  }
+}
+function moveToken(path){
+  const tok=geo.token; const L=path.getTotalLength(); const t0=performance.now(); const dur=Math.min(520, 520/speed());
+  tok.setAttribute("opacity",1);
+  (function f(now){ const k=Math.min(1,(now-t0)/dur); const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2; const pt=path.getPointAtLength(e*L);
+    tok.setAttribute("cx",pt.x); tok.setAttribute("cy",pt.y); if(k<1) requestAnimationFrame(f); else tok.setAttribute("opacity",0); })(t0);
+}
+
+/* ---------- stack tower ---------- */
+let plates=[]; // DOM nodes, index 0 = top
+function renderStack(stack, animate){
+  const tower=$("tower");
+  const maxH=Math.max(...path.map(x=>x.stack.length),1);
+  const avail=Math.max(tower.clientHeight-16, 240);
+  const ph=Math.max(14, Math.min(34, Math.floor(avail/maxH)-4));
+  tower.style.setProperty("--ph",ph+"px");
+  if(!animate || !lastStack){
+    tower.innerHTML=""; plates=[];
+    for(let i=stack.length-1;i>=0;i--){ const d=makePlate(stack[i], i===stack.length-1); tower.appendChild(d); plates.unshift(d); }
+  } else {
+    // keep the common bottom part, animate the rest
+    let k=0; while(k<lastStack.length && k<stack.length && lastStack[lastStack.length-1-k]===stack[stack.length-1-k]) k++;
+    const removeN=lastStack.length-k, addN=stack.length-k;
+    for(let i=0;i<removeN;i++){ const d=plates[i]; const top=d.offsetTop, left=d.offsetLeft, w=d.offsetWidth;
+      d.style.top=top+"px"; d.style.left=left+"px"; d.style.width=w+"px"; d.classList.add("out"); setTimeout(()=>d.remove(),420); }
+    plates=plates.slice(removeN);
+    for(let i=addN-1;i>=0;i--){ const d=makePlate(stack[i], i===stack.length-1); d.classList.add("in"); d.style.animationDelay=((addN-1-i)*70)+"ms"; tower.appendChild(d); plates.unshift(d); }
+  }
+  lastStack=stack.slice();
+  tower.querySelectorAll(".topmark,.tower-empty").forEach(x=>x.remove());
+  if(!stack.length){ tower.appendChild(h_("div","tower-empty","empty stack")); }
+  else { const mk=h_("div","topmark","top ▸"); tower.appendChild(mk);
+    requestAnimationFrame(()=>{ const p=plates[0]; if(p) mk.style.top=(p.offsetTop+p.offsetHeight/2)+"px"; }); }
+  const w=$("written"); w.innerHTML = stack.length ? `<i>${stack[0]}</i>${stack.slice(1).join("")}` : EPS;
+}
+function makePlate(s, isBottom){ const d=h_("div","plate"+(s===M.bottom && isBottom?" bottom":""),s); d.style.setProperty("--c",symColor(s)); d.style.background = (s===M.bottom && isBottom)? "" : symColor(s); return d; }
+
+/* ---------- trace ---------- */
+function renderTrace(){
+  const box=$("trace"); box.innerHTML="";
+  const wIn=Math.max(1,R.input.length), wSt=Math.max(...path.map(x=>Math.max(1,x.stack.length)));
+  let curRow=null;
+  path.forEach((n,i)=>{
+    const row=h_("div","idr"+(i===t?" cur":"")+(i>t?" blank":""));
+    row.appendChild(h_("span","tu",i===0?"":"⊢"));
+    if(i<=t){ row.appendChild(h_("span",null,idText(n,wIn,wSt))); if(n.rule){ row.appendChild(h_("span","tu","")); row.appendChild(h_("span","why",concreteText(n.rule))); } }
+    else row.appendChild(h_("span",null,`( ____ , ${"_".repeat(Math.max(4,wIn))} , ${"_".repeat(Math.max(4,wSt))} )`));
+    box.appendChild(row); if(i===t) curRow=row;
+  });
+  if(t===path.length-1){ const leaf=path[t]; const acc=leaf.status==="accept";
+    const v=h_("div","idr verdict "+(acc?"acc":"rej"));
+    v.textContent = acc ? (M.mode==="final"?"Input exhausted, final state: ACCEPT":"Input exhausted, stack empty: ACCEPT")
+      : (R.accepted ? "This branch is stuck. Another branch accepts." : "Stuck. Every branch dies: REJECT");
+    box.appendChild(v); curRow=v; }
+  if(curRow){ const top=curRow.offsetTop-box.offsetTop; if(top<box.scrollTop || top+curRow.offsetHeight>box.scrollTop+box.clientHeight) box.scrollTop=Math.max(0,top-box.clientHeight/2); }
+}
+
+/* ---------- multiverse tree ---------- */
+let treeEls=null;
+function renderTree(){
+  const wrap=$("treeWrap"); wrap.innerHTML="";
+  const COL=78, ROW=40, X0=30, Y0=26;
+  let slot=0; const maxD=Math.max(...R.nodes.map(n=>n.depth));
+  (function lay(n){ if(!n.children.length){ n.ty=Y0+slot*ROW; slot++; } else { n.children.forEach(lay); n.ty=(n.children[0].ty+n.children[n.children.length-1].ty)/2; } n.tx=X0+n.depth*COL; })(R.root);
+  const W=X0+maxD*COL+90, H=Y0+Math.max(1,slot)*ROW;
+  const svg=el("svg",{width:W,height:H,viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":"Tree of every branch"},wrap);
+  const eg=el("g",{},svg), ng=el("g",{},svg);
+  treeEls={nodes:new Map(),edges:new Map(),marks:new Map()};
+  R.nodes.forEach(n=>{
+    if(n.parent){ const p=n.parent; const mx=(p.tx+n.tx)/2;
+      const e=el("path",{d:`M${p.tx},${p.ty} C${mx},${p.ty} ${mx},${n.ty} ${n.tx},${n.ty}`,class:"tedge"+(n.good?"":" fate-dead")},eg);
+      treeEls.edges.set(n.id,e);
+      if(n.rule && n.rule.read==="" ){ const lb=el("text",{x:mx,y:(p.ty+n.ty)/2-4,"text-anchor":"middle",class:"tlabel"},eg,"ε"); treeEls.edges.set(n.id+"_l",lb); }
+    }
+    const g=el("g",{class:"tnode",tabindex:"0",role:"button"},ng);
+    el("title",{},g,`(${n.state}, ${R.input.slice(n.pos)||EPS}, ${str(n.stack)})`);
+    el("circle",{cx:n.tx,cy:n.ty,r:14},g);
+    el("text",{x:n.tx,y:n.ty+4,"text-anchor":"middle"},g,n.state);
+    g.addEventListener("click",()=>follow(n));
+    g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); follow(n);} });
+    treeEls.nodes.set(n.id,g);
+    if(!n.children.length){
+      const lbl = n.status==="accept" ? "✓ accept" : n.status==="cut" ? "… cut" : "✗ stuck";
+      const tm=el("text",{x:n.tx+20,y:n.ty+4,class:"tmark "+(n.status==="accept"?"acc":"rej")},ng,lbl);
+      treeEls.marks.set(n.id,tm);
+    }
+  });
+}
+function updateTree(){
+  if(!treeEls) return;
+  const last=t===path.length-1; const reveal = last ? Infinity : t;
+  const onPath=new Set(path.slice(0,t+1).map(n=>n.id));
+  R.nodes.forEach(n=>{
+    const g=treeEls.nodes.get(n.id); const vis=n.depth<=reveal;
+    g.setAttribute("class","tnode"+(vis?"":" hide")+(onPath.has(n.id)?" path":"")+(n.id===path[t].id?" cur":"")+
+      (!n.children.length && vis && n.status==="accept"?" acc":"")+(!n.children.length && vis && n.status!=="accept"?" dead":""));
+    const e=treeEls.edges.get(n.id); if(e){ e.setAttribute("class","tedge"+(n.good?"":" fate-dead")+(vis?"":" hide")+(onPath.has(n.id)?" path":"")); }
+    const lb=treeEls.edges.get(n.id+"_l"); if(lb) lb.style.opacity=vis?1:0;
+    const mk=treeEls.marks.get(n.id); if(mk) mk.style.opacity=vis?1:0;
+  });
+  const alive=R.nodes.filter(n=>n.depth===t).length;
+  const leaves=R.leaves; const acc=leaves.filter(n=>n.status==="accept").length;
+  const stats=$("mvstats"); stats.innerHTML="";
+  const add=(k,v)=>{ const s=h_("span"); s.innerHTML=`${k} <b>${v}</b>`; stats.appendChild(s); };
+  add("Branches alive at this move:", alive);
+  add("Branches in total:", leaves.length);
+  if(last){ add("Accepting:", acc); add("Verdict:", R.accepted?"ACCEPT (one success is enough)":"REJECT (every branch failed)"); }
+  if(R.truncated) add("Note:", "tree cut off at "+LIM.depth+" moves");
+  // keep current node in view
+  const g=treeEls.nodes.get(path[t].id); const wrap=$("treeWrap");
+  if(g){ const c=g.querySelector("circle"); const x=+c.getAttribute("cx"), y=+c.getAttribute("cy");
+    if(x<wrap.scrollLeft+20 || x>wrap.scrollLeft+wrap.clientWidth-60) wrap.scrollLeft=Math.max(0,x-wrap.clientWidth/2);
+    if(y<wrap.scrollTop+10 || y>wrap.scrollTop+wrap.clientHeight-10) wrap.scrollTop=Math.max(0,y-wrap.clientHeight/2); }
+}
+
+/* ---------- stack skyline ---------- */
+function renderSky(){
+  const wrap=$("skyWrap"); wrap.innerHTML="";
+  const CW=32, GAP=7, BH=20, X0=30, TOPP=12, AX=36;
+  const maxH=Math.max(...path.map(n=>n.stack.length),1);
+  const W=X0+path.length*(CW+GAP)+10, H=TOPP+maxH*BH+AX;
+  const svg=el("svg",{width:W,height:H,viewBox:`0 0 ${W} ${H}`,role:"img","aria-label":"Stack contents at every move"},wrap);
+  const base=TOPP+maxH*BH;
+  for(let k=0;k<=maxH;k+=Math.max(1,Math.ceil(maxH/5))){ el("text",{x:X0-8,y:base-k*BH+3,"text-anchor":"end",class:"sky-axis"},svg,String(k)); }
+  el("line",{x1:X0-2,x2:W-6,y1:base+0.5,y2:base+0.5,style:"stroke:var(--line)"},svg);
+  path.forEach((n,i)=>{
+    const x=X0+i*(CW+GAP); const g=el("g",{class:"sky-col"+(i>t?" future":"")},svg);
+    const st=n.stack;
+    for(let j=0;j<st.length;j++){ const s=st[st.length-1-j]; el("rect",{x,y:base-(j+1)*BH,width:CW,height:BH,rx:3,class:"sky-block",style:`fill:${symColor(s)}`},g); }
+    if(!st.length) el("text",{x:x+CW/2,y:base-4,"text-anchor":"middle",class:"sky-axis"},g,"∅");
+    const lab = i===0 ? "" : sym(n.rule.read);
+    el("text",{x:x+CW/2,y:base+14,"text-anchor":"middle",class:"sky-axis",style:n.rule&&!n.rule.read?"fill:var(--now)":""},g,lab);
+    el("text",{x:x+CW/2,y:base+27,"text-anchor":"middle",class:"sky-axis",style:"font-size:8.5px"},g,String(i));
+    if(i===t) el("rect",{x:x-3,y:Math.min(base-st.length*BH, base-BH)-4,width:CW+6,height:Math.max(st.length,1)*BH+8,class:"sky-cur"},svg);
+  });
+  const cx=X0+t*(CW+GAP); if(cx>wrap.clientWidth-40) wrap.scrollLeft=cx-wrap.clientWidth/2;
+  const lg=$("legend"); lg.innerHTML="";
+  M.gamma.forEach(s=>{ const sp=h_("span"); sp.innerHTML=`<i style="background:${symColor(s)}"></i>${s}${s===M.bottom?" (bottom marker)":""}`; lg.appendChild(sp); });
+  const sp=h_("span"); sp.textContent="Row under the columns: the symbol read at that move (ε = read nothing)"; lg.appendChild(sp);
+}
+
+/* ---------- playback ---------- */
+const speed = () => parseFloat($("speed").value)||1;
+function step(){ if(t<path.length-1){ t++; render(true); } else stop(); }
+function back(){ if(t>0){ t--; render(true); } }
+function start(){ if(playing) return; if(t>=path.length-1){ t=0; lastStack=null; render(false); } playing=true; setPlayIcon(); tick(); }
+function tick(){ timer=setTimeout(()=>{ if(!playing) return; step(); if(t>=path.length-1){ stop(); return; } tick(); }, 1150/speed()); }
+function stop(){ playing=false; clearTimeout(timer); setPlayIcon(); }
+function setPlayIcon(){ const b=$("bPlay"); b.setAttribute("aria-label",playing?"Pause":"Play"); $("playIcon").innerHTML = playing ? '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>' : '<path d="M7 4v16l13-8z"/>'; }
+
+$("bPlay").onclick=()=> playing?stop():start();
+$("bStep").onclick=()=>{ stop(); step(); };
+$("bBack").onclick=()=>{ stop(); back(); };
+$("bReset").onclick=()=>{ stop(); t=0; lastStack=null; render(false); };
+$("bEnd").onclick=()=>{ stop(); t=path.length-1; render(true); };
+$("inp").addEventListener("input",()=>{ clearTimeout(window.__inpT); window.__inpT=setTimeout(run,250); });
+$("inp").addEventListener("keydown",e=>{ if(e.key==="Enter"){ run(); start(); } });
+$("buildBtn").onclick=()=>{ if(buildCustom()){ start(); Atlas.stamp("pda","own"); } };
+$("loadBtn").onclick=()=>{ $("src").value=CUSTOM_SRC; buildCustom(); };
+const onKey=e=>{ if(!document.getElementById("tower")) return;
+  if(/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
+  if(e.key===" "){ e.preventDefault(); playing?stop():start(); }
+  else if(e.key==="ArrowRight"){ stop(); step(); }
+  else if(e.key==="ArrowLeft"){ stop(); back(); }
+  else if(e.key==="Home"){ stop(); t=0; lastStack=null; render(false); }
+  else if(e.key==="End"){ stop(); t=path.length-1; render(true); }
+}; document.addEventListener("keydown",onKey);
+$("fsBtn").onclick=()=>{
+  const root=document.documentElement;
+  if(document.fullscreenElement){ document.exitFullscreen&&document.exitFullscreen(); return; }
+  root.classList.add("present");
+  const p = root.requestFullscreen ? root.requestFullscreen() : null;
+  if(p && p.catch) p.catch(()=>{});
+};
+document.addEventListener("fullscreenchange",()=>{ if(!document.fullscreenElement) document.documentElement.classList.remove("present"); });
+
+let rT; const onRz=()=>{ clearTimeout(rT); rT=setTimeout(()=>{ if(document.getElementById("tower")){ lastStack=null; render(false); } },150); }; window.addEventListener("resize",onRz);
+
+// expose for tests / GIF export
+window.PDA={PRESETS,buildMachine,explore,bestLeaf,pathTo,select:id=>selectMachine(id,false),setInput:w=>{ $("inp").value=w; run(); },
+  goto:k=>{ stop(); t=Math.max(0,Math.min(path.length-1,k)); render(true); }, len:()=>path.length, state:()=>({t,path,R})};
+
+selectMachine("anbn", false);
+if(!reduceMotion && !window.__noAutoplay) setTimeout(()=>{ if(document.getElementById("tower")) start(); }, 900);
+Atlas.onCleanup(()=>{ stop(); document.removeEventListener("keydown",onKey); window.removeEventListener("resize",onRz); document.documentElement.classList.remove("present"); });
+};
+document.getElementById("logoBtn").onclick=()=>Atlas.go("home");
+window.addEventListener("hashchange",()=>Atlas.route());
+Atlas.route();
+</script>
+</body>
+</html>
