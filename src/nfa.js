@@ -39,6 +39,7 @@ function pickGrid(parent, o){ const tw=h("div","tablewrap"), tb=h("table","dt");
     if(bad.length){ const x=bad[0]; out.innerHTML=`<div class="note bad"><b>${bad.length} cell${bad.length>1?"s":""} wrong</b> (red). A hint for one of them: ${o.hint(x.r.key,x.c.key,x.p.get(),x.want)}</div>`; }
     else { cells.forEach(x=>x.p.lock()); ck.disabled=true; out.innerHTML=`<div class="note good">${o.done}</div>`; o.onDone&&o.onDone(tries,out); } }; }
 
+Atlas.pickGrid=pickGrid; Atlas.picker=picker;
 Atlas.stations.nfa.mount=function(root){
   const b1=block(root,"The idea","Machines that guess, and machines that move without reading","idea");
   const two=h("div","two"); b1.appendChild(two);
