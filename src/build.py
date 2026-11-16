@@ -33,7 +33,7 @@ tb=tb.replace('id="stamp"','id="verdictStamp"')
 assert 'h(' not in re.sub(r'[\w.$]h\(|h_\(','',tj) or True
 pda='const THEATRE_HTML='+__import__('json').dumps(tb)+';\n'+tj
 css=R('theatre.css')+'\n'+R('site.css')
-js='\n'.join([R('core.js'),R('home.js'),R('dfa.js'),R('pumping.js'),pda,
+js='\n'.join([R('core.js'),R('home.js'),R('dfa.js'),R('min.js'),R('nfa.js'),R('mm.js'),R('pumping.js'),pda,
  'document.getElementById("logoBtn").onclick=()=>Atlas.go("home");\nwindow.addEventListener("hashchange",()=>Atlas.route());\nAtlas.route();'])
 head='<title>Automata Atlas</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap">\n'
 frag=head+'<style>\n'+css+'\n</style>\n'+R('shell.html')+'\n<script>\n'+js+'\n</script>\n'

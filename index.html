@@ -395,6 +395,24 @@ table.dt td.miss select{border-color:var(--reject);background:var(--reject-soft)
 @media (max-width:1000px){ .hero,.two,.three,.game{grid-template-columns:minmax(0,1fr)} .board{position:static} }
 @media (max-width:560px){ .move{grid-template-columns:minmax(0,1fr)} .move .who{justify-self:start;padding:3px 10px} }
 .view > *, .blk > *{min-width:0;max-width:100%}
+/* minimisation + subset race */
+.blocks{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.blockchip{font-family:var(--mono);font-size:14px;border:1.5px solid var(--line);border-radius:10px;padding:6px 11px;background:var(--surface-2);cursor:default}
+button.blockchip{cursor:pointer} button.blockchip:hover{border-color:var(--now)}
+.blockchip.b0{border-color:var(--sym-A)} .blockchip.b1{border-color:var(--sym-B)} .blockchip.b2{border-color:var(--sym-X)} .blockchip.b3{border-color:var(--sym-P)} .blockchip.b4{border-color:var(--sym-N)} .blockchip.b5{border-color:var(--sym-1)}
+.bnum{display:inline-grid;place-items:center;min-width:20px;height:20px;border-radius:6px;font-size:12px;font-weight:700;color:#fff;margin-right:6px;padding:0 4px}
+.c0{background:var(--sym-A)} .c1{background:var(--sym-B)} .c2{background:var(--sym-X)} .c3{background:var(--sym-P)} .c4{background:var(--sym-N)} .c5{background:var(--sym-1)}
+table.dt td.sigdiff{background:var(--now-soft);font-weight:700}
+table.tri td{min-width:54px;height:36px;cursor:pointer}
+table.tri td.na{background:var(--surface-2);cursor:default;border-color:transparent}
+table.tri td.mk{background:var(--now-soft);font-weight:700}
+table.tri td.ok{background:var(--accept-soft)} table.tri td.no{background:var(--reject-soft)}
+.setpick{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.setpick button{font-family:var(--mono);font-size:13px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface-2);padding:4px 9px;cursor:pointer}
+.setpick button.on{background:var(--now-soft);border-color:var(--now);font-weight:700}
+.timer{font-family:var(--mono);font-weight:700;font-size:16px}
+table.dt td.ok{background:var(--accept-soft)} table.dt td.no{background:var(--reject-soft)}
+.setpick{justify-content:center}
 
 </style>
 <div class="site">
@@ -534,6 +552,8 @@ function drawFA(box, M, opts){
   s.setAttribute("viewBox",`${bb.x0-pad} ${bb.y0-pad} ${W} ${H}`); s.setAttribute("width",W); s.style.maxHeight=(opts.maxH||260)+"px";
   const token=svg("circle",{r:7,class:"token",opacity:0},s);
   return {
+    setStates(qs, cls){ Object.entries(sts).forEach(([q,g])=>{ g.classList.remove("cur","done-acc","done-rej"); if(qs.includes(q)) g.classList.add(cls||"cur"); }); },
+    edgesOn(pairs){ Object.entries(edges).forEach(([k,p])=>{ const on=pairs.includes(k); p.classList.toggle("on",on); p.setAttribute("marker-end",`url(#${uid}${on?"b":"a"})`); labels[k].tx.classList.toggle("on",on); labels[k].bg.classList.toggle("on",on); }); },
     setState(q, cls){ Object.values(sts).forEach(g=>g.classList.remove("cur","done-acc","done-rej")); if(sts[q]) sts[q].classList.add(cls||"cur"); },
     edge(from,to,animate){ Object.entries(edges).forEach(([k,p])=>{ p.classList.remove("on"); p.setAttribute("marker-end",`url(#${uid}a)`); labels[k].tx.classList.remove("on"); labels[k].bg.classList.remove("on"); });
       const k=from+"→"+to, p=edges[k]; if(!p) return; p.classList.add("on"); p.setAttribute("marker-end",`url(#${uid}b)`); labels[k].tx.classList.add("on"); labels[k].bg.classList.add("on");
@@ -602,6 +622,27 @@ function faRunner(parent, D, opts){
   reset();
   return {setInput(v){ inp.value=v; reset(); }, play, el:wrap};
 }
+
+/* ---- minimisation helpers (Session 3) ---- */
+function dfaReachable(D){ const seen=[D.start]; for(let i=0;i<seen.length;i++) D.sigma.forEach(a=>{ const t=D.delta[seen[i]][a]; if(!seen.includes(t)) seen.push(t); }); return D.states.filter(q=>seen.includes(q)); }
+// rounds[k] = {blocks:[[states]], sig:{q:[block index per symbol]}}; the last round splits nothing
+function dfaRefine(D){ const R=dfaReachable(D); let blocks=[R.filter(q=>D.accept.includes(q)),R.filter(q=>!D.accept.includes(q))].filter(b=>b.length); const rounds=[];
+  for(;;){ const idx={}; blocks.forEach((b,i)=>b.forEach(q=>idx[q]=i)); const sig={}; R.forEach(q=>sig[q]=D.sigma.map(a=>idx[D.delta[q][a]]));
+    const next=[]; blocks.forEach(b=>{ const groups=new Map(); b.forEach(q=>{ const k=sig[q].join(","); if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(q); }); groups.forEach(g=>next.push(g)); });
+    rounds.push({blocks,sig,splits:blocks.map(b=>new Set(b.map(q=>sig[q].join(","))).size>1)});
+    if(next.length===blocks.length) return {reachable:R,rounds}; blocks=next; } }
+// table filling: witness[p|q] = shortest distinguishing string, undefined if equivalent
+function dfaWitness(D){ const R=dfaReachable(D); const w={}; const key=(p,q)=>R.indexOf(p)<R.indexOf(q)?p+"|"+q:q+"|"+p; const pass={};
+  for(let i=0;i<R.length;i++) for(let j=i+1;j<R.length;j++) if(D.accept.includes(R[i])!==D.accept.includes(R[j])){ w[key(R[i],R[j])]=""; pass[key(R[i],R[j])]=0; }
+  for(let n=1;;n++){ const add={}; for(let i=0;i<R.length;i++) for(let j=i+1;j<R.length;j++){ const k=key(R[i],R[j]); if(w[k]!==undefined) continue;
+      for(const a of D.sigma){ const x=D.delta[R[i]][a], y=D.delta[R[j]][a]; if(x!==y && w[key(x,y)]!==undefined){ add[k]=a+w[key(x,y)]; break; } } }
+    if(!Object.keys(add).length) return {R,w,pass,key}; Object.keys(add).forEach(k=>{ w[k]=add[k]; pass[k]=n; }); } }
+/* ---- NFA helpers (Session 4) ---- */
+// N: {states, sigma, start, accept, delta:{q:{a:[...]}}}
+function nfaMove(N,S,a){ const out=[]; S.forEach(q=>((N.delta[q]||{})[a]||[]).forEach(t=>{ if(!out.includes(t)) out.push(t); })); return N.states.filter(q=>out.includes(q)); }
+function nfaEdges(N){ const out=[]; N.states.forEach(q=>N.sigma.forEach(a=>((N.delta[q]||{})[a]||[]).forEach(t=>out.push({from:q,to:t,label:a})))); return out; }
+const setName = S => S.length ? "{"+S.join(", ")+"}" : "∅";
+function subsetConstruct(N){ const start=[N.start]; const list=[start]; const rows=[]; for(let i=0;i<list.length;i++){ const S=list[i]; const row={S,to:{}}; N.sigma.forEach(a=>{ const T=nfaMove(N,S,a); row.to[a]=T; if(!list.some(x=>setName(x)===setName(T))) list.push(T); }); rows.push(row); } return rows; }
 
 /* Station registry (course order) and the home page with the hierarchy map */
 "use strict";
@@ -852,6 +893,410 @@ Atlas.stations.dfa.mount = function(root){
 };
 // hidden per-target stamps so progress per language is remembered
 TARGETS.forEach(t=>Atlas.stations.dfa._targets=(Atlas.stations.dfa._targets||[]).concat(t.id));
+})();
+
+/* Station: minimisation (S3) */
+"use strict";
+(function(){
+Atlas.stations.min.stamps=[{id:"watch",label:"Watched the rounds"},{id:"split",label:"Called every split"},{id:"table",label:"Filled the table"},{id:"claims",label:"Minimisation claims"}];
+const MS=[
+  {id:"six", name:"The six-state machine", tag:"from the slides", note:"L = 0*1: any number of 0s, then exactly one 1.",
+   states:["A","B","C","D","E","G"], sigma:["0","1"], start:"A", accept:["D"],
+   delta:{A:{0:"B",1:"D"},B:{0:"A",1:"D"},C:{0:"A",1:"D"},D:{0:"G",1:"E"},E:{0:"E",1:"E"},G:{0:"G",1:"G"}}},
+  {id:"mod", name:"A counter that over-counts", tag:"extra practice", note:"It counts 0's modulo 6 but only asks whether the count is divisible by 3.",
+   states:["r0","r1","r2","r3","r4","r5"], sigma:["0","1"], start:"r0", accept:["r0","r3"],
+   delta:{r0:{0:"r1",1:"r0"},r1:{0:"r2",1:"r1"},r2:{0:"r3",1:"r2"},r3:{0:"r4",1:"r3"},r4:{0:"r5",1:"r4"},r5:{0:"r0",1:"r5"}}},
+  {id:"ends", name:"Ends with 01, drawn clumsily", tag:"extra practice", note:"Five states for a language that needs three.",
+   states:["p0","p1","p2","p3","p4"], sigma:["0","1"], start:"p0", accept:["p2"],
+   delta:{p0:{0:"p1",1:"p3"},p1:{0:"p4",1:"p2"},p2:{0:"p1",1:"p3"},p3:{0:"p1",1:"p0"},p4:{0:"p4",1:"p2"}}}
+];
+const chip=(b,i,tag)=>`<${tag||"span"} class="blockchip b${i%6}"><span class="bnum c${i%6}">${i+1}</span>{ ${b.join(", ")} }</${tag||"span"}>`;
+
+Atlas.stations.min.mount=function(root){
+  const b1=block(root,"The idea","Two machines, one language: which states are really the same?","idea");
+  const two=h("div","two"); b1.appendChild(two);
+  two.appendChild(h("div","panel",`<div class="ph"><h2>What "the same state" means</h2></div><div class="prose">
+    <p><b>Distinguishable:</b> p and q are distinguishable if some string w takes one of them to an accepting state and the other to a non-accepting one. That w is the evidence, and one witness is enough.</p>
+    <p><b>Equivalent</b>, written <code>p ≡ q</code>: no string distinguishes them.</p>
+    <p>The minimal DFA for a language is <b>unique</b> up to renaming the states. So "are these two machines equivalent?" becomes a mechanical question: minimise both and compare.</p></div>`));
+  two.appendChild(h("div","panel",`<div class="ph"><h2>Method 1 · Partition refinement</h2></div><ol class="recipe">
+    <li><div>Delete every state unreachable from the start state.<small>must be first</small></div></li>
+    <li><div>Split Q into two blocks: F, and Q \\ F.<small>ε already tells these apart</small></div></li>
+    <li><div>For each state, record which BLOCK each symbol sends it to.<small>the block, not the state</small></div></li>
+    <li><div>If two states in a block disagree on any symbol, split the block.</div></li>
+    <li><div>When a whole round causes no split, stop. Each block is one state.<small>blocks never merge</small></div></li></ol>`));
+
+  const mt=h("div","machines"); root.appendChild(mt);
+  const host=h("div","view"); root.appendChild(host);
+  function show(M){
+    [...mt.children].forEach(t=>t.setAttribute("aria-selected", t.dataset.id===M.id?"true":"false")); host.innerHTML="";
+    const ref=dfaRefine(M), R=ref.reachable, dead=M.states.filter(q=>!R.includes(q));
+    /* lab */
+    const b2=block(host,"Lab","Partition refinement, round by round","lab");
+    const p0=h("div","panel"); b2.appendChild(p0);
+    p0.innerHTML=`<div class="ph"><h2>${esc(M.name)}</h2><span class="hint">${esc(M.note)}</span></div>`;
+    const d0=h("div","diagram"); p0.appendChild(d0); drawFA(d0,{states:M.states,start:M.start,accept:M.accept,edges:dfaEdges(M)},{maxH:230});
+    p0.appendChild(h("p","idea",`<b>Step 1.</b> Start at ${M.start} and follow arrows. Reached: ${R.join(", ")}. `+(dead.length?`Never reached: <b>${dead.join(", ")}</b>. Nothing points into ${dead.length>1?"them":"it"}, so no input can ever put the machine there. Delete ${dead.length>1?"them":"it"}.`:"Every state is reachable, so nothing is deleted.")));
+    const rp=h("div","panel"); b2.appendChild(rp); let shown=0;
+    function drawRounds(){
+      rp.innerHTML=`<div class="ph"><h2>The rounds</h2><span class="hint">Read the block numbers, not the state names</span></div>`;
+      ref.rounds.slice(0,shown+1).forEach((r,k)=>{
+        const idx={}; r.blocks.forEach((b,i)=>b.forEach(q=>idx[q]=i));
+        const wrap=h("div"); wrap.style.marginBottom="14px";
+        wrap.innerHTML=`<div class="dlabel">${k===0?"Step 2 · the first split is free":"Round "+k+" · partition"}</div><div class="blocks">${r.blocks.map((b,i)=>chip(b,i)).join("")}</div>`;
+        const rows=R.map(q=>{ const b=r.blocks[idx[q]]; const odd=b.some(x=>r.sig[x].join()!==r.sig[b[0]].join());
+          return `<tr><th><span class="bnum c${idx[q]%6}">${idx[q]+1}</span>${esc(q)}</th>${M.sigma.map((a,j)=>`<td>${esc(M.delta[q][a])} <span class="bnum c${r.sig[q][j]%6}">${r.sig[q][j]+1}</span></td>`).join("")}<td class="${odd?"sigdiff":""}">( ${r.sig[q].map(x=>x+1).join(", ")} )</td></tr>`; }).join("");
+        wrap.innerHTML+=`<div class="tablewrap" style="margin-top:8px"><table class="dt"><tr><th>state</th>${M.sigma.map(a=>`<th>on ${esc(a)}</th>`).join("")}<th>signature</th></tr>${rows}</table></div>`;
+        const any=r.splits.some(x=>x);
+        wrap.innerHTML+=`<p class="idea" style="margin:8px 0 0">${any?r.blocks.map((b,i)=>r.splits[i]?`Block ${i+1} has different signatures inside it, so it <b>splits</b>.`:"").join(" "):`A full round with no split. The algorithm <b>stops</b>: ${r.blocks.length} blocks, therefore ${r.blocks.length} states in the minimal machine, down from ${M.states.length}.`}</p>`;
+        rp.appendChild(wrap); });
+      if(shown<ref.rounds.length-1){ const nx=h("button","btn primary","Next round"); nx.type="button"; nx.onclick=()=>{ shown++; drawRounds(); }; rp.appendChild(nx); }
+      else { const fin=ref.rounds[ref.rounds.length-1].blocks; const nm=b=>b.join(""); const idx={}; fin.forEach((b,i)=>b.forEach(q=>idx[q]=i));
+        const mm={states:fin.map(nm),sigma:M.sigma,start:nm(fin[idx[M.start]]),accept:fin.filter(b=>M.accept.includes(b[0])).map(nm),delta:{}};
+        fin.forEach(b=>{ mm.delta[nm(b)]={}; M.sigma.forEach(a=>mm.delta[nm(b)][a]=nm(fin[idx[M.delta[b[0]][a]]])); });
+        rp.appendChild(h("div","dlabel","The minimal machine: each block becomes one state")); const d=h("div","diagram"); rp.appendChild(d);
+        drawFA(d,{states:mm.states,start:mm.start,accept:mm.accept,edges:dfaEdges(mm)},{maxH:210});
+        rp.appendChild(h("p","idea","Pick any member of a block to read off its arrows. They all agree, which is what put them in the same block."));
+        Atlas.stamp("min","watch"); } }
+    drawRounds();
+
+    /* challenge 1 */
+    const b3=block(host,"Challenge","Call the split: which block breaks this round?","split");
+    const cp=h("div","panel"); b3.appendChild(cp); let k=0, miss=0;
+    function ask(){ const r=ref.rounds[k]; cp.innerHTML=`<div class="ph"><h2>Round ${k+1} of ${ref.rounds.length}</h2><span class="hint">Work out each state's signature, then click a block that must split</span></div>
+        <p class="idea" style="margin:0 0 8px">δ: ${R.map(q=>`${q}: ${M.sigma.map(a=>a+"→"+M.delta[q][a]).join(", ")}`).join(" · ")}</p>`;
+      const row=h("div","blocks"); cp.appendChild(row); const out=h("div"); out.style.marginTop="10px"; cp.appendChild(out);
+      const answer=(i)=>{ const want = i===-1 ? !r.splits.some(x=>x) : r.splits[i];
+        if(!want){ miss++; out.innerHTML=`<div class="note bad">${i===-1?"Not yet. Some block still has two states with different signatures.":"Every state in that block has the same signature, so it stays together this round."}</div>`; return; }
+        if(i===-1){ out.innerHTML=`<div class="note good"><b>Right, nothing splits.</b> The machine has ${r.blocks.length} states once minimised. ${miss===0?"No wrong calls.":miss+" wrong call"+(miss>1?"s":"")+" on the way."}</div>`; if(miss<=1) Atlas.stamp("min","split"); row.querySelectorAll("button").forEach(b=>b.disabled=true); return; }
+        const b=r.blocks[i]; out.innerHTML=`<div class="note good"><b>Yes.</b> In block ${i+1}: ${b.map(q=>`${q} has signature (${r.sig[q].map(x=>x+1).join(", ")})`).join("; ")}.</div>`;
+        row.querySelectorAll("button").forEach(x=>x.disabled=true); const nx=h("button","btn primary","Rewrite the partition and go on"); nx.type="button"; nx.style.marginTop="8px"; nx.onclick=()=>{ k++; ask(); }; out.appendChild(nx); };
+      r.blocks.forEach((b,i)=>{ const bt=h("button","blockchip b"+(i%6),`<span class="bnum c${i%6}">${i+1}</span>{ ${b.join(", ")} }`); bt.type="button"; bt.onclick=()=>answer(i); row.appendChild(bt); });
+      const st=h("button","btn","No block splits: stop"); st.type="button"; st.onclick=()=>answer(-1); row.appendChild(st); }
+    ask();
+
+    /* challenge 2 */
+    const b4=block(host,"Challenge","Method 2: fill the table, then see the witnesses","table");
+    const tp=h("div","panel"); b4.appendChild(tp); const W=dfaWitness(M); const marked=new Set();
+    tp.innerHTML=`<div class="ph"><h2>Mark every distinguishable pair</h2><span class="hint">${R.length}(${R.length}−1)/2 = ${R.length*(R.length-1)/2} cells. Count them before you start.</span></div>
+      <p class="idea" style="margin:0 0 8px">Click a cell to mark the pair as distinguishable. Start with accepting against non-accepting (witness ε), then mark (p, q) whenever some symbol sends it to a pair that is already marked.</p>`;
+    const tb=h("table","dt tri"); const tw=h("div","tablewrap"); tw.appendChild(tb); tp.appendChild(tw);
+    function drawT(res){ tb.innerHTML="<tr><th></th>"+R.slice(0,-1).map(q=>`<th>${esc(q)}</th>`).join("")+"</tr>";
+      R.slice(1).forEach((q,i)=>{ const tr=h("tr"); tr.appendChild(h("th",null,esc(q)));
+        R.slice(0,-1).forEach((p,j)=>{ const td=h("td"); if(j>i){ td.className="na"; tr.appendChild(td); return; } const key=W.key(p,q); const dist=W.w[key]!==undefined;
+          if(res){ const said=marked.has(key); td.className= said===dist ? "ok":"no"; td.innerHTML= dist ? "× "+esc(W.w[key]||EPS) : "≡"; td.title= dist?`pass ${W.pass[key]}: ${W.w[key]||"ε"} separates ${p} and ${q}`:`no string separates ${p} and ${q}`; }
+          else { td.className=marked.has(key)?"mk":""; td.textContent=marked.has(key)?"×":""; td.setAttribute("role","button"); td.tabIndex=0; td.setAttribute("aria-label",`pair ${p} ${q}`);
+            const tg=()=>{ marked.has(key)?marked.delete(key):marked.add(key); drawT(); }; td.onclick=tg; td.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); tg(); } }; }
+          tr.appendChild(td); }); tb.appendChild(tr); }); }
+    drawT();
+    const row=h("div","row"); row.style.marginTop="10px"; tp.appendChild(row); const out=h("div"); out.style.marginTop="10px"; tp.appendChild(out);
+    const ck=h("button","btn primary","Check the table"), rs=h("button","btn","Clear"); ck.type=rs.type="button"; row.appendChild(ck); row.appendChild(rs);
+    rs.onclick=()=>{ marked.clear(); out.innerHTML=""; drawT(); };
+    ck.onclick=()=>{ const keys=[]; for(let i=0;i<R.length;i++) for(let j=i+1;j<R.length;j++) keys.push(W.key(R[i],R[j]));
+      const wrong=keys.filter(k=>marked.has(k)!==(W.w[k]!==undefined)); const eq=keys.filter(k=>W.w[k]===undefined);
+      drawT(true);
+      out.innerHTML = wrong.length ? `<div class="note bad"><b>${wrong.length} cell${wrong.length>1?"s":""} wrong</b> (shown in red). Each marked cell now shows its witness: the string that one state accepts and the other rejects. ≡ means no such string exists. Press Clear to try again.</div>`
+        : `<div class="note good"><b>Every cell is right.</b> Unmarked pairs: ${eq.length?eq.map(k=>"("+k.replace("|",", ")+")").join(" and "):"none"}. Merge each one, and you get the same blocks as Method 1. That agreement is guaranteed, not lucky: there is only one minimal DFA to find.</div>`;
+      if(!wrong.length) Atlas.stamp("min","table"); };
+  }
+  MS.forEach(M=>{ const t=h("button","tab",`<b>${esc(M.name)}</b><span>${esc(M.tag)}</span>`); t.type="button"; t.dataset.id=M.id; t.onclick=()=>show(M); mt.appendChild(t); });
+  show(MS[0]);
+
+  const b5=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  quickFire(b5,[
+    {claim:"“State C has two arrows leaving it, so it is doing work and must stay in the machine.”", ok:false, why:"Nothing points INTO C, so no input can ever put the machine there. Unreachable states are deleted first, or one can survive in a block of its own and leave a machine that is not minimal."},
+    {claim:"“A goes to B and B goes to A on 0. Those are different states, so A and B have different signatures.”", ok:false, why:"Read the block numbers, not the state names. A and B both go to block 2 on 0 and block 1 on 1, so both have signature (2, 1) and stay together."},
+    {claim:"“Two blocks that split apart in an early round can be merged again later if they turn out to agree.”", ok:false, why:"Refinement, not rearrangement. Blocks only ever get smaller. Nothing that has been separated is ever put back together."},
+    {claim:"“A block that did not split this round still has to be re-examined next round.”", ok:true, why:"The block numbers have changed underneath it, so its states' signatures may now differ."},
+    {claim:"“To show two states are distinguishable I need one string. To show they are equivalent, no single string is enough.”", ok:true, why:"“Equivalent” is a claim about infinitely many strings. “Distinguishable” is a claim you can prove with one. That is why the table marks pairs rather than proving equivalences."},
+    {claim:"“Partition refinement and table filling can give different minimal machines for the same DFA.”", ok:false, why:"The minimal DFA is unique up to renaming, so any correct method must find the same blocks."}
+  ], (c,n)=>{ if(c>=n-1) Atlas.stamp("min","claims"); else Atlas.toast(`${c} of ${n} right. Reload the stop to try again.`); });
+};
+})();
+
+/* Station: NFAs and ε-moves (S4 to S6) */
+"use strict";
+(function(){
+const E="ε";
+Atlas.stations.nfa.stamps=[{id:"run",label:"Followed every path"},{id:"race",label:"Finished a Subset Race"},{id:"chains",label:"Closure Chains"},{id:"kill",label:"Killed the ε"},{id:"claims",label:"NFA claims"}];
+const NS=[
+  {id:"s4", name:"Two arrows on one symbol", tag:"S4 slides", note:"On a from s1 the machine may stay or move on. b from s0 has no arrow at all.",
+   states:["s0","s1","s2"], sigma:["a","b"], start:"s0", accept:["s2"], delta:{s0:{a:["s1"]},s1:{a:["s1","s2"],b:["s1"]}}, ex:["aa","aba","abab","b","a"]},
+  {id:"e01", name:"Ends with 01", tag:"S4 slides", note:"q0 loops on everything and guesses when the final 01 begins.",
+   states:["q0","q1","q2"], sigma:["0","1"], start:"q0", accept:["q2"], delta:{q0:{0:["q0","q1"],1:["q0"]},q1:{1:["q2"]}}, ex:["01","1101","010","0011",""]},
+  {id:"k3", name:"Third symbol from the end is 1", tag:"the k-th from the end family", note:"Four NFA states. Count the DFA states in the race below.",
+   states:["q0","q1","q2","q3"], sigma:["0","1"], start:"q0", accept:["q3"], delta:{q0:{0:["q0"],1:["q0","q1"]},q1:{0:["q2"],1:["q2"]},q2:{0:["q3"],1:["q3"]}}, ex:["100","0111","1011","010","11"]},
+  {id:"can", name:"0*1*2* with free moves", tag:"S5 canonical ε-NFA", note:"Two ε-arrows: q0 to q1, and q1 to q2. Each state loops on its own symbol.",
+   states:["q0","q1","q2"], sigma:["0","1","2"], start:"q0", accept:["q2"], delta:{q0:{0:["q0"],[E]:["q1"]},q1:{1:["q1"],[E]:["q2"]},q2:{2:["q2"]}}, ex:["012","0212","","2","0011"]},
+  {id:"chain", name:"The Closure Chains machine", tag:"S5 activity", note:"n1 and n2 form a two-state ε-cycle. L = { aᵐbⁿ : m + n ≥ 1 }.",
+   states:["n0","n1","n2","n3","n4"], sigma:["a","b"], start:"n0", accept:["n4"], delta:{n0:{a:["n0"],[E]:["n1"]},n1:{b:["n3"],[E]:["n2"]},n2:{a:["n4"],[E]:["n1"]},n3:{[E]:["n4"]},n4:{b:["n4"]}}, ex:["aab","","ba","b","abb"]}
+];
+const eps=(N,q)=>((N.delta[q]||{})[E]||[]);
+const hasE=N=>N.states.some(q=>eps(N,q).length);
+const ecl=(N,S)=>{ const out=[...S]; for(let i=0;i<out.length;i++) eps(N,out[i]).forEach(t=>{ if(!out.includes(t)) out.push(t); }); return N.states.filter(q=>out.includes(q)); };
+const edgesOf=N=>{ const o=nfaEdges(N); N.states.forEach(q=>eps(N,q).forEach(t=>o.push({from:q,to:t,label:E}))); return o; };
+const same=(A,B)=>A.length===B.length&&A.every(x=>B.includes(x));
+const meets=(N,S)=>S.some(q=>N.accept.includes(q));
+
+/* a cell where the player builds a set by toggling states */
+function picker(universe){ const el=h("div","setpick"); const on=new Set();
+  universe.forEach(q=>{ const b=h("button",null,esc(q)); b.type="button"; b.setAttribute("aria-pressed","false"); b.onclick=()=>{ on.has(q)?on.delete(q):on.add(q); b.classList.toggle("on"); b.setAttribute("aria-pressed",on.has(q)); }; el.appendChild(b); });
+  return {el, get:()=>universe.filter(q=>on.has(q)), lock(){ el.querySelectorAll("button").forEach(b=>b.disabled=true); }}; }
+
+/* a fixed grid of set-valued cells, checked all at once */
+function pickGrid(parent, o){ const tw=h("div","tablewrap"), tb=h("table","dt"); tw.appendChild(tb); parent.appendChild(tw); const cells=[];
+  tb.innerHTML="<tr><th></th>"+o.cols.map(c=>`<th>${esc(c.label)}</th>`).join("")+"</tr>";
+  o.rows.forEach(r=>{ const tr=h("tr"); tr.appendChild(h("th",null,esc(r.label)));
+    (r.span?[{key:null}]:o.cols).forEach(c=>{ const td=h("td"); if(r.span) td.colSpan=o.cols.length; const p=picker(o.universe); td.appendChild(p.el); tr.appendChild(td); cells.push({td,p,want:o.answer(r.key,c.key),r,c}); }); tb.appendChild(tr); });
+  const row=h("div","row"); row.style.marginTop="10px"; parent.appendChild(row); const out=h("div"); out.style.marginTop="10px"; parent.appendChild(out);
+  const ck=h("button","btn primary","Check"); ck.type="button"; row.appendChild(ck); row.appendChild(h("span","hint","Leave a cell with nothing selected to answer ∅."));
+  let tries=0;
+  ck.onclick=()=>{ tries++; const bad=cells.filter(x=>!same(x.p.get(),x.want)); cells.forEach(x=>x.td.className=bad.includes(x)?"no":"ok");
+    if(bad.length){ const x=bad[0]; out.innerHTML=`<div class="note bad"><b>${bad.length} cell${bad.length>1?"s":""} wrong</b> (red). A hint for one of them: ${o.hint(x.r.key,x.c.key,x.p.get(),x.want)}</div>`; }
+    else { cells.forEach(x=>x.p.lock()); ck.disabled=true; out.innerHTML=`<div class="note good">${o.done}</div>`; o.onDone&&o.onDone(tries,out); } }; }
+
+Atlas.stations.nfa.mount=function(root){
+  const b1=block(root,"The idea","Machines that guess, and machines that move without reading","idea");
+  const two=h("div","two"); b1.appendChild(two);
+  two.appendChild(h("div","panel",`<div class="ph"><h2>The NFA: one change to δ</h2></div><div class="prose">
+    <p>A DFA has exactly one arrow per state and symbol. An NFA may have <b>several, or none</b>: <code>δ : Q × Σ → P(Q)</code>, a set of states.</p>
+    <p>It accepts w if <b>some</b> path on w ends in F. A path with no arrow to follow simply dies. It does not reject the string on behalf of the others.</p>
+    <p>You never have to guess. Track the <b>set of live states</b>: every state some path could be in right now. That set is one DFA state, which is the whole subset construction, and the reason nondeterminism buys convenience but no extra power.</p></div>`));
+  two.appendChild(h("div","panel",`<div class="ph"><h2>ε-moves: close, move, close</h2></div><ol class="recipe">
+    <li><div>ε-CL(q) is every state reachable from q by zero or more ε-arrows.<small>zero is why q is always in its own closure</small></div></li>
+    <li><div>Before reading anything, the live set is ε-CL(q₀).<small>the step everyone forgets</small></div></li>
+    <li><div>On a symbol: apply δ to every live state and union the results.</div></li>
+    <li><div>Then take the ε-closure of what you got.<small>never follow a real symbol while closing</small></div></li>
+    <li><div>Accept if the last set meets F.<small>ε ∉ Σ: it labels an arrow, it is never a character of w</small></div></li></ol>`));
+
+  const mt=h("div","machines"); root.appendChild(mt);
+  const host=h("div","view"); root.appendChild(host); let stopTimer=null;
+  Atlas.onCleanup(()=>{ if(stopTimer) stopTimer(); });
+  function show(N){ if(stopTimer) stopTimer();
+    [...mt.children].forEach(t=>t.setAttribute("aria-selected", t.dataset.id===N.id?"true":"false")); host.innerHTML=""; const withE=hasE(N);
+    /* ---------- lab ---------- */
+    const b2=block(host,"Lab","Follow every path at once","lab");
+    const p=h("div","panel run"); b2.appendChild(p);
+    p.innerHTML=`<div class="ph"><h2>${esc(N.name)}</h2><span class="hint">${esc(N.note)}</span></div>`;
+    const top=h("div","controls"); p.appendChild(top);
+    const ib=h("div","inputbox"); ib.innerHTML=`<label for="nfaIn">Input w</label><input id="nfaIn" autocomplete="off" spellcheck="false" maxlength="12">`; top.appendChild(ib); const inp=ib.querySelector("input"); inp.value=N.ex[0];
+    const exs=h("div","examples"); top.appendChild(exs);
+    const row=h("div","row"); top.appendChild(row);
+    const bBack=h("button","btn","Back"), bStep=h("button","btn primary","Read one symbol"), bAll=h("button","btn","Run to the end"); [bBack,bStep,bAll].forEach(b=>{ b.type="button"; row.appendChild(b); });
+    const tape=h("div","tape"); p.appendChild(tape);
+    const dia=h("div","diagram"); p.appendChild(dia); const hd=drawFA(dia,{states:N.states,start:N.start,accept:N.accept,edges:edgesOf(N)},{maxH:250});
+    const tw=h("div","tablewrap"); p.appendChild(tw); const narr=h("div","narr"); narr.innerHTML=`<span class="step">live</span><p></p>`; p.appendChild(narr);
+    let w="", sets=[], moves=[], t=0; const seen=new Set();
+    const run=str=>{ let S=ecl(N,[N.start]); const ss=[S], mm=[null]; for(const c of str){ const M=nfaMove(N,S,c); S=ecl(N,M); mm.push(M); ss.push(S); } return {ss,mm}; };
+    const accepts=str=>{ const r=run(str); return meets(N,r.ss[r.ss.length-1]); };
+    function reset(){ w=[...inp.value.replace(/\s+/g,"")].filter(c=>N.sigma.includes(c)).join(""); const r=run(w); sets=r.ss; moves=r.mm; t=0; render(); }
+    function render(){ const chars=[...w]; tape.innerHTML=""; chars.forEach((c,i)=>tape.appendChild(h("div","cell"+(i<t?" read":"")+(i===t?" head":""),esc(c)))); tape.appendChild(h("div","cell end"+(t>=chars.length?" head":""),"end"));
+      const last=t===chars.length, S=sets[t], acc=last&&meets(N,S);
+      hd.setStates(S, last?(acc?"done-acc":"done-rej"):"cur");
+      let html=`<table class="dt"><tr><th>read</th>${withE?"<th>move</th><th>then close</th>":"<th>live set</th>"}</tr><tr><th>start</th>${withE?`<td>{${esc(N.start)}}</td>`:""}<td>${esc(setName(sets[0]))}</td></tr>`;
+      for(let i=1;i<=t;i++) html+=`<tr><th>${esc(chars[i-1])}</th>${withE?`<td>${esc(setName(moves[i]))}</td>`:""}<td>${esc(setName(sets[i]))}</td></tr>`;
+      tw.innerHTML=html+"</table>";
+      const st=narr.querySelector(".step"), pp=narr.querySelector("p");
+      if(t===0){ st.textContent="start"; pp.innerHTML= withE ? `Before any input the live set is ε-CL(${esc(N.start)}) = <b>${esc(setName(S))}</b>, not {${esc(N.start)}}.` : `One live state: <b>${esc(N.start)}</b>.`; }
+      else { const c=chars[t-1], prev=sets[t-1]; st.textContent="δ"; pp.innerHTML = prev.length ? prev.map(q=>`δ(${esc(q)}, ${esc(c)}) = ${esc(setName((N.delta[q]||{})[c]||[]))}`).join(" &nbsp;·&nbsp; ")+`<span class="why">Union: ${esc(setName(moves[t]))}${withE?`. Close it: <b>${esc(setName(S))}</b>`:""}. ${S.length?"":"Every path has died. ∅ is a real place to be, and nothing leaves it."}</span>` : `The live set is already ∅, so it stays ∅.`; }
+      if(last){ pp.innerHTML+=`<span class="why" style="color:var(--ink);font-weight:600">Input exhausted. The live set ${acc?"contains "+esc(S.filter(q=>N.accept.includes(q)).join(", "))+", which is in F: ACCEPT. One surviving path is enough.":"contains no state of F: REJECT. No path made it."}</span>`;
+        seen.add(acc?"y":"n"); if(seen.size===2) Atlas.stamp("nfa","run"); }
+      bBack.disabled=t===0; bStep.disabled=bAll.disabled=last; }
+    N.ex.forEach(x=>{ const ok=accepts(x); const b=h("button","ex",`${esc(x||EPS)}<small class="${ok?"y":"n"}">${ok?"✓":"✗"}</small>`); b.type="button"; b.onclick=()=>{ inp.value=x; reset(); }; exs.appendChild(b); });
+    bStep.onclick=()=>{ t++; render(); }; bBack.onclick=()=>{ t--; render(); }; bAll.onclick=()=>{ t=[...w].length; render(); }; inp.addEventListener("input",reset); reset();
+
+    /* ---------- Subset Race ---------- */
+    const b3=block(host,"Challenge","Subset Race: build the DFA before the clock embarrasses you","race");
+    const rp=h("div","panel"); b3.appendChild(rp);
+    rp.innerHTML=`<div class="ph"><h2>${withE?"Subset construction, with closures":"Subset construction"}</h2><span class="timer" aria-live="off">0:00</span></div>
+      <p class="idea" style="margin:0 0 8px">Each row is one DFA state, which is a set of ${withE?"ε-NFA":"NFA"} states. For the open row, select where each symbol sends the set${withE?" (move, then close)":""}, then check it. New sets become new rows. Only build what is reachable from the start.</p>`;
+    const tm=rp.querySelector(".timer"); let t0=null, iv=null; const fmt=s=>Math.floor(s/60)+":"+String(s%60).padStart(2,"0");
+    const tick=()=>{ tm.textContent=fmt(Math.floor((Date.now()-t0)/1000)); }; stopTimer=()=>{ clearInterval(iv); iv=null; };
+    const startClock=()=>{ if(t0===null){ t0=Date.now(); iv=setInterval(tick,1000); } };
+    const rtw=h("div","tablewrap"), rtb=h("table","dt"); rtw.appendChild(rtb); rp.appendChild(rtw); const rout=h("div"); rout.style.marginTop="10px"; rp.appendChild(rout);
+    const truth=(S,a)=>ecl(N,nfaMove(N,S,a)); const list=[ecl(N,[N.start])]; let cur=0, miss=0;
+    rtb.innerHTML=`<tr><th>DFA state</th>${N.sigma.map(a=>`<th>on ${esc(a)}</th>`).join("")}<th></th></tr>`;
+    function openRow(){ const S=list[cur]; const tr=h("tr"); tr.appendChild(h("th",null,(cur===0?"→ ":"")+esc(setName(S)))); const ps=N.sigma.map(a=>{ const td=h("td"); const pk=picker(N.states); td.appendChild(pk.el); tr.appendChild(td); return {td,pk,a}; });
+      pk0(ps); const td=h("td"); const ck=h("button","btn primary","Check row"); ck.type="button"; td.appendChild(ck); tr.appendChild(td); rtb.appendChild(tr);
+      ck.onclick=()=>{ startClock(); const bad=ps.filter(x=>!same(x.pk.get(),truth(S,x.a))); ps.forEach(x=>x.td.className=bad.includes(x)?"no":"ok");
+        if(bad.length){ miss++; const x=bad[0], M=nfaMove(N,S,x.a); rout.innerHTML=`<div class="note bad">On ${esc(x.a)}: go through the members of ${esc(setName(S))} one at a time and union what δ gives. ${S.length?S.map(q=>`δ(${esc(q)}, ${esc(x.a)}) = ${esc(setName((N.delta[q]||{})[x.a]||[]))}`).join(", ")+".":"∅ has no members, so nothing leaves it."}${withE&&M.length?" Then close the result.":""}</div>`; return; }
+        rout.innerHTML=""; ps.forEach(x=>{ x.pk.lock(); x.td.textContent=setName(truth(S,x.a)); x.td.className="ok"; const T=truth(S,x.a); if(!list.some(y=>same(y,T))) list.push(T); }); td.textContent=meets(N,S)?"accepting":""; cur++;
+        if(cur<list.length) openRow(); else finish(); }; }
+    function pk0(ps){ ps.forEach(x=>x.pk.el.addEventListener("click",startClock)); }
+    function finish(){ stopTimer(); const secs=t0?Math.floor((Date.now()-t0)/1000):0; const names="ABCDEFGHIJKLMNOP"; const nm=S=>names[list.findIndex(y=>same(y,S))];
+      const D={states:list.map(nm),start:"A",accept:list.filter(S=>meets(N,S)).map(nm),edges:[]}; list.forEach(S=>N.sigma.forEach(a=>D.edges.push({from:nm(S),to:nm(truth(S,a)),label:a})));
+      rout.innerHTML=`<div class="note good"><b>Done in ${fmt(secs)}${miss?` with ${miss} wrong row check${miss>1?"s":""}`:" with no wrong checks"}.</b> ${list.length} reachable set${list.length>1?"s":""} out of 2<sup>${N.states.length}</sup> = ${2**N.states.length} possible. A set is accepting when it contains at least one accepting state${list.some(S=>!S.length)?", and ∅ is the dead state":""}.${N.id==="k3"?" Here every one of the 8 sets is needed: the DFA must remember the last three symbols. For k-th from the end the NFA has k + 1 states and the DFA 2ᵏ. That is the price of determinism, paid in size, never in power.":""}</div>
+        <div class="blocks" style="margin:10px 0">${list.map((S,i)=>`<span class="blockchip b${i%6}"><span class="bnum c${i%6}">${names[i]}</span>${esc(setName(S))}</span>`).join("")}</div>`;
+      if(list.length<=8){ const d=h("div","diagram"); rout.appendChild(d); drawFA(d,D,{maxH:260}); }
+      Atlas.stamp("nfa","race"); }
+    openRow();
+  }
+  NS.forEach(N=>{ const t=h("button","tab",`<b>${esc(N.name)}</b><span>${esc(N.tag)}</span>`); t.type="button"; t.dataset.id=N.id; t.onclick=()=>show(N); mt.appendChild(t); });
+  show(NS[0]);
+
+  /* ---------- Closure Chains ---------- */
+  const C=NS[4];
+  const b4=block(root,"Challenge","Closure Chains: five closures, one cycle","chains");
+  const cp=h("div","panel"); b4.appendChild(cp);
+  cp.innerHTML=`<div class="ph"><h2>Compute ε-CL(q) for every state</h2><span class="hint">ε: n0 → n1, n1 → n2, n2 → n1, n3 → n4</span></div>`;
+  const cd=h("div","diagram"); cp.appendChild(cd); drawFA(cd,{states:C.states,start:C.start,accept:C.accept,edges:edgesOf(C)},{maxH:250});
+  pickGrid(cp,{rows:C.states.map(q=>({key:q,label:"ε-CL("+q+")"})), cols:[{key:"c",label:"closure"}], universe:C.states, answer:q=>ecl(C,[q]),
+    hint:(q,_,got,want)=>!got.includes(q)?`ε-CL(${q}) must contain ${q} itself. Zero ε-arrows is a valid path.`:got.some(x=>!want.includes(x))?`in ε-CL(${q}) you followed something that is not an ε-arrow, or followed one backwards. Closures only go forwards, and never along a real symbol.`:`for ε-CL(${q}), keep going until the set stops growing. One hop is not enough.`,
+    done:"<b>All five are right.</b> n1 and n2 agree because each reaches the other for free. n0 does not join them: it can reach the cycle, but the cycle cannot reach back. And ε-CL(n0) misses n4, so ε is not accepted.",
+    onDone:()=>Atlas.stamp("nfa","chains")});
+
+  /* ---------- Kill the ε ---------- */
+  const K=NS[3];
+  const b5=block(root,"Challenge","Kill the ε: turn the ε-NFA into a plain NFA","kill");
+  const kp=h("div","panel"); b5.appendChild(kp);
+  kp.innerHTML=`<div class="ph"><h2>δ′(q, a) = ε-CL( δ( ε-CL(q), a ) )</h2><span class="hint">Close, move, close. Once per state, per symbol.</span></div>
+    <p class="idea" style="margin:0 0 8px">The machine is 0*1*2*: q0 →ε q1 →ε q2, each state looping on its own symbol, F = { q2 }. Q, Σ and q₀ do not change. Fill in δ′, then the new accepting set F′.</p>`;
+  const kd=h("div","diagram"); kp.appendChild(kd); drawFA(kd,{states:K.states,start:K.start,accept:K.accept,edges:edgesOf(K)},{maxH:220});
+  const kAns=(q,a)=> q==="F" ? K.states.filter(s=>K.accept.includes(s)||(s===K.start&&meets(K,ecl(K,[K.start])))) : ecl(K,nfaMove(K,ecl(K,[q]),a));
+  pickGrid(kp,{rows:K.states.map(q=>({key:q,label:"δ′("+q+", ·)"})).concat([{key:"F",label:"F′",span:true}]), cols:K.sigma.map(a=>({key:a,label:"on "+a})), universe:K.states, answer:kAns,
+    hint:(q,a,got,want)=> q==="F" ? `F′ = F, plus q₀ if ε-CL(q₀) meets F. Only the start state is ever added, because the one moment δ′ never covers is the moment before the first symbol.` : `δ′(${q}, ${a}): first ε-CL(${q}) = ${setName(ecl(K,[q]))}. Then read ${a} from every state in it: ${setName(nfaMove(K,ecl(K,[q]),a))}. Then close that.`,
+    done:"<b>The ε-arrows are gone.</b> Same states, same start, same language. q0 joined F′ because ε-CL(q0) = {q0, q1, q2} meets F, so ε is still accepted. q1 did not: it is not the start state, and closing after every move already covers it.",
+    onDone:(tries,out)=>{ const NN={states:K.states,sigma:K.sigma,start:K.start,accept:kAns("F"),delta:{}}; K.states.forEach(q=>{ NN.delta[q]={}; K.sigma.forEach(a=>NN.delta[q][a]=kAns(q,a)); });
+      const d=h("div","diagram"); d.style.marginTop="10px"; out.appendChild(d); drawFA(d,{states:NN.states,start:NN.start,accept:NN.accept,edges:nfaEdges(NN)},{maxH:260});
+      out.appendChild(h("p","idea","The chain is now complete: ε-NFA → NFA by this construction, NFA → DFA by the subset construction. Three kinds of machine, one class of languages.")); Atlas.stamp("nfa","kill"); }});
+
+  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  quickFire(b6,[
+    {claim:"“An NFA accepts w only if every path on w ends in an accepting state.”", ok:false, why:"Some path, not every path. One surviving path that ends in F is enough."},
+    {claim:"“If one path gets stuck with no arrow to follow, the NFA rejects the string.”", ok:false, why:"That path dies and the others carry on. The string is rejected only when no path at all ends in F."},
+    {claim:"“The subset construction can need 2ⁿ states, which shows NFAs recognise more languages than DFAs.”", ok:false, why:"It shows the opposite: every NFA has an equivalent DFA. The cost of determinism is size, never power."},
+    {claim:"“In the subset construction, ∅ is a legitimate DFA state.”", ok:true, why:"It is the dead state: every path has died, and every symbol leads from ∅ back to ∅."},
+    {claim:"“ε-CL(q) = ∅ when q has no ε-arrows, because nothing is reachable.”", ok:false, why:"Zero ε-arrows is a valid path, so q is always in its own closure. With the wrong rule 0*1*2* would reject both ε and 2, silently."},
+    {claim:"“Before reading any input, the live set of an ε-NFA is ε-CL(q₀), not { q₀ }.”", ok:true, why:"Free moves are available before the first symbol. This is the step everyone forgets."},
+    {claim:"“ε is one more symbol of Σ that the machine can read.”", ok:false, why:"ε ∉ Σ. It is a label on an arrow, never a character in a string."},
+    {claim:"“For ε-removal I can close only before the move in δ′, and still use F′ = F plus q₀.”", ok:false, why:"That mixes two methods. Closing only before the move needs F′ enlarged to every state whose closure meets F. With the mix, 0*1*2* rejects the string 1."}
+  ], (c,n)=>{ if(c>=n-1) Atlas.stamp("nfa","claims"); else Atlas.toast(`${c} of ${n} right. Reload the stop to try again.`); });
+};
+})();
+
+/* Station: Moore and Mealy machines (S7) */
+"use strict";
+(function(){
+Atlas.stations.mm.stamps=[{id:"run",label:"Ran both kinds"},{id:"m2m",label:"Moore to Mealy"},{id:"pairs",label:"Pair construction"},{id:"claims",label:"Transducer claims"}];
+const MS=[
+  {id:"mod3", type:"moore", name:"Remainder mod 3", tag:"Moore · S7 walkthrough", note:"Reads a binary number, most significant bit first, and prints the remainder so far. δ(q, b) = (2q + b) mod 3.",
+   states:["r0","r1","r2"], sigma:["0","1"], out:["0","1","2"], start:"r0", delta:{r0:{0:"r0",1:"r1"},r1:{0:"r2",1:"r0"},r2:{0:"r1",1:"r2"}}, lam:{r0:"0",r1:"1",r2:"2"}, ex:["1101","110","111"]},
+  {id:"ab", type:"moore", name:"Last two symbols were ab", tag:"Moore · in-class activity", note:"Prints Y exactly when the last two symbols read were ab, and N otherwise.",
+   states:["q0","qa","qab"], sigma:["a","b"], out:["N","Y"], start:"q0", delta:{q0:{a:"qa",b:"q0"},qa:{a:"qa",b:"qab"},qab:{a:"qa",b:"q0"}}, lam:{q0:"N",qa:"N",qab:"Y"}, ex:["abab","aab","bba"]},
+  {id:"cnt", type:"moore", name:"Count the b's mod 3", tag:"Moore · practice question", note:"After each symbol it prints the number of b's read so far, modulo 3.",
+   states:["c0","c1","c2"], sigma:["a","b"], out:["0","1","2"], start:"c0", delta:{c0:{a:"c0",b:"c1"},c1:{a:"c1",b:"c2"},c2:{a:"c2",b:"c0"}}, lam:{c0:"0",c1:"1",c2:"2"}, ex:["babba","bbb","aab"]},
+  {id:"par", type:"mealy", name:"Running parity", tag:"Mealy · S7 walkthrough", note:"After every symbol it prints the parity of the number of 1s so far. e = even so far, o = odd so far.",
+   states:["e","o"], sigma:["0","1"], out:["0","1"], start:"e", delta:{e:{0:"e",1:"o"},o:{0:"o",1:"e"}}, lam:{e:{0:"0",1:"1"},o:{0:"1",1:"0"}}, ex:["1011","1101","000"]},
+  {id:"shift", type:"mealy", name:"Shift register", tag:"Mealy · practice question", note:"Prints the previous input symbol, and 0 first. That shifts the input one place right: it divides the binary number by two.",
+   states:["S0","S1"], sigma:["0","1"], out:["0","1"], start:"S0", delta:{S0:{0:"S0",1:"S1"},S1:{0:"S0",1:"S1"}}, lam:{S0:{0:"0",1:"0"},S1:{0:"1",1:"1"}}, ex:["1101","1000","0110"]}
+];
+const isMoore=M=>M.type==="moore";
+const nm=(M,q)=>isMoore(M)?q+"/"+M.lam[q]:q;
+const diagram=(box,M,maxH)=>drawFA(box,{states:M.states.map(q=>nm(M,q)),start:nm(M,M.start),accept:[],edges:M.states.flatMap(q=>M.sigma.map(a=>({from:nm(M,q),to:nm(M,M.delta[q][a]),label:isMoore(M)?a:a+"/"+M.lam[q][a]})))},{maxH:maxH||240});
+function runM(M,w){ let q=M.start; const qs=[q], out=isMoore(M)?[M.lam[q]]:[]; for(const c of w){ if(!isMoore(M)) out.push(M.lam[q][c]); q=M.delta[q][c]; if(isMoore(M)) out.push(M.lam[q]); qs.push(q); } return {qs,out}; }
+const toMealy=M=>({type:"mealy",states:M.states,sigma:M.sigma,out:M.out,start:M.start,delta:M.delta,lam:Object.fromEntries(M.states.map(q=>[q,Object.fromEntries(M.sigma.map(a=>[a,M.lam[M.delta[q][a]]]))]))});
+function toMoore(M,c0){ const pairs=M.states.flatMap(q=>M.out.map(c=>q+","+c)); const d={}, lam={}; pairs.forEach(p=>{ const [q,c]=p.split(","); lam[p]=c; d[p]={}; M.sigma.forEach(a=>d[p][a]=M.delta[q][a]+","+M.lam[q][a]); });
+  const start=M.start+","+c0, seen=[start]; for(let i=0;i<seen.length;i++) M.sigma.forEach(a=>{ const t=d[seen[i]][a]; if(!seen.includes(t)) seen.push(t); });
+  return {pairs,delta:d,lam,start,reach:pairs.filter(p=>seen.includes(p))}; }
+const br=p=>"["+p.replace(",",", ")+"]";
+const sel=(opts,lab)=>{ const s=document.createElement("select"); s.setAttribute("aria-label",lab); s.innerHTML=`<option value="">?</option>`+opts.map(o=>`<option value="${esc(o.v)}">${esc(o.t)}</option>`).join(""); return s; };
+
+Atlas.stations.mm.mount=function(root){
+  const b1=block(root,"The idea","Machines that write, not just judge","idea");
+  const two=h("div","two"); b1.appendChild(two);
+  two.appendChild(h("div","panel",`<div class="ph"><h2>A finite automaton with output</h2></div><div class="prose">
+    <p><code>M = ( Q, Σ, Δ, δ, λ, q₀ )</code>. Six components, not five. Q, Σ, δ and q₀ are exactly a DFA's. New: <b>Δ</b>, the output alphabet, and <b>λ</b>, the output function.</p>
+    <p>What is gone is <b>F</b>. A transducer has no accepting states, because it is not deciding anything. A double circle here is an error.</p>
+    <p>The same finite control, but the answer is a string instead of one bit.</p></div>`));
+  two.appendChild(h("div","panel",`<div class="ph"><h2>Where λ lives</h2></div><div class="tablewrap"><table class="dt" style="width:100%">
+    <tr><th></th><th>Moore</th><th>Mealy</th></tr>
+    <tr><th>λ</th><td>Q → Δ</td><td>Q × Σ → Δ</td></tr>
+    <tr><th>written on</th><td>the state: q / c</td><td>the arrow: a / c</td></tr>
+    <tr><th>output length</th><td>|w| + 1</td><td>|w|</td></tr>
+    <tr><th>on ε</th><td>λ(q₀), one symbol</td><td>nothing at all</td></tr></table></div>
+    <p class="idea" style="margin:10px 0 0"><b>Equivalent</b> means: the Mealy output equals the Moore output with its first symbol removed, for every w. Count the length before you write the output.</p>`));
+
+  const mt=h("div","machines"); root.appendChild(mt);
+  const host=h("div","view"); root.appendChild(host); const ran=new Set();
+  function show(M){ [...mt.children].forEach(t=>t.setAttribute("aria-selected", t.dataset.id===M.id?"true":"false")); host.innerHTML=""; const moore=isMoore(M);
+    /* ---------- lab ---------- */
+    const b2=block(host,"Lab","Watch the output being written","lab");
+    const p=h("div","panel run"); b2.appendChild(p);
+    p.innerHTML=`<div class="ph"><h2>${esc(M.name)}</h2><span class="hint">${esc(M.note)}</span></div>`;
+    const top=h("div","controls"); p.appendChild(top);
+    const ib=h("div","inputbox"); ib.innerHTML=`<label for="mmIn">Input w</label><input id="mmIn" autocomplete="off" spellcheck="false" maxlength="12">`; top.appendChild(ib); const inp=ib.querySelector("input"); inp.value=M.ex[0];
+    const exs=h("div","examples"); top.appendChild(exs); M.ex.forEach(x=>{ const b=h("button","ex",esc(x)); b.type="button"; b.onclick=()=>{ inp.value=x; reset(); }; exs.appendChild(b); });
+    const row=h("div","row"); top.appendChild(row); const bBack=h("button","btn","Back"), bStep=h("button","btn primary","Read one symbol"), bAll=h("button","btn","Run to the end"); [bBack,bStep,bAll].forEach(b=>{ b.type="button"; row.appendChild(b); });
+    const tape=h("div","tape"); p.appendChild(tape); const dia=h("div","diagram"); p.appendChild(dia); const hd=diagram(dia,M);
+    p.appendChild(h("div","dlabel","Output so far")); const outEl=h("div","seq"); p.appendChild(outEl);
+    const narr=h("div","narr"); narr.innerHTML=`<span class="step">λ</span><p></p>`; p.appendChild(narr);
+    let w="", r=null, t=0;
+    function reset(){ w=[...inp.value.replace(/\s+/g,"")].filter(c=>M.sigma.includes(c)).join(""); r=runM(M,w); t=0; render(false); }
+    function render(anim){ const chars=[...w], n=chars.length, last=t===n; tape.innerHTML=""; chars.forEach((c,i)=>tape.appendChild(h("div","cell"+(i<t?" read":"")+(i===t?" head":""),esc(c)))); tape.appendChild(h("div","cell end"+(last?" head":""),"end"));
+      hd.setState(nm(M,r.qs[t]),"cur"); if(t>0) hd.edge(nm(M,r.qs[t-1]),nm(M,r.qs[t]),anim); else hd.clearEdge();
+      const shown=r.out.slice(0,moore?t+1:t); outEl.innerHTML=shown.length?shown.map((c,i)=>`<span class="${i===shown.length-1?"cur":""}">${esc(c)}</span>`).join(""):`<em>nothing yet</em>`;
+      const pp=narr.querySelector("p");
+      if(t===0) pp.innerHTML= moore ? `Before reading anything the machine is in ${esc(M.start)}, so it prints λ(${esc(M.start)}) = <b>${esc(M.lam[M.start])}</b>. A Moore machine always prints one symbol up front.` : `Before reading anything a Mealy machine has taken no arrow, so it has printed <b>nothing</b>.`;
+      else { const q=r.qs[t-1], c=chars[t-1], q2=r.qs[t]; pp.innerHTML= moore ? `δ(${esc(q)}, ${esc(c)}) = ${esc(q2)}. Now in ${esc(q2)}, print λ(${esc(q2)}) = <b>${esc(M.lam[q2])}</b>. The output comes from where it landed.` : `Take the arrow ${esc(q)} —${esc(c)}/${esc(M.lam[q][c])}→ ${esc(q2)} and print λ(${esc(q)}, ${esc(c)}) = <b>${esc(M.lam[q][c])}</b>. One symbol per arrow taken.`; }
+      if(last){ pp.innerHTML+=`<span class="why" style="color:var(--ink);font-weight:600">|w| = ${n}, so the output has ${moore?n+" + 1 = "+(n+1):n} symbol${(moore?n+1:n)===1?"":"s"}: ${esc(r.out.join(" "))||"ε"}.</span>`; if(n>0){ ran.add(M.type); if(ran.size===2) Atlas.stamp("mm","run"); } }
+      bBack.disabled=t===0; bStep.disabled=bAll.disabled=last; }
+    bStep.onclick=()=>{ t++; render(true); }; bBack.onclick=()=>{ t--; render(false); }; bAll.onclick=()=>{ t=[...w].length; render(false); }; inp.addEventListener("input",reset); reset();
+    if(ran.size<2) p.appendChild(h("p","idea",`Run one Moore machine and one Mealy machine to the end for the first stamp.`));
+
+    if(moore){ /* ---------- Moore -> Mealy ---------- */
+      const b3=block(host,"Challenge","Moore → Mealy: move every output onto an arrow","conv");
+      const cp=h("div","panel"); b3.appendChild(cp); const T=toMealy(M);
+      cp.innerHTML=`<div class="ph"><h2>Give all ${M.states.length*M.sigma.length} values of λ′</h2><span class="hint">Keep Q, Σ, Δ, δ and q₀ exactly as they are</span></div>
+        <p class="idea" style="margin:0 0 8px">λ: ${M.states.map(q=>`λ(${esc(q)}) = ${esc(M.lam[q])}`).join(", ")}. &nbsp; δ: ${M.states.map(q=>M.sigma.map(a=>`δ(${esc(q)}, ${esc(a)}) = ${esc(M.delta[q][a])}`).join(", ")).join(" · ")}</p>`;
+      const tb=h("table","dt"), tw=h("div","tablewrap"); tw.appendChild(tb); cp.appendChild(tw); tb.innerHTML=`<tr><th>λ′</th>${M.sigma.map(a=>`<th>on ${esc(a)}</th>`).join("")}</tr>`; const cells=[];
+      M.states.forEach(q=>{ const tr=h("tr"); tr.appendChild(h("th",null,esc(q))); M.sigma.forEach(a=>{ const td=h("td"); const s=sel(M.out.map(c=>({v:c,t:c})),`λ′(${q}, ${a})`); td.appendChild(s); tr.appendChild(td); cells.push({td,s,q,a}); }); tb.appendChild(tr); });
+      const rw=h("div","row"); rw.style.marginTop="10px"; cp.appendChild(rw); const ck=h("button","btn primary","Check"); ck.type="button"; rw.appendChild(ck); const out=h("div"); out.style.marginTop="10px"; cp.appendChild(out); let tries=0;
+      ck.onclick=()=>{ tries++; const bad=cells.filter(x=>x.s.value!==T.lam[x.q][x.a]); cells.forEach(x=>x.td.className=bad.includes(x)?"no":"ok");
+        if(bad.length){ const x=bad[0]; const wrongEnd=bad.some(y=>y.s.value===M.lam[y.q]&&M.lam[y.q]!==T.lam[y.q][y.a]);
+          out.innerHTML=`<div class="note bad"><b>${bad.length} wrong.</b> ${wrongEnd?"You are labelling from the wrong end: that is λ(q), the state the arrow leaves. ":""}The arrow takes the output of the state it <b>lands</b> in: λ′(${esc(x.q)}, ${esc(x.a)}) = λ( δ(${esc(x.q)}, ${esc(x.a)}) ) = λ(${esc(M.delta[x.q][x.a])}).</div>`; return; }
+        ck.disabled=true; cells.forEach(x=>x.s.disabled=true); const w=M.ex[0], A=runM(M,w).out, B=runM(T,w).out;
+        out.innerHTML=`<div class="note good"><b>All ${cells.length} are right${tries===1?", first try":""}.</b> Same states, same arrows, same picture: Moore → Mealy never changes |Q|. The circles are now bare.</div>
+          <p class="idea" style="margin:10px 0 4px">The check, on ${esc(w)}: Moore prints <code><s>${esc(A[0])}</s> ${esc(A.slice(1).join(" "))}</code> (${A.length} symbols), Mealy prints <code>${esc(B.join(" "))}</code> (${B.length}). Remove the first Moore symbol and they agree.</p>`;
+        const d=h("div","diagram"); out.appendChild(d); diagram(d,T,220); Atlas.stamp("mm","m2m"); };
+    } else { /* ---------- Mealy -> Moore ---------- */
+      const b3=block(host,"Challenge","Mealy → Moore: the pair construction","conv");
+      const cp=h("div","panel"); b3.appendChild(cp); const T=toMoore(M,M.out[0]);
+      cp.innerHTML=`<div class="ph"><h2>${M.states.length} × ${M.out.length} = ${T.pairs.length} pairs, before trimming</h2><span class="hint">δ′([q, c], a) = [ δ(q, a), λ(q, a) ] &nbsp;·&nbsp; λ′([q, c]) = c</span></div>
+        <p class="idea" style="margin:0 0 8px">A Moore state has to know what to print, so each new state carries a symbol with it. Fill in where every pair goes, then tick the pairs that are reachable from the start state ${esc(br(T.start))} (taking c₀ = ${esc(M.out[0])}).</p>
+        <p class="idea" style="margin:0 0 8px">The Mealy machine: ${M.states.map(q=>M.sigma.map(a=>`${esc(q)} —${esc(a)}/${esc(M.lam[q][a])}→ ${esc(M.delta[q][a])}`).join(", ")).join(" · ")}</p>`;
+      const tb=h("table","dt"), tw=h("div","tablewrap"); tw.appendChild(tb); cp.appendChild(tw); tb.innerHTML=`<tr><th>pair</th><th>λ′</th>${M.sigma.map(a=>`<th>on ${esc(a)}</th>`).join("")}<th>reachable</th></tr>`; const cells=[], boxes=[];
+      T.pairs.forEach(pr=>{ const tr=h("tr"); tr.appendChild(h("th",null,esc(br(pr)))); tr.appendChild(h("td",null,esc(T.lam[pr])));
+        M.sigma.forEach(a=>{ const td=h("td"); const s=sel(T.pairs.map(x=>({v:x,t:br(x)})),`δ′(${br(pr)}, ${a})`); td.appendChild(s); tr.appendChild(td); cells.push({td,s,pr,a}); });
+        const td=h("td"); const cb=document.createElement("input"); cb.type="checkbox"; cb.setAttribute("aria-label",br(pr)+" reachable"); td.appendChild(cb); tr.appendChild(td); boxes.push({td,cb,pr}); tb.appendChild(tr); });
+      const rw=h("div","row"); rw.style.marginTop="10px"; cp.appendChild(rw); const ck=h("button","btn primary","Check"); ck.type="button"; rw.appendChild(ck); const out=h("div"); out.style.marginTop="10px"; cp.appendChild(out);
+      ck.onclick=()=>{ const bad=cells.filter(x=>x.s.value!==T.delta[x.pr][x.a]); cells.forEach(x=>x.td.className=bad.includes(x)?"no":"ok");
+        if(bad.length){ const x=bad[0], [q,c]=x.pr.split(","); boxes.forEach(b=>b.td.className="");
+          out.innerHTML=`<div class="note bad"><b>${bad.length} transition${bad.length>1?"s":""} wrong.</b> For δ′(${esc(br(x.pr))}, ${esc(x.a)}): go where M goes, δ(${esc(q)}, ${esc(x.a)}) = ${esc(M.delta[q][x.a])}, and carry what M printed on the way, λ(${esc(q)}, ${esc(x.a)}) = ${esc(M.lam[q][x.a])}. The carried symbol ${esc(c)} is never consulted, so both rows for ${esc(q)} are identical.</div>`; return; }
+        const badB=boxes.filter(b=>b.cb.checked!==T.reach.includes(b.pr)); boxes.forEach(b=>b.td.className=badB.includes(b)?"no":"ok");
+        if(badB.length){ out.innerHTML=`<div class="note bad"><b>The transitions are right, the reachability is not.</b> Start at ${esc(br(T.start))} and follow your own table until no new pair appears. Never assume the trimming step will fire, and never assume it will not.</div>`; return; }
+        ck.disabled=true; cells.forEach(x=>x.s.disabled=true); boxes.forEach(b=>b.cb.disabled=true); const dead=T.pairs.filter(x=>!T.reach.includes(x));
+        const Mo={type:"moore",states:T.reach,sigma:M.sigma,out:M.out,start:T.start,delta:T.delta,lam:T.lam}; const w=M.ex[0], A=runM(Mo,w).out, B=runM(M,w).out;
+        out.innerHTML=`<div class="note good"><b>${T.pairs.length} pairs generated, ${T.reach.length} survive.</b> ${dead.length?`Delete ${dead.map(br).map(esc).join(" and ")}: every transition into a state prints the same symbol here, so the other pairing can never arise.`:`Nothing is deleted this time. A state can be entered on arrows that print different symbols, so both of its pairs are needed. This direction can cost states, and Moore → Mealy never does: the two constructions are not symmetric.`}</div>
+          <p class="idea" style="margin:10px 0 4px">The check, on ${esc(w)}: Mealy prints <code>${esc(B.join(" "))}</code> (${B.length} symbols), Moore prints <code><s>${esc(A[0])}</s> ${esc(A.slice(1).join(" "))}</code> (${A.length}). c₀ only ever decides that first, discarded symbol, which is why any choice of c₀ works.</p>`;
+        const d=h("div","diagram"); out.appendChild(d);
+        drawFA(d,{states:T.reach.map(x=>x),start:T.start,accept:[],edges:T.reach.flatMap(x=>M.sigma.map(a=>({from:x,to:T.delta[x][a],label:a})))},{maxH:240});
+        out.appendChild(h("p","hint","Each circle is a pair q,c and prints its own second component.")); Atlas.stamp("mm","pairs"); };
+    }
+  }
+  MS.forEach(M=>{ const t=h("button","tab",`<b>${esc(M.name)}</b><span>${esc(M.tag)}</span>`); t.type="button"; t.dataset.id=M.id; t.onclick=()=>show(M); mt.appendChild(t); });
+  show(MS[0]);
+
+  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  quickFire(b6,[
+    {claim:"“On input ab, a Mealy machine prints three symbols.”", ok:false, why:"A Mealy machine prints once per arrow taken, and it takes |w| = 2 arrows. Three symbols is the Moore machine's count: the extra one is printed before any input is read."},
+    {claim:"“Moore → Mealy: λ′(q, a) = λ(q), the output of the state the arrow leaves.”", ok:false, why:"That labels from the wrong end. The arrow inherits the output of the state it lands in: λ′(q, a) = λ( δ(q, a) )."},
+    {claim:"“Two machines are equivalent only if they print exactly the same string on every input.”", ok:false, why:"Take w = ε: Mealy prints nothing and Moore prints λ(q₀). With that definition no Moore machine would equal any Mealy machine. Equivalence drops the first Moore symbol."},
+    {claim:"“In the pair construction, the choice of c₀ cannot affect whether the result is equivalent.”", ok:true, why:"c₀ appears only as the first symbol printed. δ′ never mentions c, and the first symbol is exactly what the definition of equivalence discards."},
+    {claim:"“The answer to a Mealy → Moore question always has |Q| × |Δ| states.”", ok:false, why:"That is the count before trimming. Deleting unreachable pairs is step 5 of the recipe. Running parity keeps 2 of 4, the shift register keeps all 4, so it has to be checked every time."},
+    {claim:"“Converting Mealy → Moore never needs more states than converting back.”", ok:false, why:"The directions are not symmetric. A Mealy output depends on the state and the symbol just read. A Moore machine has to store that extra dependency, and states are the only place it can store anything."},
+    {claim:"“The state that prints Y should be drawn with a double circle.”", ok:false, why:"A transducer has no F. It is not accepting anything, so there are no double circles."}
+  ], (c,n)=>{ if(c>=n-1) Atlas.stamp("mm","claims"); else Atlas.toast(`${c} of ${n} right. Reload the stop to try again.`); });
+};
 })();
 
 /* Station: the pumping lemma as the Adversary Game (S13) */

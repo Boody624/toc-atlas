@@ -125,6 +125,8 @@ function drawFA(box, M, opts){
   s.setAttribute("viewBox",`${bb.x0-pad} ${bb.y0-pad} ${W} ${H}`); s.setAttribute("width",W); s.style.maxHeight=(opts.maxH||260)+"px";
   const token=svg("circle",{r:7,class:"token",opacity:0},s);
   return {
+    setStates(qs, cls){ Object.entries(sts).forEach(([q,g])=>{ g.classList.remove("cur","done-acc","done-rej"); if(qs.includes(q)) g.classList.add(cls||"cur"); }); },
+    edgesOn(pairs){ Object.entries(edges).forEach(([k,p])=>{ const on=pairs.includes(k); p.classList.toggle("on",on); p.setAttribute("marker-end",`url(#${uid}${on?"b":"a"})`); labels[k].tx.classList.toggle("on",on); labels[k].bg.classList.toggle("on",on); }); },
     setState(q, cls){ Object.values(sts).forEach(g=>g.classList.remove("cur","done-acc","done-rej")); if(sts[q]) sts[q].classList.add(cls||"cur"); },
     edge(from,to,animate){ Object.entries(edges).forEach(([k,p])=>{ p.classList.remove("on"); p.setAttribute("marker-end",`url(#${uid}a)`); labels[k].tx.classList.remove("on"); labels[k].bg.classList.remove("on"); });
       const k=from+"→"+to, p=edges[k]; if(!p) return; p.classList.add("on"); p.setAttribute("marker-end",`url(#${uid}b)`); labels[k].tx.classList.add("on"); labels[k].bg.classList.add("on");
@@ -193,3 +195,24 @@ function faRunner(parent, D, opts){
   reset();
   return {setInput(v){ inp.value=v; reset(); }, play, el:wrap};
 }
+
+/* ---- minimisation helpers (Session 3) ---- */
+function dfaReachable(D){ const seen=[D.start]; for(let i=0;i<seen.length;i++) D.sigma.forEach(a=>{ const t=D.delta[seen[i]][a]; if(!seen.includes(t)) seen.push(t); }); return D.states.filter(q=>seen.includes(q)); }
+// rounds[k] = {blocks:[[states]], sig:{q:[block index per symbol]}}; the last round splits nothing
+function dfaRefine(D){ const R=dfaReachable(D); let blocks=[R.filter(q=>D.accept.includes(q)),R.filter(q=>!D.accept.includes(q))].filter(b=>b.length); const rounds=[];
+  for(;;){ const idx={}; blocks.forEach((b,i)=>b.forEach(q=>idx[q]=i)); const sig={}; R.forEach(q=>sig[q]=D.sigma.map(a=>idx[D.delta[q][a]]));
+    const next=[]; blocks.forEach(b=>{ const groups=new Map(); b.forEach(q=>{ const k=sig[q].join(","); if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(q); }); groups.forEach(g=>next.push(g)); });
+    rounds.push({blocks,sig,splits:blocks.map(b=>new Set(b.map(q=>sig[q].join(","))).size>1)});
+    if(next.length===blocks.length) return {reachable:R,rounds}; blocks=next; } }
+// table filling: witness[p|q] = shortest distinguishing string, undefined if equivalent
+function dfaWitness(D){ const R=dfaReachable(D); const w={}; const key=(p,q)=>R.indexOf(p)<R.indexOf(q)?p+"|"+q:q+"|"+p; const pass={};
+  for(let i=0;i<R.length;i++) for(let j=i+1;j<R.length;j++) if(D.accept.includes(R[i])!==D.accept.includes(R[j])){ w[key(R[i],R[j])]=""; pass[key(R[i],R[j])]=0; }
+  for(let n=1;;n++){ const add={}; for(let i=0;i<R.length;i++) for(let j=i+1;j<R.length;j++){ const k=key(R[i],R[j]); if(w[k]!==undefined) continue;
+      for(const a of D.sigma){ const x=D.delta[R[i]][a], y=D.delta[R[j]][a]; if(x!==y && w[key(x,y)]!==undefined){ add[k]=a+w[key(x,y)]; break; } } }
+    if(!Object.keys(add).length) return {R,w,pass,key}; Object.keys(add).forEach(k=>{ w[k]=add[k]; pass[k]=n; }); } }
+/* ---- NFA helpers (Session 4) ---- */
+// N: {states, sigma, start, accept, delta:{q:{a:[...]}}}
+function nfaMove(N,S,a){ const out=[]; S.forEach(q=>((N.delta[q]||{})[a]||[]).forEach(t=>{ if(!out.includes(t)) out.push(t); })); return N.states.filter(q=>out.includes(q)); }
+function nfaEdges(N){ const out=[]; N.states.forEach(q=>N.sigma.forEach(a=>((N.delta[q]||{})[a]||[]).forEach(t=>out.push({from:q,to:t,label:a})))); return out; }
+const setName = S => S.length ? "{"+S.join(", ")+"}" : "∅";
+function subsetConstruct(N){ const start=[N.start]; const list=[start]; const rows=[]; for(let i=0;i<list.length;i++){ const S=list[i]; const row={S,to:{}}; N.sigma.forEach(a=>{ const T=nfaMove(N,S,a); row.to[a]=T; if(!list.some(x=>setName(x)===setName(T))) list.push(T); }); rows.push(row); } return rows; }

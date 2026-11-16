@@ -154,3 +154,21 @@ table.dt td.miss select{border-color:var(--reject);background:var(--reject-soft)
 @media (max-width:1000px){ .hero,.two,.three,.game{grid-template-columns:minmax(0,1fr)} .board{position:static} }
 @media (max-width:560px){ .move{grid-template-columns:minmax(0,1fr)} .move .who{justify-self:start;padding:3px 10px} }
 .view > *, .blk > *{min-width:0;max-width:100%}
+/* minimisation + subset race */
+.blocks{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.blockchip{font-family:var(--mono);font-size:14px;border:1.5px solid var(--line);border-radius:10px;padding:6px 11px;background:var(--surface-2);cursor:default}
+button.blockchip{cursor:pointer} button.blockchip:hover{border-color:var(--now)}
+.blockchip.b0{border-color:var(--sym-A)} .blockchip.b1{border-color:var(--sym-B)} .blockchip.b2{border-color:var(--sym-X)} .blockchip.b3{border-color:var(--sym-P)} .blockchip.b4{border-color:var(--sym-N)} .blockchip.b5{border-color:var(--sym-1)}
+.bnum{display:inline-grid;place-items:center;min-width:20px;height:20px;border-radius:6px;font-size:12px;font-weight:700;color:#fff;margin-right:6px;padding:0 4px}
+.c0{background:var(--sym-A)} .c1{background:var(--sym-B)} .c2{background:var(--sym-X)} .c3{background:var(--sym-P)} .c4{background:var(--sym-N)} .c5{background:var(--sym-1)}
+table.dt td.sigdiff{background:var(--now-soft);font-weight:700}
+table.tri td{min-width:54px;height:36px;cursor:pointer}
+table.tri td.na{background:var(--surface-2);cursor:default;border-color:transparent}
+table.tri td.mk{background:var(--now-soft);font-weight:700}
+table.tri td.ok{background:var(--accept-soft)} table.tri td.no{background:var(--reject-soft)}
+.setpick{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.setpick button{font-family:var(--mono);font-size:13px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface-2);padding:4px 9px;cursor:pointer}
+.setpick button.on{background:var(--now-soft);border-color:var(--now);font-weight:700}
+.timer{font-family:var(--mono);font-weight:700;font-size:16px}
+table.dt td.ok{background:var(--accept-soft)} table.dt td.no{background:var(--reject-soft)}
+.setpick{justify-content:center}
