@@ -172,3 +172,16 @@ table.tri td.ok{background:var(--accept-soft)} table.tri td.no{background:var(--
 .timer{font-family:var(--mono);font-weight:700;font-size:16px}
 table.dt td.ok{background:var(--accept-soft)} table.dt td.no{background:var(--reject-soft)}
 .setpick{justify-content:center}
+/* grammars and trees */
+.sform{font-family:var(--mono);font-size:18px;display:flex;flex-wrap:wrap;align-items:center;gap:1px}
+.sform .v{color:var(--sym-X);font-weight:700;padding:0 2px;border-radius:5px}
+.sform .v.cur{background:var(--now-soft);outline:1.5px solid var(--now)}
+.btn.prod{font-family:var(--mono);font-size:13px}
+.diagram.tree svg{display:block;margin:0 auto}
+.tline{stroke:var(--faint);stroke-width:1.5}
+.tnode text{font-family:var(--mono);font-size:15px;font-weight:700;fill:var(--ink)}
+.tnode.tv rect{fill:var(--surface-2);stroke:var(--sym-X);stroke-width:1.5}
+.tnode.tv text{fill:var(--sym-X)}
+.tnode.te text{fill:var(--muted);font-weight:400}
+.tnode.tcur rect{fill:var(--now);stroke:var(--now)} .tnode.tcur text{fill:#1b1404}
+.ex.on{border-style:solid;border-color:var(--now);background:var(--now-soft)}
