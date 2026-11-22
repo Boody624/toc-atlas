@@ -572,6 +572,28 @@ table.diag tr.drow th{color:var(--accept)}
 .card:hover{border-color:color-mix(in srgb,var(--zone) 45%,var(--line));border-top-color:var(--zone)}
 .card .go{font-weight:700;font-size:12.5px;color:var(--zone)}
 .mappanel{padding:16px 18px 14px}
+/* adversary game: two players with their own colours (accept/reject keep their meaning) */
+.move .who{font-size:10.5px;letter-spacing:.1em;padding:6px 0;border-radius:999px}
+.move.adv .who{background:color-mix(in srgb,var(--p-adv) 14%,var(--surface));color:var(--p-adv)}
+.move.you .who{background:color-mix(in srgb,var(--p-you) 14%,var(--surface));color:var(--p-you)}
+.move.sys .who{background:transparent;border:1px dashed var(--line)}
+.move .body{box-shadow:var(--shadow)}
+.move.adv .body{border-left:4px solid var(--p-adv)}
+.move.you .body{border-left:4px solid var(--p-you)}
+.move.sys .body{background:var(--surface-2);box-shadow:none;border-style:dashed}
+.opt{transition:border-color .15s,background .15s}
+.wstr{font-size:22px;gap:3px}
+.wstr span{min-width:30px;height:38px;border-radius:8px}
+.wstr.pick span{min-width:38px;height:46px;font-size:24px;transition:transform .12s,border-color .12s}
+.wstr.pick span:hover{border-color:var(--now);transform:translateY(-2px)}
+@media (max-width:640px){ .wstr{font-size:19px} .wstr span{min-width:26px;height:34px} .wstr.pick span{min-width:32px;height:42px;font-size:21px} }
+/* "A student claims" cards */
+.qf{grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr))}
+.qf-card .claim{font-size:15.5px;line-height:1.45}
+.qf-card .row .btn{flex:1 1 0;justify-content:center}
+.qf-card.right{border-color:color-mix(in srgb,var(--accept) 45%,var(--line))}
+.qf-card.wrong{border-color:color-mix(in srgb,var(--reject) 45%,var(--line))}
+@media (max-width:560px){ .move .who{padding:3px 12px} }
 
 </style>
 <div class="site">
