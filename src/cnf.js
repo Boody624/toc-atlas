@@ -112,7 +112,7 @@ Atlas.stations.cnf.mount=function(root){
   RG.forEach(R=>{ const t=h("button","tab",`<b>${esc(R.name)}</b><span>${esc(R.tag)}</span>`); t.type="button"; t.dataset.id=R.id; t.onclick=()=>show(R); mt.appendChild(t); });
   show(RG[0]);
 
-  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b6=block(root,"How it goes wrong","Conversion traps, step by step","claims");
   quickFire(b6,[
     {claim:"“Step 4a: if a right-hand side is aB, replace it by XB and add X → a.”", ok:false, why:"That covers one case out of several. Every terminal ANYWHERE in a right-hand side of length ≥ 2 is promoted, not only the leading one: A → BaC needs it too."},
     {claim:"“A → a should become A → Ca with Ca → a, to be safe.”", ok:false, why:"A → a is already in CNF. A → Ca is a unit production, so you have gone backwards. The length-≥ 2 condition in step 4a exists to prevent exactly this."},

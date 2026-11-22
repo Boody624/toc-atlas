@@ -25,7 +25,8 @@ const Plate = (()=>{
       <text y="${date?3:7}" class="sn" text-anchor="middle">${Atlas.roman(Atlas.order.indexOf(def.id)+1)}</text>${date}</svg>`; }
   function stampEl(def, s){ const val=(Atlas.passport()[def.id]||{})[s.id]; const e=h("span","stp"+(val?" on":""),stampSVG(def,s,val));
     e.dataset.st=def.id; e.dataset.id=s.id; e.dataset.zone=Atlas.zone(def); e.title=s.label; return e; }
-  function restamp(e, st, id){ const def=Atlas.stations[st], s=def.stamps.find(x=>x.id===id); if(s) e.innerHTML=stampSVG(def,s,(Atlas.passport()[st]||{})[id]); }
+  function restamp(e, st, id){ const def=Atlas.stations[st], s=def.stamps.find(x=>x.id===id); if(s) e.innerHTML=stampSVG(def,s,(Atlas.passport()[st]||{})[id]);
+    const [x,y]=Atlas.count(st); document.querySelectorAll(".m-lbl .linkish").forEach(b=>b.textContent=`${x} of ${y} stamped →`); }
 
   /* "you are here": the whole chart, small */
   function locator(def){
@@ -53,7 +54,7 @@ const Plate = (()=>{
     def.mount(body);
 
     /* number the challenges when a stop has several */
-    const blks=[...body.querySelectorAll(":scope > .blk")];
+    const blks=[...body.querySelectorAll(".blk")].filter(b=>!b.parentElement.closest(".blk"));
     const ch=blks.filter(b=>b.querySelector(".kicker").textContent==="Challenge");
     if(ch.length>1) ch.forEach((b,i)=>b.querySelector(".kicker").textContent=`Challenge ${i+1} of ${ch.length}`);
 

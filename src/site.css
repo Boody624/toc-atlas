@@ -789,3 +789,9 @@ table.gz{width:100%;border-collapse:collapse}
 }
 @media (prefers-reduced-motion:reduce){ .drawing .stop{opacity:1} }
 @media (max-width:640px){ .strips{order:-1} }
+.qf-card .claim,.deck .qf-card .claim{font-family:var(--serif);font-weight:400}
+#blk-sort::before{display:none!important}
+::view-transition-old(root){animation:vt-out .22s ease-in both}
+::view-transition-new(root){animation:vt-in .38s cubic-bezier(.2,.8,.2,1) both}
+@keyframes vt-out{to{opacity:0;transform:scale(.985)}}
+@keyframes vt-in{from{opacity:0;transform:translateY(10px)}}

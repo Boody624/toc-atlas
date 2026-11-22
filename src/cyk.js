@@ -91,7 +91,7 @@ Atlas.stations.cyk.mount=function(root){
   ROUNDS.forEach((Rd,ri)=>{ const t=h("button","tab",`<b>${esc(Rd.tag)}</b><span>${esc(Rd.w)}</span>`); t.type="button"; t.onclick=()=>round(ri); rt.appendChild(t); });
   round(0);
 
-  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b6=block(root,"How it goes wrong","What the table does and does not tell you","claims");
   quickFire(b6,[
     {claim:"“The top cell is not empty, so the string is in the language.”", ok:false, why:"The test is whether the START symbol is in V(1, n). In aabbb the top cell is {X}: X derives the string, S does not."},
     {claim:"“For V(i, j) and split k, the pieces are V(i, k) and V(k, j − k).”", ok:false, why:"The right piece starts where the left one ends: V(i + k, j − k). Getting the second index wrong is the commonest error."},

@@ -133,7 +133,7 @@ Atlas.stations.regex.mount=function(root){
   GS.forEach(G=>{ const t=h("button","tab",`<b>${esc(G.name)}</b><span>${esc(G.tag)}</span>`); t.type="button"; t.dataset.id=G.id; t.onclick=()=>showG(G); gt.appendChild(t); });
   showG(GS[0]);
 
-  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b6=block(root,"How it goes wrong","Identities: some hold, some only look as if they do","claims");
   quickFire(b6,[
     {claim:"“ab* means (ab)*: the star applies to everything before it.”", ok:false, why:"Star binds tighter than concatenation. ab* = a(b*) = a, ab, abb, … while (ab)* = ε, ab, abab, …"},
     {claim:"“(a*b*)* = (a + b)*”", ok:true, why:"Each block a*b* can be a single a or a single b, so the left side already builds every string."},

@@ -36,6 +36,11 @@ const Atlas = {
   go(id){ if(location.hash.slice(1)===id) this.route(); else location.hash=id; },
   onCleanup(fn){ this.cleanups.push(fn); },
   route(){
+    const run=()=>this._route();
+    if(this._routed && document.startViewTransition && !reduceMotion) document.startViewTransition(run); else run();
+    this._routed=true;
+  },
+  _route(){
     this.cleanups.splice(0).forEach(fn=>{ try{ fn(); }catch(e){} });
     const id=location.hash.slice(1); const view=document.getElementById("view"); view.innerHTML="";
     const def=this.stations[id];

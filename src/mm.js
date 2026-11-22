@@ -110,7 +110,7 @@ Atlas.stations.mm.mount=function(root){
   MS.forEach(M=>{ const t=h("button","tab",`<b>${esc(M.name)}</b><span>${esc(M.tag)}</span>`); t.type="button"; t.dataset.id=M.id; t.onclick=()=>show(M); mt.appendChild(t); });
   show(MS[0]);
 
-  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b6=block(root,"How it goes wrong","Count the output before you write it","claims");
   quickFire(b6,[
     {claim:"“On input ab, a Mealy machine prints three symbols.”", ok:false, why:"A Mealy machine prints once per arrow taken, and it takes |w| = 2 arrows. Three symbols is the Moore machine's count: the extra one is printed before any input is read."},
     {claim:"“Moore → Mealy: λ′(q, a) = λ(q), the output of the state the arrow leaves.”", ok:false, why:"That labels from the wrong end. The arrow inherits the output of the state it lands in: λ′(q, a) = λ( δ(q, a) )."},

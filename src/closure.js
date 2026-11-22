@@ -95,7 +95,7 @@ Atlas.stations.closure.mount=function(root){
     const r=h("div","row"); pn.appendChild(r); const o=h("div"); o.style.marginTop="10px"; pn.appendChild(o);
     Q.opts.forEach(([a,ok,why])=>{ const b=h("button","btn",`A = <code>${esc(a)}</code>`); b.type="button"; b.onclick=()=>{ o.innerHTML=`<div class="note ${ok?"good":"bad"}">${ok?"<b>Sound.</b> ":"<b>Proves nothing.</b> "}${esc(why)}</div>`; if(ok){ won.add(Q.id); if(won.size===2) Atlas.stamp("closure","argue"); } }; r.appendChild(b); }); });
 
-  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b6=block(root,"How it goes wrong","Which F, which machine, which direction","claims");
   quickFire(b6,[
     {claim:"“Intersection, union and difference of two DFAs need three different product machines.”", ok:false, why:"The states, the start state and every transition are identical. Only the choice of F differs."},
     {claim:"“For the union, F = F₁ × F₂.”", ok:false, why:"That is intersection, the strictest choice. Union is (F₁ × Q₂) ∪ (Q₁ × F₂): either component accepting."},

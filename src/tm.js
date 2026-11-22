@@ -114,7 +114,7 @@ Atlas.stations.tm.mount=function(root){
     if(bad){ const st=bad.r.steps[bad.r.steps.length-1]; o4.innerHTML=`<div class="note bad"><b>Counterexample: ${esc(bad.w||"ε")}.</b> ${bad.r.out==="loop"?"The machine never halts on it.":bad.acc?"It is accepted, but it is not in the language.":`It is in the language, but the machine halts in ${qn(st.q)} reading ${st.tape[st.h]??"B"} with no entry to follow.`} Re-walk the machine with everything it writes already on the tape: every marker written in an early round has to be skippable later.</div>`; return; }
     o4.innerHTML=`<div class="note good"><b>Correct on all ${words.length} strings up to length 7.</b> Three of the four were skip entries (q₁ over Y, q₂ over Z) and the switch δ(q₀, Y) = (q₄, Y, R) into the tail sweep. The last, δ(q₄, B) = (q₅, B, R), is where acceptance happens: without the sweep, aabbc's near-misses would slip through.</div>`; Atlas.stamp("tm","design"); };
 
-  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b6=block(root,"How it goes wrong","Moves, halting, and what a tape buys","claims");
   quickFire(b6,[
     {claim:"“δ(q, a) = (p, R) is a valid move that leaves the cell alone.”", ok:false, why:"Every transition writes and moves. To leave a cell alone, write back what was read: δ(q, a) = (p, a, R). There is no stay direction either, only L or R."},
     {claim:"“XXYYq₃ means the head is on the first blank after the Y's.”", ok:true, why:"The head reads β's first symbol, and trailing blanks are not written, so an empty β means the head is on a blank."},

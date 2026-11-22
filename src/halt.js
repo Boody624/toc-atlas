@@ -122,7 +122,7 @@ Atlas.stations.halt.mount=function(root){
         if(sd===SO.length){ if(sk>=5) Atlas.stamp("halt","sort"); else Atlas.toast(`${sk} of ${SO.length}. Reload the stop to try again.`); } }; }); sg.appendChild(c); });
 
   /* ---------- claims ---------- */
-  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b6=block(root,"How it goes wrong","Running forever is not rejecting","claims");
   quickFire(b6,[
     {claim:"“My machine halted on every input up to length 9, so it is a decider.”", ok:false, why:"Finitely many tests are evidence. A decider halts on all infinitely many inputs; that needs an argument, such as a count that strictly decreases."},
     {claim:"“A machine that runs forever on w has rejected w.”", ok:false, why:"It has done neither. Rejecting is halting in a state with no entry. Running forever is the third outcome."},

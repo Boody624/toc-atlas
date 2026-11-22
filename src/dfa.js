@@ -149,7 +149,7 @@ Atlas.stations.dfa.mount = function(root){
   pick(TARGETS[0]);
 
   /* ---------- how it goes wrong ---------- */
-  const b4=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b4=block(root,"How it goes wrong","Accepting is about where you stop","claims");
   quickFire(b4,[
     {claim:"“My machine passed through an accepting state while reading the string, so the string is accepted.”", ok:false, why:"Only the LAST state matters. Passing through an accepting state part-way means nothing at all."},
     {claim:"“I left out the b-arrow from the start state. The string is doomed after a b anyway, so the missing arrow means reject.”", ok:false, why:"A missing transition does not mean reject. It means the object you drew is not a DFA at all. Add one non-accepting dead state with self-loops and send every doomed transition to it."},

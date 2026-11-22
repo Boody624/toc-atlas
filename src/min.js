@@ -105,7 +105,7 @@ Atlas.stations.min.mount=function(root){
   MS.forEach(M=>{ const t=h("button","tab",`<b>${esc(M.name)}</b><span>${esc(M.tag)}</span>`); t.type="button"; t.dataset.id=M.id; t.onclick=()=>show(M); mt.appendChild(t); });
   show(MS[0]);
 
-  const b5=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b5=block(root,"How it goes wrong","Merging states, and the traps in it","claims");
   quickFire(b5,[
     {claim:"“State C has two arrows leaving it, so it is doing work and must stay in the machine.”", ok:false, why:"Nothing points INTO C, so no input can ever put the machine there. Unreachable states are deleted first, or one can survive in a block of its own and leave a machine that is not minimal."},
     {claim:"“A goes to B and B goes to A on 0. Those are different states, so A and B have different signatures.”", ok:false, why:"Read the block numbers, not the state names. A and B both go to block 2 on 0 and block 1 on 1, so both have signature (2, 1) and stay together."},

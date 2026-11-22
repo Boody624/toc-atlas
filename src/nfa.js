@@ -145,7 +145,7 @@ Atlas.stations.nfa.mount=function(root){
       const d=h("div","diagram"); d.style.marginTop="10px"; out.appendChild(d); drawFA(d,{states:NN.states,start:NN.start,accept:NN.accept,edges:nfaEdges(NN)},{maxH:260});
       out.appendChild(h("p","idea","The chain is now complete: ε-NFA → NFA by this construction, NFA → DFA by the subset construction. Three kinds of machine, one class of languages.")); Atlas.stamp("nfa","kill"); }});
 
-  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b6=block(root,"How it goes wrong","Guessing, dying paths, and ε","claims");
   quickFire(b6,[
     {claim:"“An NFA accepts w only if every path on w ends in an accepting state.”", ok:false, why:"Some path, not every path. One surviving path that ends in F is enough."},
     {claim:"“If one path gets stuck with no arrow to follow, the NFA rejects the string.”", ok:false, why:"That path dies and the others carry on. The string is rejected only when no path at all ends in F."},

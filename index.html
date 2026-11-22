@@ -1030,6 +1030,12 @@ table.gz{width:100%;border-collapse:collapse}
 }
 @media (prefers-reduced-motion:reduce){ .drawing .stop{opacity:1} }
 @media (max-width:640px){ .strips{order:-1} }
+.qf-card .claim,.deck .qf-card .claim{font-family:var(--serif);font-weight:400}
+#blk-sort::before{display:none!important}
+::view-transition-old(root){animation:vt-out .22s ease-in both}
+::view-transition-new(root){animation:vt-in .38s cubic-bezier(.2,.8,.2,1) both}
+@keyframes vt-out{to{opacity:0;transform:scale(.985)}}
+@keyframes vt-in{from{opacity:0;transform:translateY(10px)}}
 
 </style>
 <div class="site">
@@ -1080,6 +1086,11 @@ const Atlas = {
   go(id){ if(location.hash.slice(1)===id) this.route(); else location.hash=id; },
   onCleanup(fn){ this.cleanups.push(fn); },
   route(){
+    const run=()=>this._route();
+    if(this._routed && document.startViewTransition && !reduceMotion) document.startViewTransition(run); else run();
+    this._routed=true;
+  },
+  _route(){
     this.cleanups.splice(0).forEach(fn=>{ try{ fn(); }catch(e){} });
     const id=location.hash.slice(1); const view=document.getElementById("view"); view.innerHTML="";
     const def=this.stations[id];
@@ -1463,7 +1474,8 @@ const Plate = (()=>{
       <text y="${date?3:7}" class="sn" text-anchor="middle">${Atlas.roman(Atlas.order.indexOf(def.id)+1)}</text>${date}</svg>`; }
   function stampEl(def, s){ const val=(Atlas.passport()[def.id]||{})[s.id]; const e=h("span","stp"+(val?" on":""),stampSVG(def,s,val));
     e.dataset.st=def.id; e.dataset.id=s.id; e.dataset.zone=Atlas.zone(def); e.title=s.label; return e; }
-  function restamp(e, st, id){ const def=Atlas.stations[st], s=def.stamps.find(x=>x.id===id); if(s) e.innerHTML=stampSVG(def,s,(Atlas.passport()[st]||{})[id]); }
+  function restamp(e, st, id){ const def=Atlas.stations[st], s=def.stamps.find(x=>x.id===id); if(s) e.innerHTML=stampSVG(def,s,(Atlas.passport()[st]||{})[id]);
+    const [x,y]=Atlas.count(st); document.querySelectorAll(".m-lbl .linkish").forEach(b=>b.textContent=`${x} of ${y} stamped →`); }
 
   /* "you are here": the whole chart, small */
   function locator(def){
@@ -1491,7 +1503,7 @@ const Plate = (()=>{
     def.mount(body);
 
     /* number the challenges when a stop has several */
-    const blks=[...body.querySelectorAll(":scope > .blk")];
+    const blks=[...body.querySelectorAll(".blk")].filter(b=>!b.parentElement.closest(".blk"));
     const ch=blks.filter(b=>b.querySelector(".kicker").textContent==="Challenge");
     if(ch.length>1) ch.forEach((b,i)=>b.querySelector(".kicker").textContent=`Challenge ${i+1} of ${ch.length}`);
 
@@ -1726,7 +1738,7 @@ Atlas.stations.dfa.mount = function(root){
   pick(TARGETS[0]);
 
   /* ---------- how it goes wrong ---------- */
-  const b4=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b4=block(root,"How it goes wrong","Accepting is about where you stop","claims");
   quickFire(b4,[
     {claim:"“My machine passed through an accepting state while reading the string, so the string is accepted.”", ok:false, why:"Only the LAST state matters. Passing through an accepting state part-way means nothing at all."},
     {claim:"“I left out the b-arrow from the start state. The string is doomed after a b anyway, so the missing arrow means reject.”", ok:false, why:"A missing transition does not mean reject. It means the object you drew is not a DFA at all. Add one non-accepting dead state with self-loops and send every doomed transition to it."},
@@ -1847,7 +1859,7 @@ Atlas.stations.min.mount=function(root){
   MS.forEach(M=>{ const t=h("button","tab",`<b>${esc(M.name)}</b><span>${esc(M.tag)}</span>`); t.type="button"; t.dataset.id=M.id; t.onclick=()=>show(M); mt.appendChild(t); });
   show(MS[0]);
 
-  const b5=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b5=block(root,"How it goes wrong","Merging states, and the traps in it","claims");
   quickFire(b5,[
     {claim:"“State C has two arrows leaving it, so it is doing work and must stay in the machine.”", ok:false, why:"Nothing points INTO C, so no input can ever put the machine there. Unreachable states are deleted first, or one can survive in a block of its own and leave a machine that is not minimal."},
     {claim:"“A goes to B and B goes to A on 0. Those are different states, so A and B have different signatures.”", ok:false, why:"Read the block numbers, not the state names. A and B both go to block 2 on 0 and block 1 on 1, so both have signature (2, 1) and stay together."},
@@ -2006,7 +2018,7 @@ Atlas.stations.nfa.mount=function(root){
       const d=h("div","diagram"); d.style.marginTop="10px"; out.appendChild(d); drawFA(d,{states:NN.states,start:NN.start,accept:NN.accept,edges:nfaEdges(NN)},{maxH:260});
       out.appendChild(h("p","idea","The chain is now complete: ε-NFA → NFA by this construction, NFA → DFA by the subset construction. Three kinds of machine, one class of languages.")); Atlas.stamp("nfa","kill"); }});
 
-  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b6=block(root,"How it goes wrong","Guessing, dying paths, and ε","claims");
   quickFire(b6,[
     {claim:"“An NFA accepts w only if every path on w ends in an accepting state.”", ok:false, why:"Some path, not every path. One surviving path that ends in F is enough."},
     {claim:"“If one path gets stuck with no arrow to follow, the NFA rejects the string.”", ok:false, why:"That path dies and the others carry on. The string is rejected only when no path at all ends in F."},
@@ -2132,7 +2144,7 @@ Atlas.stations.mm.mount=function(root){
   MS.forEach(M=>{ const t=h("button","tab",`<b>${esc(M.name)}</b><span>${esc(M.tag)}</span>`); t.type="button"; t.dataset.id=M.id; t.onclick=()=>show(M); mt.appendChild(t); });
   show(MS[0]);
 
-  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b6=block(root,"How it goes wrong","Count the output before you write it","claims");
   quickFire(b6,[
     {claim:"“On input ab, a Mealy machine prints three symbols.”", ok:false, why:"A Mealy machine prints once per arrow taken, and it takes |w| = 2 arrows. Three symbols is the Moore machine's count: the extra one is printed before any input is read."},
     {claim:"“Moore → Mealy: λ′(q, a) = λ(q), the output of the state the arrow leaves.”", ok:false, why:"That labels from the wrong end. The arrow inherits the output of the state it lands in: λ′(q, a) = λ( δ(q, a) )."},
@@ -2280,7 +2292,7 @@ Atlas.stations.regex.mount=function(root){
   GS.forEach(G=>{ const t=h("button","tab",`<b>${esc(G.name)}</b><span>${esc(G.tag)}</span>`); t.type="button"; t.dataset.id=G.id; t.onclick=()=>showG(G); gt.appendChild(t); });
   showG(GS[0]);
 
-  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b6=block(root,"How it goes wrong","Identities: some hold, some only look as if they do","claims");
   quickFire(b6,[
     {claim:"“ab* means (ab)*: the star applies to everything before it.”", ok:false, why:"Star binds tighter than concatenation. ab* = a(b*) = a, ab, abb, … while (ab)* = ε, ab, abab, …"},
     {claim:"“(a*b*)* = (a + b)*”", ok:true, why:"Each block a*b* can be a single a or a single b, so the left side already builds every string."},
@@ -2391,7 +2403,7 @@ Atlas.stations.closure.mount=function(root){
     const r=h("div","row"); pn.appendChild(r); const o=h("div"); o.style.marginTop="10px"; pn.appendChild(o);
     Q.opts.forEach(([a,ok,why])=>{ const b=h("button","btn",`A = <code>${esc(a)}</code>`); b.type="button"; b.onclick=()=>{ o.innerHTML=`<div class="note ${ok?"good":"bad"}">${ok?"<b>Sound.</b> ":"<b>Proves nothing.</b> "}${esc(why)}</div>`; if(ok){ won.add(Q.id); if(won.size===2) Atlas.stamp("closure","argue"); } }; r.appendChild(b); }); });
 
-  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b6=block(root,"How it goes wrong","Which F, which machine, which direction","claims");
   quickFire(b6,[
     {claim:"“Intersection, union and difference of two DFAs need three different product machines.”", ok:false, why:"The states, the start state and every transition are identical. Only the choice of F differs."},
     {claim:"“For the union, F = F₁ × F₂.”", ok:false, why:"That is intersection, the strictest choice. Union is (F₁ × Q₂) ∪ (Q₁ × F₂): either component accepting."},
@@ -2712,7 +2724,7 @@ Atlas.stations.cfg.mount=function(root){
   AMB.forEach(A=>{ const t=h("button","tab",`<b>${esc(A.name)}</b><span>${esc(A.tag)}</span>`); t.type="button"; t.dataset.id=A.id; t.onclick=()=>showA(A); at.appendChild(t); });
   showA(AMB[0]);
 
-  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b6=block(root,"How it goes wrong","Ambiguity, and what does not prove it","claims");
   quickFire(b6,[
     {claim:"“S → aSb | ε is one production.”", ok:false, why:"It is two productions, S → aSb and S → ε, written with | to save space."},
     {claim:"“The language a⁺ is ambiguous, because S → aS | Sa | a gives aaa four trees.”", ok:false, why:"Ambiguity is a property of the grammar. S → aS | a generates the same language with exactly one tree per string."},
@@ -2839,7 +2851,7 @@ Atlas.stations.cnf.mount=function(root){
   RG.forEach(R=>{ const t=h("button","tab",`<b>${esc(R.name)}</b><span>${esc(R.tag)}</span>`); t.type="button"; t.dataset.id=R.id; t.onclick=()=>show(R); mt.appendChild(t); });
   show(RG[0]);
 
-  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b6=block(root,"How it goes wrong","Conversion traps, step by step","claims");
   quickFire(b6,[
     {claim:"“Step 4a: if a right-hand side is aB, replace it by XB and add X → a.”", ok:false, why:"That covers one case out of several. Every terminal ANYWHERE in a right-hand side of length ≥ 2 is promoted, not only the leading one: A → BaC needs it too."},
     {claim:"“A → a should become A → Ca with Ca → a, to be safe.”", ok:false, why:"A → a is already in CNF. A → Ca is a unit production, so you have gone backwards. The length-≥ 2 condition in step 4a exists to prevent exactly this."},
@@ -2946,7 +2958,7 @@ Atlas.stations.cyk.mount=function(root){
   ROUNDS.forEach((Rd,ri)=>{ const t=h("button","tab",`<b>${esc(Rd.tag)}</b><span>${esc(Rd.w)}</span>`); t.type="button"; t.onclick=()=>round(ri); rt.appendChild(t); });
   round(0);
 
-  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b6=block(root,"How it goes wrong","What the table does and does not tell you","claims");
   quickFire(b6,[
     {claim:"“The top cell is not empty, so the string is in the language.”", ok:false, why:"The test is whether the START symbol is in V(1, n). In aabbb the top cell is {X}: X derives the string, S does not."},
     {claim:"“For V(i, j) and split k, the pieces are V(i, k) and V(k, j − k).”", ok:false, why:"The right piece starts where the left one ends: V(i + k, j − k). Getting the second index wrong is the commonest error."},
@@ -3279,7 +3291,7 @@ Atlas.stations.tm.mount=function(root){
     if(bad){ const st=bad.r.steps[bad.r.steps.length-1]; o4.innerHTML=`<div class="note bad"><b>Counterexample: ${esc(bad.w||"ε")}.</b> ${bad.r.out==="loop"?"The machine never halts on it.":bad.acc?"It is accepted, but it is not in the language.":`It is in the language, but the machine halts in ${qn(st.q)} reading ${st.tape[st.h]??"B"} with no entry to follow.`} Re-walk the machine with everything it writes already on the tape: every marker written in an early round has to be skippable later.</div>`; return; }
     o4.innerHTML=`<div class="note good"><b>Correct on all ${words.length} strings up to length 7.</b> Three of the four were skip entries (q₁ over Y, q₂ over Z) and the switch δ(q₀, Y) = (q₄, Y, R) into the tail sweep. The last, δ(q₄, B) = (q₅, B, R), is where acceptance happens: without the sweep, aabbc's near-misses would slip through.</div>`; Atlas.stamp("tm","design"); };
 
-  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b6=block(root,"How it goes wrong","Moves, halting, and what a tape buys","claims");
   quickFire(b6,[
     {claim:"“δ(q, a) = (p, R) is a valid move that leaves the cell alone.”", ok:false, why:"Every transition writes and moves. To leave a cell alone, write back what was read: δ(q, a) = (p, a, R). There is no stay direction either, only L or R."},
     {claim:"“XXYYq₃ means the head is on the first blank after the Y's.”", ok:true, why:"The head reads β's first symbol, and trailing blanks are not written, so an empty β means the head is on a blank."},
@@ -3417,7 +3429,7 @@ Atlas.stations.halt.mount=function(root){
         if(sd===SO.length){ if(sk>=5) Atlas.stamp("halt","sort"); else Atlas.toast(`${sk} of ${SO.length}. Reload the stop to try again.`); } }; }); sg.appendChild(c); });
 
   /* ---------- claims ---------- */
-  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b6=block(root,"How it goes wrong","Running forever is not rejecting","claims");
   quickFire(b6,[
     {claim:"“My machine halted on every input up to length 9, so it is a decider.”", ok:false, why:"Finitely many tests are evidence. A decider halts on all infinitely many inputs; that needs an argument, such as a count that strictly decreases."},
     {claim:"“A machine that runs forever on w has rejected w.”", ok:false, why:"It has done neither. Rejecting is halting in a state with no entry. Running forever is the third outcome."},

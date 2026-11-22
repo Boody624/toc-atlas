@@ -119,7 +119,7 @@ Atlas.stations.cfg.mount=function(root){
   AMB.forEach(A=>{ const t=h("button","tab",`<b>${esc(A.name)}</b><span>${esc(A.tag)}</span>`); t.type="button"; t.dataset.id=A.id; t.onclick=()=>showA(A); at.appendChild(t); });
   showA(AMB[0]);
 
-  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  const b6=block(root,"How it goes wrong","Ambiguity, and what does not prove it","claims");
   quickFire(b6,[
     {claim:"“S → aSb | ε is one production.”", ok:false, why:"It is two productions, S → aSb and S → ε, written with | to save space."},
     {claim:"“The language a⁺ is ambiguous, because S → aS | Sa | a gives aaa four trees.”", ok:false, why:"Ambiguity is a property of the grammar. S → aS | a generates the same language with exactly one tree per string."},
