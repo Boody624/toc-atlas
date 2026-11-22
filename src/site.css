@@ -187,7 +187,7 @@ table.dt td.ok{background:var(--accept-soft)} table.dt td.no{background:var(--re
 .ex.on{border-style:solid;border-color:var(--now);background:var(--now-soft)}
 .gram{font-family:var(--mono);font-size:15px;line-height:1.9;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;overflow-x:auto}
 .gram .v,.gone .v{color:var(--sym-X);font-weight:700} .gram sub,.gone sub{font-size:.7em}
-.gram .bar{color:var(--faint);font-weight:400;margin:0 3px}
+.gram .gbar{color:var(--faint);font-weight:400;margin:0 3px}
 .gram .newp{background:var(--accept-soft);border-radius:5px;padding:1px 3px;outline:1px solid var(--accept)}
 .gone{font-family:var(--mono);text-decoration:line-through;text-decoration-color:var(--reject)}
 .leg{border-top:1px dashed var(--line);padding-top:12px;margin-top:14px}

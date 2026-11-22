@@ -34,7 +34,7 @@ function step4b(g){ const n={start:g.start,rules:{}}, tails=new Map(); let k=0; 
 const isCNF=(g)=>allProds(g).every(([A,r])=>(r.length===2&&r.every(isVar))||(r.length===1&&!isVar(r[0]))||(r.length===0&&A===g.start));
 
 function gramH(g,prev){ const old=prev?new Set(allProds(prev).map(([A,r])=>A+"→"+key(r))):null;
-  const rows=Object.entries(g.rules).filter(([,rs])=>rs.length).map(([A,rs])=>`<div class="gline">${tok(A)} → ${rs.map(r=>`<span class="${old&&!old.has(A+"→"+key(r))?"newp":""}">${rhsH(r)}</span>`).join(" <b class=bar>|</b> ")}</div>`).join("");
+  const rows=Object.entries(g.rules).filter(([,rs])=>rs.length).map(([A,rs])=>`<div class="gline">${tok(A)} → ${rs.map(r=>`<span class="${old&&!old.has(A+"→"+key(r))?"newp":""}">${rhsH(r)}</span>`).join(" <b class=gbar>|</b> ")}</div>`).join("");
   const gone=prev?allProds(prev).filter(([A,r])=>!(g.rules[A]||[]).some(x=>key(x)===key(r))):[];
   return `<div class="gram">${rows}</div>`+(gone.length?`<p class="hint" style="margin:6px 0 0">Removed: ${gone.map(([A,r])=>`<span class="gone">${prodH(A,r)}</span>`).join(", ")}</p>`:""); }
 

@@ -428,7 +428,7 @@ table.dt td.ok{background:var(--accept-soft)} table.dt td.no{background:var(--re
 .ex.on{border-style:solid;border-color:var(--now);background:var(--now-soft)}
 .gram{font-family:var(--mono);font-size:15px;line-height:1.9;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;overflow-x:auto}
 .gram .v,.gone .v{color:var(--sym-X);font-weight:700} .gram sub,.gone sub{font-size:.7em}
-.gram .bar{color:var(--faint);font-weight:400;margin:0 3px}
+.gram .gbar{color:var(--faint);font-weight:400;margin:0 3px}
 .gram .newp{background:var(--accept-soft);border-radius:5px;padding:1px 3px;outline:1px solid var(--accept)}
 .gone{font-family:var(--mono);text-decoration:line-through;text-decoration-color:var(--reject)}
 .leg{border-top:1px dashed var(--line);padding-top:12px;margin-top:14px}
@@ -1938,7 +1938,7 @@ function step4b(g){ const n={start:g.start,rules:{}}, tails=new Map(); let k=0; 
 const isCNF=(g)=>allProds(g).every(([A,r])=>(r.length===2&&r.every(isVar))||(r.length===1&&!isVar(r[0]))||(r.length===0&&A===g.start));
 
 function gramH(g,prev){ const old=prev?new Set(allProds(prev).map(([A,r])=>A+"→"+key(r))):null;
-  const rows=Object.entries(g.rules).filter(([,rs])=>rs.length).map(([A,rs])=>`<div class="gline">${tok(A)} → ${rs.map(r=>`<span class="${old&&!old.has(A+"→"+key(r))?"newp":""}">${rhsH(r)}</span>`).join(" <b class=bar>|</b> ")}</div>`).join("");
+  const rows=Object.entries(g.rules).filter(([,rs])=>rs.length).map(([A,rs])=>`<div class="gline">${tok(A)} → ${rs.map(r=>`<span class="${old&&!old.has(A+"→"+key(r))?"newp":""}">${rhsH(r)}</span>`).join(" <b class=gbar>|</b> ")}</div>`).join("");
   const gone=prev?allProds(prev).filter(([A,r])=>!(g.rules[A]||[]).some(x=>key(x)===key(r))):[];
   return `<div class="gram">${rows}</div>`+(gone.length?`<p class="hint" style="margin:6px 0 0">Removed: ${gone.map(([A,r])=>`<span class="gone">${prodH(A,r)}</span>`).join(", ")}</p>`:""); }
 
