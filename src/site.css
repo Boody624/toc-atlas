@@ -185,3 +185,12 @@ table.dt td.ok{background:var(--accept-soft)} table.dt td.no{background:var(--re
 .tnode.te text{fill:var(--muted);font-weight:400}
 .tnode.tcur rect{fill:var(--now);stroke:var(--now)} .tnode.tcur text{fill:#1b1404}
 .ex.on{border-style:solid;border-color:var(--now);background:var(--now-soft)}
+.gram{font-family:var(--mono);font-size:15px;line-height:1.9;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;overflow-x:auto}
+.gram .v,.gone .v{color:var(--sym-X);font-weight:700} .gram sub,.gone sub{font-size:.7em}
+.gram .bar{color:var(--faint);font-weight:400;margin:0 3px}
+.gram .newp{background:var(--accept-soft);border-radius:5px;padding:1px 3px;outline:1px solid var(--accept)}
+.gone{font-family:var(--mono);text-decoration:line-through;text-decoration-color:var(--reject)}
+.leg{border-top:1px dashed var(--line);padding-top:12px;margin-top:14px}
+.checks{list-style:none;padding:0;margin:6px 0 10px} .checks li{padding:3px 0 3px 26px;position:relative}
+.checks li.y:before{content:"✓";position:absolute;left:4px;color:var(--accept);font-weight:700} .checks li.n:before{content:"✗";position:absolute;left:4px;color:var(--reject);font-weight:700}
+.numin{width:7ch;font-family:var(--mono);font-size:15px;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
