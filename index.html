@@ -262,27 +262,39 @@ a{color:inherit}
 .facts li{border-left:3px solid var(--now);padding:2px 0 2px 12px;font-size:13.5px;color:var(--muted)}
 .facts li b{color:var(--ink);display:block;font-family:var(--display);font-size:15px}
 .mapwrap{overflow-x:auto}
-.mapwrap svg{display:block;width:100%;min-width:760px;height:auto}
-.region{stroke-width:1.5;rx:26}
-.r0{fill:var(--surface);stroke:var(--line)}
-.r1{fill:var(--surface-2);stroke:var(--line)}
-.r2{fill:color-mix(in srgb,var(--sym-A) 9%,var(--surface));stroke:color-mix(in srgb,var(--sym-A) 45%,var(--line))}
-.r3{fill:color-mix(in srgb,var(--now) 14%,var(--surface));stroke:color-mix(in srgb,var(--now) 60%,var(--line))}
+.mapwrap svg{display:block;width:100%;height:auto}
+.region{stroke-width:1.5}
+.r0{fill:var(--z-re-soft);stroke:color-mix(in srgb,var(--z-re) 35%,var(--line))}
+.r1{fill:color-mix(in srgb,var(--z-cs-soft) 70%,var(--surface));stroke:color-mix(in srgb,var(--z-cs) 40%,var(--line))}
+.r2{fill:var(--z-cf-soft);stroke:color-mix(in srgb,var(--z-cf) 50%,var(--line))}
+.r3{fill:var(--z-reg-soft);stroke:color-mix(in srgb,var(--z-reg) 55%,var(--line))}
+.graticule{fill:none;stroke:var(--z-re);stroke-opacity:.09;stroke-width:1}
+.gridfill{stroke:none;pointer-events:none}
 .rlabel{font-family:var(--display);font-weight:700;font-size:15px;fill:var(--ink)}
+.rlabel.tr0{fill:var(--z-re)} .rlabel.tr1{fill:var(--z-cs)} .rlabel.tr2{fill:var(--z-cf)} .rlabel.tr3{fill:var(--z-reg)}
 .rsub{font-family:var(--body);font-size:11.5px;fill:var(--muted)}
 .rland{font-family:var(--mono);font-size:11.5px;fill:var(--muted)}
-.route{fill:none;stroke:var(--faint);opacity:.6;stroke-width:2;stroke-dasharray:2 7;stroke-linecap:round}
-.stop{cursor:pointer}
-.stop circle{fill:var(--surface);stroke:var(--ink);stroke-width:2.2;transition:all .15s}
-.stop:hover circle,.stop:focus-visible circle{fill:var(--now);stroke:var(--now)}
-.stop text{font-family:var(--body);font-size:12px;font-weight:600;fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-opacity:.8;stroke-linejoin:round}
-.stop .tick{stroke:none}
-.stop .ses{font-family:var(--mono);font-size:10px;font-weight:400;fill:var(--muted)}
-.stop.soon circle{stroke:var(--faint);stroke-dasharray:3 3}
-.stop.soon text{fill:var(--muted)}
-.stop.done circle{fill:var(--accept);stroke:var(--accept)}
-.stop .tick{fill:#fff;font-size:12px;font-weight:800;pointer-events:none}
-.wall{font-family:var(--body);font-size:10.5px;fill:var(--reject);font-weight:700;letter-spacing:.04em}
+.wallband{stroke:none}
+.hatch{fill:var(--reject);opacity:.75}
+.route{fill:none;stroke:var(--ink);opacity:.38;stroke-width:2.5;stroke-dasharray:7 6;stroke-linecap:round;stroke-linejoin:round}
+.stop{cursor:pointer;outline:none}
+.stop .ring{fill:var(--surface);stroke:color-mix(in srgb,var(--zone) 22%,var(--line));stroke-width:4}
+.stop .prog{fill:none;stroke:var(--accept);stroke-width:4;stroke-linecap:round}
+.stop .dot{fill:var(--zone);stroke:var(--surface);stroke-width:2;transition:r .15s,fill .15s}
+.stop:hover .dot,.stop:focus-visible .dot{fill:var(--now);r:12px}
+.stop:focus-visible .ring{stroke:var(--now)}
+.stop text{font-family:var(--body);paint-order:stroke;stroke:var(--zone-soft);stroke-width:5px;stroke-linejoin:round}
+.stop .lbl{font-size:12.5px;font-weight:700;fill:var(--ink)}
+.stop .ses{font-family:var(--mono);font-size:10px;fill:var(--muted)}
+.stop.soon .dot{fill:var(--surface);stroke:var(--faint);stroke-dasharray:3 3}
+.stop.done .dot{fill:var(--accept)}
+.stop .tick{fill:#fff;stroke:none;font-size:12px;font-weight:800;pointer-events:none}
+.wall{font-size:10.5px;fill:var(--reject);font-weight:800;letter-spacing:.08em}
+.maplegend{display:flex;gap:8px 20px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:10px}
+.maplegend i{display:inline-block;vertical-align:-3px;margin-right:6px}
+.lg-ring{width:14px;height:14px;border-radius:50%;border:3px solid var(--accept);border-right-color:var(--line);border-bottom-color:var(--line)}
+.lg-wall{width:8px;height:16px;border-radius:3px;background:repeating-linear-gradient(45deg,var(--reject) 0 2px,transparent 2px 5px)}
+.vroute{display:none}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
 .card{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:14px 16px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:6px;transition:border-color .15s,transform .15s}
 .card:hover{border-color:var(--faint);transform:translateY(-2px)}
@@ -531,6 +543,35 @@ table.diag tr.drow th{color:var(--accept)}
   .pass-pill{white-space:nowrap}
 }
 .st-body .recipe li::before{background:var(--zone);color:var(--paper)}
+/* map: vertical route on phones */
+@media (max-width:640px){
+  .mapwrap,.maplegend{display:none}
+  .vroute{display:flex;flex-direction:column;gap:10px;list-style:none;margin:0;padding:0}
+  .vz{border-radius:12px;background:var(--zone-soft);border:1px solid color-mix(in srgb,var(--zone) 30%,var(--line));padding:10px 12px}
+  .vz[data-zone="cs"]{--zone:var(--z-cs);--zone-soft:var(--z-cs-soft)}
+  .vz-h b{display:block;font-family:var(--display);color:var(--zone);font-size:15px}
+  .vz-h small{color:var(--muted);font-size:12px}
+  .vstops{list-style:none;margin:8px 0 0;padding:0 0 0 2px;position:relative}
+  .vstops::before{content:"";position:absolute;left:14px;top:14px;bottom:14px;border-left:2.5px dashed color-mix(in srgb,var(--ink) 30%,transparent)}
+  .vz.empty .vstops{display:none}
+  .vstop{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;width:100%;background:none;border:0;padding:6px 0;text-align:left;cursor:pointer;position:relative}
+  .vmark{width:26px;height:26px;border-radius:50%;background:conic-gradient(var(--accept) var(--pct),color-mix(in srgb,var(--zone) 22%,var(--line)) 0);display:grid;place-items:center}
+  .vmark::after{content:"";width:16px;height:16px;border-radius:50%;background:var(--zone);box-shadow:0 0 0 2px var(--surface)}
+  .vname{font-weight:700;font-size:14.5px}
+  .vses{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .vwall{margin:4px 0 2px 34px;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--reject);padding-left:16px;background:linear-gradient(var(--reject),var(--reject)) left center/10px 2px no-repeat}
+  .hero{gap:14px}
+  .hero .lede{font-size:15px}
+  .facts li{font-size:12.5px}
+  .facts li b{font-size:14px}
+}
+/* cards grouped by class */
+.cardgroup{display:flex;flex-direction:column;gap:10px}
+.cg-h{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0 0;font-size:13px;font-weight:500;color:var(--muted)}
+.card{border-top:3px solid var(--zone)}
+.card:hover{border-color:color-mix(in srgb,var(--zone) 45%,var(--line));border-top-color:var(--zone)}
+.card .go{font-weight:700;font-size:12.5px;color:var(--zone)}
+.mappanel{padding:16px 18px 14px}
 
 </style>
 <div class="site">
@@ -779,9 +820,9 @@ function subsetConstruct(N){ const start=[N.start]; const list=[start]; const ro
    blurb:"Machines that write, not just judge. Convert one into the other and match the output."},
   {id:"regex", title:"Regular expressions", short:"Regular expressions", sessions:"S9–S11", module:"Module 4 · Regular expressions", region:"Regular", x:400, y:262,
    blurb:"A second way to say the same thing: Regex Golf, state elimination in any order, and the machine built from the inside out."},
-  {id:"closure", title:"Closure properties", short:"Closure", sessions:"S12", module:"Module 5 · Properties of regular languages", region:"Regular", x:440, y:420,
+  {id:"closure", title:"Closure properties", short:"Closure", sessions:"S12", module:"Module 5 · Properties of regular languages", region:"Regular", x:425, y:402,
    blurb:"Seven operations that stay inside the class, and one product machine with three accepting sets."},
-  {id:"pumping", title:"The pumping lemma", short:"Pumping lemma", sessions:"S13", module:"Module 5 · Properties of regular languages", region:"The edge of Regular", x:486, y:330, wall:true,
+  {id:"pumping", title:"The pumping lemma", short:"Pumping lemma", sessions:"S13", module:"Module 5 · Properties of regular languages", region:"The edge of Regular", x:486, y:330, wall:true, lab:"r",
    blurb:"Proving that no machine exists is a game against an adversary. You choose w and i. The adversary chooses p and the split. Play both sides.",
    stamps:[{id:"anbn",label:"Beat aⁿbⁿ"},{id:"equal",label:"Beat EQUAL"},{id:"three",label:"Three languages proved"},{id:"survive",label:"Fell for a bad w"},{id:"adversary",label:"Won as the adversary"},{id:"claims",label:"Proof claims"}]},
   {id:"cfg", title:"Grammars and derivation trees", short:"Grammars", sessions:"S17–S18", module:"Module 6 · Grammars", region:"Context-free", x:560, y:262,
@@ -793,7 +834,7 @@ function subsetConstruct(N){ const start=[N.start]; const list=[start]; const ro
    stamps:[{id:"run",label:"Watched a full run"},{id:"guess",label:"Saw one guess survive"},{id:"stuck",label:"Saw a branch get stuck"},{id:"own",label:"Built your own machine"}]},
   {id:"cyk", title:"The CYK algorithm", short:"CYK", sessions:"S24", module:"Module 8 · Context-free limits", region:"Context-free", x:755, y:392,
    blurb:"A table that answers the membership question: CYK Table Sprint."},
-  {id:"cflpump", title:"Closure and pumping for CFLs", short:"CFL limits", sessions:"S22–S23", module:"Module 8 · Context-free limits", region:"The edge of Context-free", x:812, y:320, wall:true,
+  {id:"cflpump", title:"Closure and pumping for CFLs", short:"CFL limits", sessions:"S22–S23", module:"Module 8 · Context-free limits", region:"The edge of Context-free", x:812, y:320, wall:true, lab:"r",
    blurb:"Three pieces became five. Break the Language: the pumping game one level up."},
   {id:"tm", title:"Turing machines", short:"Turing machines", sessions:"S25", module:"Module 9 · Turing machines", region:"Recursively enumerable", x:985, y:262,
    blurb:"A tape instead of a stack. Tape Walk, and design by mark, cross, return."},
@@ -814,40 +855,63 @@ const Home = {
       </ul>`;
     view.appendChild(hero);
 
-    const mapP=h("section","panel"); mapP.innerHTML=`<div class="ph"><h2>The map of the semester</h2><span class="hint">The Chomsky hierarchy. Click a stop to open it. Dashed stops are still being built.</span></div>`;
+    const mapP=h("section","panel mappanel"); mapP.innerHTML=`<div class="ph"><h2>The map of the semester</h2><span class="hint">The Chomsky hierarchy, from the inside out. Click a stop to open it.</span></div>`;
     const mw=h("div","mapwrap"); mapP.appendChild(mw); view.appendChild(mapP);
     const s=svg("svg",{viewBox:"0 0 1120 520",role:"img","aria-label":"Map of the course across the Chomsky hierarchy"},mw);
+    const defs=svg("defs",{},s);
+    const gp=svg("pattern",{id:"mapgrid",width:28,height:28,patternUnits:"userSpaceOnUse"},defs); svg("path",{d:"M28 0H0V28",class:"graticule"},gp);
+    const hp=svg("pattern",{id:"maphatch",width:7,height:7,patternUnits:"userSpaceOnUse",patternTransform:"rotate(45)"},defs); svg("rect",{width:3,height:7,class:"hatch"},hp);
     const regs=[
-      ["r0",10,10,1100,500,"Type 0 · Recursively enumerable","Turing machine · unbounded tape","⟨M,w⟩ : M halts on w"],
-      ["r1",24,62,932,434,"Type 1 · Context-sensitive","Linear-bounded automaton · bounded tape","aⁿbⁿcⁿ"],
-      ["r2",38,114,762,368,"Type 2 · Context-free","Pushdown automaton · a stack","aⁿbⁿ"],
-      ["r3",52,166,422,302,"Type 3 · Regular","Finite automaton · no memory beyond the state","even number of a's"]];
-    regs.forEach(([c,x,y,w,hh,l,sub,land])=>{ svg("rect",{x,y,width:w,height:hh,class:"region "+c},s);
-      svg("text",{x:x+18,y:y+24,class:"rlabel"},s,l); svg("text",{x:x+18,y:y+40,class:"rsub"},s,sub);
+      ["r0","re",10,10,1100,500,"Type 0 · Recursively enumerable","Turing machine · unbounded tape","⟨M,w⟩ : M halts on w"],
+      ["r1","cs",24,62,932,434,"Type 1 · Context-sensitive","Linear-bounded automaton · bounded tape","aⁿbⁿcⁿ"],
+      ["r2","cf",38,114,762,368,"Type 2 · Context-free","Pushdown automaton · a stack","aⁿbⁿ"],
+      ["r3","reg",52,166,422,302,"Type 3 · Regular","Finite automaton · no memory beyond the state","even number of a's"]];
+    regs.forEach(([c,z,x,y,w,hh,l,sub,land])=>{ svg("rect",{x,y,width:w,height:hh,rx:26,class:"region "+c},s);
+      if(c==="r0") svg("rect",{x,y,width:w,height:hh,rx:26,fill:"url(#mapgrid)",class:"gridfill"},s);
+      svg("text",{x:x+18,y:y+24,class:"rlabel t"+c},s,l); svg("text",{x:x+18,y:y+40,class:"rsub"},s,sub);
       svg("text",{x:x+w-16,y:y+24,"text-anchor":"end",class:"rland"},s,"landmark: "+land); });
+    /* the walls: the right-hand boundary of Regular and of Context-free */
+    [[470,180,274],[796,128,340]].forEach(([x,y,hh])=>svg("rect",{x,y,width:8,height:hh,rx:4,class:"wallband",fill:"url(#maphatch)"},s));
     const pts=Atlas.order.map(id=>Atlas.stations[id]);
     svg("polyline",{points:pts.map(p=>p.x+","+p.y).join(" "),class:"route"},s);
+    const RR=17, CIRC=2*Math.PI*RR;
+    const open=p=>{ if(p.mount) Atlas.go(p.id); else Atlas.toast(p.short+" is being built next"); };
     pts.forEach(p=>{
       const built=!!p.mount; const [a,b]=Atlas.count(p.id); const done=built && b>0 && a===b;
-      const g=svg("g",{class:"stop"+(built?"":" soon")+(done?" done":""),tabindex:"0",role:"button","aria-label":p.title+(built?"":" (coming next)")},s);
-      svg("circle",{cx:p.x,cy:p.y,r:13},g);
+      const g=svg("g",{class:"stop"+(built?"":" soon")+(done?" done":""),"data-zone":Atlas.zone(p),tabindex:"0",role:"button","aria-label":p.title+(built?"":" (coming next)")+(b?`, ${a} of ${b} stamps`:"")},s);
+      svg("circle",{cx:p.x,cy:p.y,r:RR,class:"ring"},g);
+      if(a) svg("circle",{cx:p.x,cy:p.y,r:RR,class:"prog","stroke-dasharray":`${CIRC*a/b} ${CIRC}`,transform:`rotate(-90 ${p.x} ${p.y})`},g);
+      svg("circle",{cx:p.x,cy:p.y,r:10,class:"dot"},g);
       if(done) svg("text",{x:p.x,y:p.y+4,"text-anchor":"middle",class:"tick"},g,"✓");
-      svg("text",{x:p.x,y:p.y+30,"text-anchor":"middle"},g,p.short);
-      svg("text",{x:p.x,y:p.y+43,"text-anchor":"middle",class:"ses"},g,p.sessions+(built && b? ` · ${a}/${b}`:""));
-      if(p.wall) svg("text",{x:p.x,y:p.y+57,"text-anchor":"middle",class:"wall"},g,"THE WALL");
-      const open=()=>{ if(built) Atlas.go(p.id); else Atlas.toast(p.short+" is being built next"); };
-      g.addEventListener("click",open); g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); open(); } });
+      const R=p.lab==="r", lx=R?p.x+26:p.x, anc=R?"start":"middle", ly=R?p.y+4:p.y+34;
+      svg("text",{x:lx,y:ly,"text-anchor":anc,class:"lbl"},g,p.short);
+      svg("text",{x:lx,y:ly+13,"text-anchor":anc,class:"ses"},g,p.sessions+(built && b? ` · ${a}/${b}`:""));
+      if(p.wall) svg("text",{x:lx,y:ly+27,"text-anchor":anc,class:"wall"},g,"THE WALL");
+      g.addEventListener("click",()=>open(p)); g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); open(p); } });
     });
+    mapP.appendChild(h("div","maplegend",`<span><i class="lg-ring"></i>Ring: your passport progress at that stop</span><span><i class="lg-wall"></i>Hatched band: the wall between two classes</span>`));
+
+    /* phones: the same route, read top to bottom */
+    const groups=[["reg",regs[3]],["cf",regs[2]],["cs",regs[1]],["re",regs[0]]];
+    const vr=h("ol","vroute"); mapP.appendChild(vr);
+    groups.forEach(([z,r])=>{ const li=h("li","vz"); li.dataset.zone=z; li.innerHTML=`<div class="vz-h"><b>${esc(r[6])}</b><small>${esc(r[7])} · landmark ${esc(r[8])}</small></div>`;
+      const ol=h("ol","vstops"); li.appendChild(ol); vr.appendChild(li);
+      pts.filter(p=>Atlas.zone(p)===z).forEach(p=>{ const [a,b]=Atlas.count(p.id); const it=h("li");
+        const bt=h("button","vstop",`<span class="vmark" style="--pct:${b?100*a/b:0}%"></span><span class="vname">${esc(p.short)}</span><span class="vses">${esc(p.sessions)}${b?` · ${a}/${b}`:""}</span>`); bt.type="button"; bt.onclick=()=>open(p);
+        it.appendChild(bt); ol.appendChild(it); if(p.wall) ol.appendChild(h("li","vwall","The wall")); });
+      if(!ol.children.length) li.classList.add("empty"); });
 
     view.appendChild(h("h2","sec","Every stop"));
     view.appendChild(h("p","secsub","Each one has the idea in the course notation, a live lab, a challenge, and the ways an answer goes wrong. Finished challenges stamp your passport, which is saved on this device."));
-    const cards=h("div","cards"); view.appendChild(cards);
-    pts.forEach(p=>{ const built=!!p.mount; const [a,b]=Atlas.count(p.id);
-      const c=h(built?"button":"div","card"+(built?"":" soon")); if(built){ c.type="button"; c.onclick=()=>Atlas.go(p.id); }
-      const dots=p.stamps.map(st=>`<i class="${Atlas.has(p.id,st.id)?"on":""}"></i>`).join("");
-      c.innerHTML=`<span class="ses">${esc(p.sessions)} · ${esc(p.region)}</span><h3>${esc(p.title)}</h3><p>${esc(p.blurb)}</p>
-        <div class="foot"><span class="tag ${built?"live":""}">${built?"Open":"Coming next"}</span><span class="dots">${dots}</span></div>`;
-      cards.appendChild(c); });
+    groups.forEach(([z,r])=>{ const mine=pts.filter(p=>Atlas.zone(p)===z); if(!mine.length) return;
+      const grp=h("section","cardgroup"); grp.dataset.zone=z; grp.appendChild(h("h3","cg-h",`<span class="zone-chip">${esc(r[6])}</span><span>${esc(r[7])}</span>`));
+      const cards=h("div","cards"); grp.appendChild(cards); view.appendChild(grp);
+      mine.forEach(p=>{ const built=!!p.mount; const [a,b]=Atlas.count(p.id);
+        const c=h(built?"button":"div","card"+(built?"":" soon")); if(built){ c.type="button"; c.onclick=()=>Atlas.go(p.id); }
+        const dots=p.stamps.map(st=>`<i class="${Atlas.has(p.id,st.id)?"on":""}"></i>`).join("");
+        c.innerHTML=`<span class="ses">${esc(p.sessions)} · ${esc(p.region)}</span><h3>${esc(p.title)}</h3><p>${esc(p.blurb)}</p>
+          <div class="foot">${built?`<span class="go">Open stop →</span>`:`<span class="tag">Coming next</span>`}<span class="dots" title="${a} of ${b} stamps">${dots}</span></div>`;
+        cards.appendChild(c); }); });
   }
 };
 
