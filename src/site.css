@@ -194,3 +194,17 @@ table.dt td.ok{background:var(--accept-soft)} table.dt td.no{background:var(--re
 .checks{list-style:none;padding:0;margin:6px 0 10px} .checks li{padding:3px 0 3px 26px;position:relative}
 .checks li.y:before{content:"✓";position:absolute;left:4px;color:var(--accept);font-weight:700} .checks li.n:before{content:"✗";position:absolute;left:4px;color:var(--reject);font-weight:700}
 .numin{width:7ch;font-family:var(--mono);font-size:15px;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+/* CYK */
+table.cyk{border-collapse:separate;border-spacing:4px;font-family:var(--mono);font-size:13.5px;margin:6px auto}
+table.cyk th{font-weight:500;color:var(--muted);font-size:11.5px;padding-right:4px;text-align:right}
+table.cyk td{min-width:64px;height:40px;text-align:center;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);padding:3px;cursor:default}
+table.cyk td.na{border:none;background:none}
+table.cyk td.empty{color:var(--faint)}
+table.cyk td.now{background:var(--now-soft);border-color:var(--now);font-weight:700}
+table.cyk td.kl{border-color:var(--sym-A);box-shadow:inset 0 0 0 1.5px var(--sym-A)}
+table.cyk td.kr{border-color:var(--sym-X);box-shadow:inset 0 0 0 1.5px var(--sym-X)}
+table.cyk td.ok{background:var(--accept-soft)} table.cyk td.no{background:var(--reject-soft);border-color:var(--reject)}
+table.cyk tr.wrow td{border:none;background:none;height:auto} table.cyk tr.wrow small{display:block;color:var(--muted);font-size:10.5px}
+table.cyk tr.wrow b{font-size:17px}
+.setpick.mini{gap:3px;justify-content:center} .setpick.mini button{padding:2px 6px;font-size:12px}
+.tab.donetab{border-color:var(--accept)}
