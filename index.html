@@ -682,6 +682,46 @@ h2.sec{font-family:var(--display);font-size:clamp(26px,3vw,36px);font-weight:700
 .note{border-radius:0 6px 6px 0}
 .st-head h1::after{margin-top:24px}
 
+/* chart: coastlines, ridges, compass */
+.region{stroke-width:1.6;stroke-linejoin:round}
+.r0{stroke:color-mix(in srgb,var(--z-re) 60%,transparent)}
+.r1{stroke:color-mix(in srgb,var(--z-cs) 65%,transparent)}
+.r2{stroke:color-mix(in srgb,var(--z-cf) 70%,transparent)}
+.r3{stroke:color-mix(in srgb,var(--z-reg) 75%,transparent)}
+.waterline{fill:none;stroke-width:1;stroke-dasharray:1 4;stroke-linecap:round}
+.waterline.r1{stroke:var(--z-cs)} .waterline.r2{stroke:var(--z-cf)} .waterline.r3{stroke:var(--z-reg)}
+.graticule{stroke:var(--ink);stroke-opacity:.07}
+.rlabel{font-family:var(--display);font-weight:700;font-size:13.5px;letter-spacing:.14em}
+.rsub{font-family:var(--display);font-style:italic;font-size:12.5px}
+.rland{font-family:var(--display);font-style:italic;font-size:12.5px}
+.ridge .peak{fill:var(--surface);stroke:var(--ink);stroke-width:1;stroke-linejoin:round}
+.ridge .shade{fill:var(--ink);opacity:.55}
+.route{stroke:var(--route);opacity:.9;stroke-width:2.2;stroke-dasharray:7 5}
+.stop .ring{stroke:color-mix(in srgb,var(--ink) 22%,var(--surface));stroke-width:3.5}
+.stop .dot{stroke-width:2.5}
+.stop text{stroke:var(--zone-soft)}
+.stop .lbl{font-family:var(--display);font-size:13.5px;font-weight:700}
+.wall{fill:var(--route);font-family:var(--display);font-style:italic;font-weight:700;letter-spacing:.06em}
+.compass .c-ring{fill:none;stroke:var(--ink);stroke-opacity:.5;stroke-width:1}
+.compass .c-ring.thin{stroke-dasharray:1 3}
+.compass .c-dark{fill:var(--ink)} .compass .c-light{fill:var(--surface);stroke:var(--ink);stroke-width:.8}
+.compass .c-short{fill:var(--route);opacity:.75}
+.compass .c-n{font-family:var(--display);font-weight:700;font-style:italic;font-size:14px;fill:var(--ink)}
+.lg-wall{width:18px;height:12px;border-radius:0;background:linear-gradient(135deg,transparent 50%,var(--ink) 50%) 0 0/9px 12px,linear-gradient(225deg,transparent 50%,var(--ink) 50%) 0 0/9px 12px;opacity:.7}
+.lg-route{width:22px;height:0;border-top:2.2px dashed var(--route);vertical-align:3px!important}
+.maplegend{font-family:var(--display);font-style:italic;font-size:13px}
+/* phone route, charted */
+@media (max-width:640px){
+  .vz{border-radius:6px;background:var(--zone-soft)}
+  .vz-h b{letter-spacing:.12em;text-transform:uppercase;font-size:13.5px}
+  .vz-h small{font-family:var(--display);font-style:italic;font-size:13px}
+  .vstops::before{border-left:2.2px dashed var(--route)}
+  .vname{font-family:var(--display);font-size:16px}
+  .vwall{color:var(--route);font-family:var(--display);font-style:italic;letter-spacing:.08em;background:none;padding-left:0}
+  .vwall::before{content:"\25B2\25B2\25B2  ";letter-spacing:-.1em;color:var(--ink);opacity:.6;font-style:normal;font-size:9px}
+}
+@media (max-width:640px){ .vwall::before{margin-right:8px;display:inline-block} }
+
 </style>
 <div class="site">
   <div class="bar">
@@ -952,6 +992,20 @@ function subsetConstruct(N){ const start=[N.start]; const list=[start]; const ro
    blurb:"Accept, reject, or neither: the question no machine can answer."}
 ].forEach(d=>{ d.stamps=d.stamps||[]; Atlas.register(d); });
 
+/* hand-drawn coastline around a rounded rectangle: deterministic wobble, smooth closed curve */
+function coastPath(x,y,w,hh,r,off,amp,seed){
+  const P=[]; const add=(px,py,nx,ny)=>P.push([px,py,nx,ny]); const st=11;
+  const edge=(x0,y0,x1,y1,nx,ny)=>{ const L=Math.hypot(x1-x0,y1-y0), n=Math.max(1,Math.round(L/st)); for(let i=0;i<n;i++) add(x0+(x1-x0)*i/n,y0+(y1-y0)*i/n,nx,ny); };
+  const arc=(cx,cy,a0)=>{ for(let i=0;i<4;i++){ const a=(a0+i*22.5)*Math.PI/180; add(cx+r*Math.cos(a),cy+r*Math.sin(a),Math.cos(a),Math.sin(a)); } };
+  edge(x+r,y,x+w-r,y,0,-1); arc(x+w-r,y+r,-90); edge(x+w,y+r,x+w,y+hh-r,1,0); arc(x+w-r,y+hh-r,0);
+  edge(x+w-r,y+hh,x+r,y+hh,0,1); arc(x+r,y+hh-r,90); edge(x,y+hh-r,x,y+r,-1,0); arc(x+r,y+r,180);
+  let d=0; const Q=P.map(([px,py,nx,ny],i)=>{ d+=i?Math.hypot(px-P[i-1][0],py-P[i-1][1]):0;
+    const k=off+amp*(Math.sin(d*.045+seed)*.55+Math.sin(d*.11+seed*1.7)*.3+Math.sin(d*.27+seed*2.3)*.15); return [px+nx*k,py+ny*k]; });
+  const n=Q.length, f=v=>v.toFixed(1); let out=`M${f(Q[0][0])} ${f(Q[0][1])}`;
+  for(let i=0;i<n;i++){ const a=Q[(i-1+n)%n],b=Q[i],c=Q[(i+1)%n],e=Q[(i+2)%n];
+    out+=`C${f(b[0]+(c[0]-a[0])/6)} ${f(b[1]+(c[1]-a[1])/6)} ${f(c[0]-(e[0]-b[0])/6)} ${f(c[1]-(e[1]-b[1])/6)} ${f(c[0])} ${f(c[1])}`; }
+  return out+"Z"; }
+
 const Home = {
   mount(view){
     const hero=h("section","hero");
@@ -969,19 +1023,29 @@ const Home = {
     const mw=h("div","mapwrap"); mapP.appendChild(mw); view.appendChild(mapP);
     const s=svg("svg",{viewBox:"0 0 1120 520",role:"img","aria-label":"Map of the course across the Chomsky hierarchy"},mw);
     const defs=svg("defs",{},s);
-    const gp=svg("pattern",{id:"mapgrid",width:28,height:28,patternUnits:"userSpaceOnUse"},defs); svg("path",{d:"M28 0H0V28",class:"graticule"},gp);
-    const hp=svg("pattern",{id:"maphatch",width:7,height:7,patternUnits:"userSpaceOnUse",patternTransform:"rotate(45)"},defs); svg("rect",{width:3,height:7,class:"hatch"},hp);
+    const gp=svg("pattern",{id:"mapgrid",width:56,height:56,patternUnits:"userSpaceOnUse"},defs); svg("path",{d:"M56 0H0V56",class:"graticule"},gp);
     const regs=[
       ["r0","re",10,10,1100,500,"Type 0 · Recursively enumerable","Turing machine · unbounded tape","⟨M,w⟩ : M halts on w"],
       ["r1","cs",24,62,932,434,"Type 1 · Context-sensitive","Linear-bounded automaton · bounded tape","aⁿbⁿcⁿ"],
       ["r2","cf",38,114,762,368,"Type 2 · Context-free","Pushdown automaton · a stack","aⁿbⁿ"],
       ["r3","reg",52,166,422,302,"Type 3 · Regular","Finite automaton · no memory beyond the state","even number of a's"]];
-    regs.forEach(([c,z,x,y,w,hh,l,sub,land])=>{ svg("rect",{x,y,width:w,height:hh,rx:26,class:"region "+c},s);
-      if(c==="r0") svg("rect",{x,y,width:w,height:hh,rx:26,fill:"url(#mapgrid)",class:"gridfill"},s);
-      svg("text",{x:x+18,y:y+24,class:"rlabel t"+c},s,l); svg("text",{x:x+18,y:y+40,class:"rsub"},s,sub);
+    regs.forEach(([c,z,x,y,w,hh,l,sub,land],ri)=>{
+      if(c!=="r0") svg("path",{d:coastPath(x,y,w,hh,26,7,2.5,ri*1.9+.4),class:"waterline "+c},s);
+      svg("path",{d:coastPath(x,y,w,hh,26,0,3.5,ri*1.9),class:"region "+c},s);
+      if(c==="r0") svg("path",{d:coastPath(x,y,w,hh,26,0,3.5,0),fill:"url(#mapgrid)",class:"gridfill"},s);
+      svg("text",{x:x+18,y:y+25,class:"rlabel t"+c},s,l.toUpperCase()); svg("text",{x:x+18,y:y+40,class:"rsub"},s,sub);
       svg("text",{x:x+w-16,y:y+24,"text-anchor":"end",class:"rland"},s,"landmark: "+land); });
-    /* the walls: the right-hand boundary of Regular and of Context-free */
-    [[470,180,274],[796,128,340]].forEach(([x,y,hh])=>svg("rect",{x,y,width:8,height:hh,rx:4,class:"wallband",fill:"url(#maphatch)"},s));
+    /* the walls: mountain ranges along the right-hand coast of Regular and of Context-free */
+    [[474,196,446,330],[800,146,462,320]].forEach(([x,y0,y1,gap])=>{ const rg=svg("g",{class:"ridge"},s); let k=0;
+      for(let yy=y0; yy<=y1; yy+=[17,14,19,15][k%4], k++){ if(Math.abs(yy-gap)<34) continue; const cx=x+[-3,2,-1,3,0][k%5], sz=[10,7,12,8,9][k%5];
+        svg("path",{d:`M${cx-sz} ${yy+sz*.8}L${cx} ${yy-sz}L${cx+sz} ${yy+sz*.8}Z`,class:"peak"},rg);
+        svg("path",{d:`M${cx} ${yy-sz}L${cx+sz} ${yy+sz*.8}L${cx+sz*.25} ${yy+sz*.8}Z`,class:"shade"},rg); } });
+    /* compass rose in the open sea */
+    const cr=svg("g",{class:"compass",transform:"translate(1052 152)"},s);
+    svg("circle",{r:34,class:"c-ring"},cr); svg("circle",{r:27,class:"c-ring thin"},cr);
+    [45,135,225,315].forEach(a=>svg("path",{d:"M0 -20L4 0L0 4L-4 0Z",transform:`rotate(${a})`,class:"c-short"},cr));
+    [0,90,180,270].forEach(a=>{ const g=svg("g",{transform:`rotate(${a})`},cr); svg("path",{d:"M0 -31L6 0L0 0Z",class:"c-dark"},g); svg("path",{d:"M0 -31L-6 0L0 0Z",class:"c-light"},g); });
+    svg("circle",{r:2.5,class:"c-dark"},cr); svg("text",{y:-40,"text-anchor":"middle",class:"c-n"},cr,"N");
     const pts=Atlas.order.map(id=>Atlas.stations[id]);
     svg("polyline",{points:pts.map(p=>p.x+","+p.y).join(" "),class:"route"},s);
     const RR=17, CIRC=2*Math.PI*RR;
@@ -999,7 +1063,7 @@ const Home = {
       if(p.wall) svg("text",{x:lx,y:ly+27,"text-anchor":anc,class:"wall"},g,"THE WALL");
       g.addEventListener("click",()=>open(p)); g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); open(p); } });
     });
-    mapP.appendChild(h("div","maplegend",`<span><i class="lg-ring"></i>Ring: your passport progress at that stop</span><span><i class="lg-wall"></i>Hatched band: the wall between two classes</span>`));
+    mapP.appendChild(h("div","maplegend",`<span><i class="lg-ring"></i>Ring: your passport progress at that stop</span><span><i class="lg-wall"></i>Mountains: the wall between two classes</span><span><i class="lg-route"></i>The route: the order of the semester</span>`));
 
     /* phones: the same route, read top to bottom */
     const groups=[["reg",regs[3]],["cf",regs[2]],["cs",regs[1]],["re",regs[0]]];

@@ -440,3 +440,43 @@ h2.sec{font-family:var(--display);font-size:clamp(26px,3vw,36px);font-weight:700
 .qf-card .claim{font-family:var(--display);font-size:17px;font-weight:500}
 .note{border-radius:0 6px 6px 0}
 .st-head h1::after{margin-top:24px}
+
+/* chart: coastlines, ridges, compass */
+.region{stroke-width:1.6;stroke-linejoin:round}
+.r0{stroke:color-mix(in srgb,var(--z-re) 60%,transparent)}
+.r1{stroke:color-mix(in srgb,var(--z-cs) 65%,transparent)}
+.r2{stroke:color-mix(in srgb,var(--z-cf) 70%,transparent)}
+.r3{stroke:color-mix(in srgb,var(--z-reg) 75%,transparent)}
+.waterline{fill:none;stroke-width:1;stroke-dasharray:1 4;stroke-linecap:round}
+.waterline.r1{stroke:var(--z-cs)} .waterline.r2{stroke:var(--z-cf)} .waterline.r3{stroke:var(--z-reg)}
+.graticule{stroke:var(--ink);stroke-opacity:.07}
+.rlabel{font-family:var(--display);font-weight:700;font-size:13.5px;letter-spacing:.14em}
+.rsub{font-family:var(--display);font-style:italic;font-size:12.5px}
+.rland{font-family:var(--display);font-style:italic;font-size:12.5px}
+.ridge .peak{fill:var(--surface);stroke:var(--ink);stroke-width:1;stroke-linejoin:round}
+.ridge .shade{fill:var(--ink);opacity:.55}
+.route{stroke:var(--route);opacity:.9;stroke-width:2.2;stroke-dasharray:7 5}
+.stop .ring{stroke:color-mix(in srgb,var(--ink) 22%,var(--surface));stroke-width:3.5}
+.stop .dot{stroke-width:2.5}
+.stop text{stroke:var(--zone-soft)}
+.stop .lbl{font-family:var(--display);font-size:13.5px;font-weight:700}
+.wall{fill:var(--route);font-family:var(--display);font-style:italic;font-weight:700;letter-spacing:.06em}
+.compass .c-ring{fill:none;stroke:var(--ink);stroke-opacity:.5;stroke-width:1}
+.compass .c-ring.thin{stroke-dasharray:1 3}
+.compass .c-dark{fill:var(--ink)} .compass .c-light{fill:var(--surface);stroke:var(--ink);stroke-width:.8}
+.compass .c-short{fill:var(--route);opacity:.75}
+.compass .c-n{font-family:var(--display);font-weight:700;font-style:italic;font-size:14px;fill:var(--ink)}
+.lg-wall{width:18px;height:12px;border-radius:0;background:linear-gradient(135deg,transparent 50%,var(--ink) 50%) 0 0/9px 12px,linear-gradient(225deg,transparent 50%,var(--ink) 50%) 0 0/9px 12px;opacity:.7}
+.lg-route{width:22px;height:0;border-top:2.2px dashed var(--route);vertical-align:3px!important}
+.maplegend{font-family:var(--display);font-style:italic;font-size:13px}
+/* phone route, charted */
+@media (max-width:640px){
+  .vz{border-radius:6px;background:var(--zone-soft)}
+  .vz-h b{letter-spacing:.12em;text-transform:uppercase;font-size:13.5px}
+  .vz-h small{font-family:var(--display);font-style:italic;font-size:13px}
+  .vstops::before{border-left:2.2px dashed var(--route)}
+  .vname{font-family:var(--display);font-size:16px}
+  .vwall{color:var(--route);font-family:var(--display);font-style:italic;letter-spacing:.08em;background:none;padding-left:0}
+  .vwall::before{content:"\25B2\25B2\25B2  ";letter-spacing:-.1em;color:var(--ink);opacity:.6;font-style:normal;font-size:9px}
+}
+@media (max-width:640px){ .vwall::before{margin-right:8px;display:inline-block} }
