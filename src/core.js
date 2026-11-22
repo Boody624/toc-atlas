@@ -17,17 +17,17 @@ const Atlas = {
   has(st, id){ const p=this.passport(); return !!(p[st] && p[st][id]); },
   stamp(st, id){
     if(this.has(st,id)) return false;
-    const p=this.passport(); (p[st]=p[st]||{})[id]=1;
+    const p=this.passport(); (p[st]=p[st]||{})[id]=Date.now();
     try{ localStorage.setItem("atlas.passport", JSON.stringify(p)); }catch(e){}
     const def=this.stations[st]; const s=def && def.stamps.find(x=>x.id===id);
     if(s) this.toast("Passport stamp: "+s.label); this.refreshBar();
-    document.querySelectorAll(`.stp[data-st="${st}"][data-id="${id}"]`).forEach(e=>e.classList.add("on"));
+    document.querySelectorAll(`.stp[data-st="${st}"][data-id="${id}"]`).forEach(e=>{ e.classList.add("on","fresh"); if(window.Plate) Plate.restamp(e,st,id); });
     return true;
   },
   count(st){ const def=this.stations[st]; if(!def||!def.stamps) return [0,0]; return [def.stamps.filter(s=>this.has(st,s.id)).length, def.stamps.length]; },
   totals(){ let a=0,b=0; this.order.forEach(id=>{ const [x,y]=this.count(id); a+=x; b+=y; }); return [a,b]; },
   toast(msg){ const t=document.getElementById("toast"); if(!t) return; t.textContent=msg; t.classList.add("show"); clearTimeout(this._tt); this._tt=setTimeout(()=>t.classList.remove("show"),2600); },
-  refreshBar(){ const [a,b]=this.totals(); const pill=document.getElementById("passPill"); if(pill) pill.innerHTML=`Passport <b>${a}/${b}</b><span class="meter"><i style="width:${b?100*a/b:0}%"></i></span>`; },
+  refreshBar(){ const [a,b]=this.totals(); const pill=document.getElementById("passPill"); if(pill){ pill.innerHTML=`Passport <b>${a}/${b}</b><span class="meter"><i style="width:${b?100*a/b:0}%"></i></span>`; pill.onclick=()=>this.go("passport"); } },
   zone(def){ const r=(def&&def.region)||""; return /Regular/.test(r)?"reg":/Context-free/.test(r)?"cf":"re"; },
   roman(n){ return [[10,"X"],[9,"IX"],[5,"V"],[4,"IV"],[1,"I"]].reduce((o,[v,r])=>{ while(n>=v){ o+=r; n-=v; } return o; },""); },
   zoneName:{reg:"Type 3 · Regular",cf:"Type 2 · Context-free",re:"Type 0 · Recursively enumerable"},
@@ -39,46 +39,48 @@ const Atlas = {
     this.cleanups.splice(0).forEach(fn=>{ try{ fn(); }catch(e){} });
     const id=location.hash.slice(1); const view=document.getElementById("view"); view.innerHTML="";
     const def=this.stations[id];
-    view.dataset.zone = def && def.mount ? this.zone(def) : "";
-    if(def && def.mount){ this.mountStation(def, view); } else { Home.mount(view); }
+    view.dataset.zone = def && def.mount ? this.zone(def) : ""; view.dataset.page = def && def.mount ? "plate" : (id==="passport"||id==="notation") ? id : "home";
+    if(def && def.mount){ this.mountStation(def, view); } else if(id==="passport"){ Plate.passport(view); } else if(id==="notation"){ Plate.notation(view); } else { Home.mount(view); }
     window.scrollTo(0,0); this.refreshBar();
   },
-  mountStation(def, view){
-    const built=this.order.filter(i=>this.stations[i].mount); const k=built.indexOf(def.id);
-    const crumb=h("div","crumb"); const back=h("button",null,"← Atlas"); back.type="button"; back.onclick=()=>this.go("home"); crumb.appendChild(back);
-    crumb.appendChild(h("span",null,"· "+esc(def.region)+" · "+esc(def.sessions)));
-    view.appendChild(crumb);
-    const head=h("header","st-head",`<div class="st-meta"><span class="plate-no">Plate ${this.roman(this.order.indexOf(def.id)+1)}</span><span class="zone-chip">${esc(this.zoneName[this.zone(def)])}</span><span class="eyebrow">${esc(def.module)}</span></div><h1>${esc(def.title)}</h1><p class="sub">${esc(def.blurb)}</p>`);
-    view.appendChild(head); view.appendChild(this.stampRow(def.id));
-    const body=h("div","view st-body"); view.appendChild(body);
-    def.mount(body);
-    const np=h("div","nextprev");
-    const mk=(i,lbl)=>{ const b=h("button","btn",lbl); b.type="button"; b.onclick=()=>this.go(i); return b; };
-    np.appendChild(k>0 ? mk(built[k-1],"← "+esc(this.stations[built[k-1]].title)) : mk("home","← Atlas"));
-    np.appendChild(k<built.length-1 ? mk(built[k+1],esc(this.stations[built[k+1]].title)+" →") : mk("home","Back to the atlas →"));
-    view.appendChild(np);
-  }
+  mountStation(def, view){ Plate.mount(def, view); }
 };
 
 /* ---- section helper: a titled block ---- */
-function block(parent, kicker, title, id){ const b=h("section","blk"); if(id) b.id="blk-"+id; b.appendChild(h("div","kicker",esc(kicker))); b.appendChild(h("h2",null,esc(title))); parent.appendChild(b); return b; }
+const BLOCK_KIND={"The idea":"idea","Lab":"lab","Warm-up":"lab","How it goes wrong":"claims"};
+function block(parent, kicker, title, id){ const b=h("section","blk k-"+(BLOCK_KIND[kicker]||"challenge")); if(id) b.id="blk-"+id; b.appendChild(h("div","kicker",esc(kicker))); b.appendChild(h("h2",null,esc(title))); parent.appendChild(b); return b; }
 
 /* ---- quick-fire: "A student claims ..." (her midterm format) ---- */
 function quickFire(parent, items, onAll){
-  const grid=h("div","qf"); parent.appendChild(grid); let answered=0, correct=0;
-  items.forEach(it=>{
+  const deck=h("div","deck"); parent.appendChild(deck);
+  const tally=h("div","tally"); deck.appendChild(tally);
+  const grid=h("div","qf"); deck.appendChild(grid);
+  const nav=h("div","deck-nav"); deck.appendChild(nav);
+  const prev=h("button","btn","← Previous"), count=h("span","deck-count"), next=h("button","btn","Next claim →"), all=h("button","btn ghost","Show all");
+  [prev,next,all].forEach(b=>b.type="button"); nav.append(prev,count,next,all);
+  let answered=0, correct=0, cur=0; const cards=[], dots=[];
+  function show(k){ cur=Math.max(0,Math.min(items.length-1,k)); cards.forEach((c,x)=>c.classList.toggle("cur",x===cur)); dots.forEach((d,x)=>d.classList.toggle("cur",x===cur));
+    count.textContent=`Claim ${cur+1} of ${items.length}`; prev.disabled=cur===0; next.disabled=cur===items.length-1;
+    next.classList.toggle("primary", !!cards[cur].dataset.done && cur<items.length-1);
+    grid.dataset.left=String(Math.min(2,items.length-1-cur)); }
+  items.forEach((it,x)=>{
+    const d=h("button","tdot",String(x+1)); d.type="button"; d.setAttribute("aria-label","Claim "+(x+1)); d.onclick=()=>{ deck.classList.remove("all"); all.textContent="Show all"; show(x); }; tally.appendChild(d); dots.push(d);
     const c=h("div","qf-card"); c.appendChild(h("div","who","A student claims"));
     c.appendChild(h("p","claim",it.claim));
     const row=h("div","row"); const b1=h("button","btn","That is right"), b2=h("button","btn","That is wrong"); b1.type=b2.type="button";
     row.appendChild(b1); row.appendChild(b2); c.appendChild(row);
     const done=(saidRight)=>{ if(c.dataset.done) return; c.dataset.done=1; b1.disabled=b2.disabled=true; const ok=saidRight===it.ok;
-      c.classList.add(ok?"right":"wrong"); answered++; if(ok) correct++;
+      c.classList.add(ok?"right":"wrong","turn"); d.classList.add(ok?"ok":"no"); answered++; if(ok) correct++;
       c.appendChild(h("div","res",(ok?"Correct. ":"Not quite. ")+"The claim is "+(it.ok?"true.":"false.")));
       c.appendChild(h("p","why",it.why));
-      if(answered===items.length && onAll) onAll(correct, items.length); };
+      show(cur);
+      if(answered===items.length){ tally.appendChild(h("span","tally-sum",`${correct} of ${items.length} right`)); if(onAll) onAll(correct, items.length); } };
     b1.onclick=()=>done(true); b2.onclick=()=>done(false);
-    grid.appendChild(c);
+    grid.appendChild(c); cards.push(c);
   });
+  prev.onclick=()=>show(cur-1); next.onclick=()=>show(cur+1);
+  all.onclick=()=>{ const on=deck.classList.toggle("all"); all.textContent=on?"One at a time":"Show all"; };
+  show(0);
 }
 
 /* ---- finite-automaton diagram (states in a row; her drawing conventions) ---- */

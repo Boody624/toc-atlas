@@ -11,7 +11,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;0,9..144,800;1,9..144,500;1,9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;0,9..144,800;1,9..144,500;1,9..144,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap">
 <style>
 
 /* Layout: a "stage" — the machine (tape + diagram) on the left, the stack tower in the middle,
@@ -722,11 +722,215 @@ h2.sec{font-family:var(--display);font-size:clamp(26px,3vw,36px);font-weight:700
 }
 @media (max-width:640px){ .vwall::before{margin-right:8px;display:inline-block} }
 
+/* ================= Plates: reading on parchment, doing on drafting paper ================= */
+:root{--serif:"Source Serif 4","Iowan Old Style",Georgia,serif;
+  --draft:#fdfbf5; --grid:color-mix(in srgb,var(--zone,#256a87) 9%,transparent)}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --draft:#171c26; --grid:color-mix(in srgb,var(--zone,#6fb4cf) 10%,transparent); } }
+:root[data-theme="dark"]{ --draft:#171c26; --grid:color-mix(in srgb,var(--zone,#6fb4cf) 10%,transparent); }
+.prose,.idea,.sub,.secsub,.note,.qf-card .why,.narr p,.move .body p,.recipe li,.checks li,.pp-foot,.nk-book dd{font-family:var(--serif)}
+.prose{font-size:16.5px;line-height:1.6}
+.idea{font-size:15.5px;line-height:1.55}
+.narr p{font-size:16px}
+.pass-pill{cursor:pointer;color:var(--ink)}
+.pass-pill:hover{border-color:var(--ink)}
+
+/* layout: margin column + plate */
+.plate-wrap{display:grid;grid-template-columns:250px minmax(0,1fr);gap:44px;align-items:start;margin-top:10px}
+.margin{position:sticky;top:14px;display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 28px);overflow-y:auto;padding:4px 2px 12px;scrollbar-width:thin}
+.plate-main{min-width:0;display:flex;flex-direction:column;gap:16px}
+[data-wide="1"] .plate-wrap{grid-template-columns:minmax(0,1fr);gap:0}
+[data-wide="1"] .margin{position:static;max-height:none;flex-direction:row;flex-wrap:wrap;align-items:flex-start;gap:12px 24px;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:8px}
+[data-wide="1"] .locwrap{width:190px}
+[data-wide="1"] .toc{display:none}
+.locwrap{display:block;background:var(--surface);border:1.5px solid var(--rule);box-shadow:inset 0 0 0 3px var(--surface),inset 0 0 0 4px var(--line);border-radius:4px;padding:8px;cursor:pointer;width:100%}
+.locwrap:hover{border-color:var(--zone)}
+.locator{display:block;width:100%;height:auto}
+.locator .region{stroke-width:5}
+.locator .route{stroke-width:7;stroke-dasharray:14 12}
+.locator .ldot{fill:var(--zone);opacity:.55}
+.locator .here{fill:var(--now);stroke:var(--surface);stroke-width:8}
+.locator .here-ring{fill:none;stroke:var(--now);stroke-width:6;opacity:.6;transform-box:fill-box;transform-origin:center;animation:here 2.2s ease-out infinite}
+@keyframes here{0%{transform:scale(.6);opacity:.8}100%{transform:scale(1.6);opacity:0}}
+.m-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.m-ses{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.toc summary{cursor:pointer;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);list-style:none;display:flex;justify-content:space-between;gap:8px;padding:4px 0}
+.toc summary::-webkit-details-marker{display:none}
+.toc summary span{letter-spacing:0;text-transform:none;font-weight:500;font-family:var(--display);font-style:italic;font-size:13px}
+.toc ol{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:2px;border-left:1.5px solid var(--line)}
+.toc button{display:grid;grid-template-columns:30px minmax(0,1fr);text-align:left;width:100%;background:none;border:0;padding:6px 8px 6px 10px;margin-left:-1.5px;border-left:2.5px solid transparent;cursor:pointer;color:var(--muted)}
+.toc .tk{grid-row:span 2;font-family:var(--display);font-style:italic;font-weight:700;color:var(--zone)}
+.toc .tt{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700}
+.toc .th{font-family:var(--display);font-size:13.5px;line-height:1.3;color:var(--ink)}
+.toc button:hover .th{text-decoration:underline;text-decoration-color:var(--zone)}
+.toc button.on{border-left-color:var(--zone);background:color-mix(in srgb,var(--zone) 7%,transparent)}
+.toc button[data-kind="lab"] .tt::after,.toc button[data-kind="challenge"] .tt::after{content:" ✎";color:var(--zone)}
+.m-lbl{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}
+.linkish{background:none;border:0;padding:0;cursor:pointer;color:var(--zone);font-family:var(--display);font-style:italic;font-weight:600;letter-spacing:0;text-transform:none;font-size:13px}
+.linkish:hover{text-decoration:underline}
+
+/* plate header */
+.plate-head{display:flex;flex-direction:column;gap:2px;padding-bottom:6px}
+.plate-head .crumb{margin:0 0 14px}
+.plate-head .crumb button{color:var(--zone);font-weight:700}
+.plate-title{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.plate-head h1{font-size:clamp(38px,6vw,76px);margin:4px 0 0}
+.plate-head h1::after{content:"";display:block;max-width:560px;border-top:1.5px solid var(--rule);border-bottom:1px solid var(--rule);height:0;padding-top:3px;margin-top:22px}
+.plate-head .sub{font-size:19px;line-height:1.5;color:var(--muted);max-width:60ch;margin-top:16px}
+.motif{display:inline-flex;color:var(--zone)}
+.motif svg{width:78px;height:17px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.motif svg rect{fill:color-mix(in srgb,currentColor 18%,transparent)}
+.motif .head{fill:currentColor}
+
+/* sections */
+.st-body{gap:56px;margin-top:6px}
+.st-body > .blk + .blk{background:none;padding-top:0}
+.st-body > .blk > .kicker{font-size:11px}
+.blk.k-lab > .kicker,.blk.k-challenge > .kicker{align-self:flex-start;background:var(--zone);color:var(--paper);padding:4px 12px 4px 10px;border-radius:3px;clip-path:polygon(0 0,100% 0,calc(100% - 8px) 50%,100% 100%,0 100%)}
+.blk.k-lab > .kicker::before,.blk.k-challenge > .kicker::before{color:var(--paper)}
+/* drafting paper for everything you operate */
+.blk.k-lab .panel,.blk.k-challenge .panel,.blk.k-lab > .controls{background-color:var(--draft);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:22px 22px;background-position:-1px -1px;border:1px solid color-mix(in srgb,var(--zone) 35%,var(--line));box-shadow:0 1px 0 var(--surface) inset,var(--shadow)}
+.blk.k-lab .panel .panel,.blk.k-challenge .panel .panel{background-image:none;background-color:var(--surface);box-shadow:none}
+/* the legend box for the idea */
+.blk.k-idea .panel{background:var(--surface);border:1.5px solid var(--rule);box-shadow:inset 0 0 0 3px var(--surface),inset 0 0 0 4px var(--line);border-radius:3px;padding:18px 20px}
+.blk.k-idea .panel .ph h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-family:var(--body);font-weight:800;color:var(--zone)}
+.blk.k-idea .tuple,.blk.k-idea code{font-size:15px}
+.blk.k-idea .tuple{font-size:17px;padding:10px 14px;background:color-mix(in srgb,var(--zone) 6%,var(--surface));border-color:color-mix(in srgb,var(--zone) 30%,var(--line))}
+/* a divider between sections built from the class's own memory */
+.st-body > .blk + .blk::before{content:"";display:block;align-self:center;width:96px;height:20px;margin:-26px 0 26px;background:var(--zone);opacity:.55;-webkit-mask:var(--motif) center/contain no-repeat;mask:var(--motif) center/contain no-repeat}
+[data-zone="reg"]{--motif:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 20' fill='none' stroke='%23000' stroke-width='1.6'%3E%3Ccircle cx='9' cy='10' r='6'/%3E%3Cpath d='M15 10H35M31 7l4 3-4 3'/%3E%3Ccircle cx='43' cy='10' r='6'/%3E%3Cpath d='M49 10H69M65 7l4 3-4 3'/%3E%3Ccircle cx='80' cy='10' r='6'/%3E%3Ccircle cx='80' cy='10' r='8.5'/%3E%3C/svg%3E")}
+[data-zone="cf"]{--motif:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 20' fill='none' stroke='%23000' stroke-width='1.6'%3E%3Crect x='30' y='2' width='36' height='4.5' rx='1.5'/%3E%3Crect x='30' y='8' width='36' height='4.5' rx='1.5'/%3E%3Crect x='30' y='14' width='36' height='4.5' rx='1.5'/%3E%3Cpath d='M8 10H24M72 10H88'/%3E%3C/svg%3E")}
+[data-zone="re"]{--motif:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 20' fill='none' stroke='%23000' stroke-width='1.6'%3E%3Cpath d='M2 5H94M2 15H94M14 5V15M28 5V15M42 5V15M56 5V15M70 5V15M84 5V15'/%3E%3C/svg%3E")}
+
+/* next / previous as plate references */
+.nextprev{display:grid;grid-template-columns:1fr 1fr;gap:14px;border-top:1.5px solid var(--rule);padding-top:22px}
+.np{display:flex;flex-direction:column;gap:2px;text-align:left;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--zone);border-radius:4px;padding:14px 18px;cursor:pointer;color:var(--ink)}
+.np.next{text-align:right;border-left-width:1px;border-right:4px solid var(--zone);align-items:flex-end}
+.np.home{border-left-color:var(--route)}
+.np small{font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--muted)}
+.np b{font-family:var(--display);font-size:19px}
+.np span{font-family:var(--display);font-style:italic;font-size:13px;color:var(--muted)}
+.np:hover{border-color:var(--zone);transform:translateY(-1px)}
+
+/* ---------- rubber stamps ---------- */
+.stamps{display:flex;flex-wrap:wrap;gap:6px}
+.stp{display:inline-block;width:76px;height:76px;padding:0;border:0!important;background:none!important;border-radius:50%;color:var(--zone)}
+.stp .stamp-svg{width:100%;height:100%;transform:rotate(var(--rot));overflow:visible}
+.stamp-svg circle{fill:none;stroke:currentColor}
+.stamp-svg .o1{stroke-width:3} .stamp-svg .o2{stroke-width:1}
+.stamp-svg text{fill:currentColor;font-family:var(--body);font-weight:800;letter-spacing:.06em}
+.stamp-svg .sn{font-family:var(--display);font-style:italic;font-weight:700;font-size:20px;letter-spacing:0}
+.stamp-svg .sd{font-size:6.5px;font-family:var(--mono);font-weight:700;letter-spacing:.02em}
+.stp:not(.on){color:var(--faint)}
+.stp:not(.on) .stamp-svg{transform:none;opacity:.75}
+.stp:not(.on) .stamp-svg circle{stroke-dasharray:3 3}
+.stp:not(.on) .stamp-svg .o2{stroke-dasharray:none;opacity:.4}
+.stp:not(.on) .sn{opacity:.4}
+.stp.on{color:var(--zone)} .stp.on .stamp-svg{opacity:.92;mix-blend-mode:multiply}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .stp.on .stamp-svg{mix-blend-mode:normal} }
+.stp.fresh .stamp-svg{animation:thunk .5s cubic-bezier(.2,1.5,.4,1)}
+@keyframes thunk{0%{transform:rotate(var(--rot)) scale(2.2);opacity:0}60%{opacity:1}100%{transform:rotate(var(--rot)) scale(1)}}
+.margin .stp{width:70px;height:70px}
+
+/* ---------- the claims deck ---------- */
+.deck{display:flex;flex-direction:column;gap:14px;max-width:760px}
+.tally{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tdot{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);font-family:var(--display);font-style:italic;font-weight:700;font-size:13px;color:var(--muted);cursor:pointer;display:grid;place-items:center;padding:0}
+.tdot.cur{border-color:var(--ink);color:var(--ink)}
+.tdot.ok{background:var(--accept);border-color:var(--accept);color:#fff}
+.tdot.no{background:var(--reject);border-color:var(--reject);color:#fff}
+.tdot.cur.ok,.tdot.cur.no{box-shadow:0 0 0 3px var(--paper),0 0 0 4.5px var(--ink)}
+.tally-sum{margin-left:8px;font-family:var(--display);font-style:italic;font-weight:600;color:var(--muted)}
+.deck .qf{display:block;position:relative;padding:0 12px 12px 0}
+.deck .qf::before,.deck .qf::after{content:"";position:absolute;inset:0 12px 12px 0;border:1px solid var(--line);border-radius:6px;background:var(--surface);transform:translate(6px,6px) rotate(.6deg);z-index:0}
+.deck .qf::after{transform:translate(12px,12px) rotate(1.2deg);z-index:-1}
+.deck .qf[data-left="1"]::after,.deck .qf[data-left="0"]::after,.deck .qf[data-left="0"]::before{display:none}
+.deck .qf-card{display:none;position:relative;z-index:1;min-height:230px;padding:26px 28px;gap:14px}
+.deck .qf-card.cur{display:flex}
+.deck .qf-card .who{font-size:11px}
+.deck .qf-card .claim{font-size:clamp(20px,2.4vw,26px);line-height:1.35;font-weight:500}
+.deck .qf-card .row{margin-top:auto}
+.deck .qf-card .row .btn{padding:12px 16px;font-size:15px}
+.deck .qf-card .why{font-size:16px;line-height:1.55;padding:12px 14px}
+.deck .qf-card.turn{animation:turn .45s ease-out}
+@keyframes turn{0%{transform:rotateY(0)}50%{transform:rotateY(80deg)}100%{transform:rotateY(0)}}
+.deck-nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.deck-count{font-family:var(--display);font-style:italic;color:var(--muted);margin-right:auto;order:-1;min-width:110px}
+.btn.ghost{background:none;border-style:dashed}
+.deck.all{max-width:none}
+.deck.all .qf{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:12px;padding:0}
+.deck.all .qf::before,.deck.all .qf::after{display:none}
+.deck.all .qf-card{display:flex;min-height:0;padding:16px 18px}
+.deck.all .qf-card .claim{font-size:16.5px}
+.deck.all .deck-nav .btn:not(.ghost),.deck.all .deck-count{display:none}
+
+/* ---------- walls and the edge of the map ---------- */
+[data-wall="1"] .plate-head{background:linear-gradient(transparent,transparent) ,none}
+[data-wall="1"] .plate-head::before{content:"";display:block;height:30px;margin:0 0 8px;background:var(--ink);opacity:.75;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 30'%3E%3Cpath d='M0 30L14 10L22 18L34 2L46 20L54 12L66 30ZM58 30L74 8L84 20L96 4L110 22L120 14L120 30Z'/%3E%3C/svg%3E") left bottom/120px 30px repeat-x;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 30'%3E%3Cpath d='M0 30L14 10L22 18L34 2L46 20L54 12L66 30ZM58 30L74 8L84 20L96 4L110 22L120 14L120 30Z'/%3E%3C/svg%3E") left bottom/120px 30px repeat-x}
+[data-wall="1"] .plate-title::after{content:"The wall";font-family:var(--display);font-style:italic;font-weight:700;color:var(--route);letter-spacing:.06em}
+[data-edge="1"] .plate-main{position:relative}
+[data-edge="1"] .plate-title::after{content:"The edge of the map";font-family:var(--display);font-style:italic;font-weight:700;color:var(--route)}
+[data-edge="1"] #blk-sort{border:2px dashed color-mix(in srgb,var(--ink) 35%,transparent);border-radius:40px 18px 50px 22px;padding:24px;background:repeating-linear-gradient(-45deg,transparent 0 14px,color-mix(in srgb,var(--ink) 3%,transparent) 14px 15px)}
+
+/* ---------- passport booklet + notation key ---------- */
+.pp-cover{display:flex;flex-direction:column;gap:6px;padding:18px 0 8px;max-width:760px}
+.pp-cover h1{font-size:clamp(46px,8vw,96px);margin:0}
+.pp-crest{display:flex;gap:10px;color:var(--ink);opacity:.7}
+.pp-crest svg{width:64px;height:14px;fill:none;stroke:currentColor;stroke-width:1.6}
+.pp-total{display:flex;gap:12px;align-items:center;font-family:var(--display);font-style:italic;font-size:17px;margin-top:8px}
+.pp-total b{font-style:normal;font-size:28px}
+.pp-total .meter{width:180px;height:7px}
+.pp-book{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:22px;margin-top:10px}
+.pp-page{background:var(--surface);border:1.5px solid var(--rule);box-shadow:inset 0 0 0 4px var(--surface),inset 0 0 0 5px var(--line),var(--shadow);border-radius:4px 14px 14px 4px;padding:20px 22px;display:flex;flex-direction:column;gap:18px;position:relative}
+.pp-page::before{content:"";position:absolute;left:0;top:0;bottom:0;width:10px;background:linear-gradient(90deg,color-mix(in srgb,var(--ink) 10%,transparent),transparent)}
+.pp-ph{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);padding-bottom:10px}
+.pp-ph h2{font-size:19px;margin:0;color:var(--zone);flex:1}
+.pp-ph > span:last-child{font-family:var(--display);font-style:italic;color:var(--muted)}
+.pp-stop{display:flex;flex-direction:column;gap:8px}
+.pp-title{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;background:none;border:0;padding:0;text-align:left;cursor:pointer;color:var(--ink)}
+.pp-title b{font-family:var(--display);font-size:17px}
+.pp-title:hover b{text-decoration:underline;text-decoration-color:var(--zone)}
+.pp-stop .stp{width:84px;height:84px}
+.pp-foot{color:var(--muted);font-style:italic;max-width:70ch}
+.nk-book{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:22px}
+.nk-sec{background:var(--surface);border:1.5px solid var(--rule);box-shadow:inset 0 0 0 4px var(--surface),inset 0 0 0 5px var(--line);border-radius:4px;padding:20px 22px}
+.nk-sec h2{font-size:20px;margin:0 0 12px}
+.nk-sec dl{margin:0;display:grid;grid-template-columns:minmax(0,max-content) minmax(0,1fr);gap:10px 18px;align-items:baseline}
+.nk-sec dt{font-size:14.5px;font-weight:700;color:var(--zone);overflow-wrap:anywhere}
+.nk-sec dd{margin:0;font-size:15px;line-height:1.5}
+.nk-sec dd .linkish{font-size:13px;white-space:nowrap}
+
+@media (max-width:1000px){
+  .plate-wrap{grid-template-columns:minmax(0,1fr);gap:8px}
+  .margin{position:static;max-height:none;overflow:visible;order:-1;display:grid;grid-template-columns:minmax(0,1fr);gap:10px;padding:0}
+  .locwrap{display:none}
+  .toc{border:1px solid var(--line);border-radius:4px;background:var(--surface);padding:6px 12px}
+  .m-stamps .stamps{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}
+  .margin .stp{flex:0 0 auto;width:58px;height:58px}
+  .m-stamps{order:5}
+}
+@media (max-width:640px){
+  .nextprev{grid-template-columns:minmax(0,1fr)}
+  .np.next{text-align:left;align-items:flex-start;border-right-width:1px;border-left:4px solid var(--zone)}
+  .plate-head .sub{font-size:17px}
+  .deck .qf-card{padding:20px 18px;min-height:0}
+  .deck .qf-card .row .btn{padding:10px 8px;font-size:14px}
+  .nk-sec dl{grid-template-columns:minmax(0,1fr);gap:2px}
+  .nk-sec dd{margin-bottom:10px}
+  .pp-stop .stp{width:70px;height:70px}
+}
+@media (max-width:1000px){
+  .plate-wrap{display:flex;flex-direction:column;gap:14px}
+  .plate-main{display:contents}
+  .plate-head{order:1} .margin{order:2} .st-body{order:3;margin-top:18px} .nextprev{order:4}
+}
+.plate-wrap > *,.plate-main > *{min-width:0;max-width:100%}
+[data-wall="1"] .plate-head::before{height:22px;opacity:.28;-webkit-mask-size:96px 22px;mask-size:96px 22px}
+
 </style>
 <div class="site">
   <div class="bar">
     <button class="logo" type="button" id="logoBtn" aria-label="Automata Atlas, home"><span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>Automata Atlas</button>
-    <div class="bar-right"><span class="pass-pill" id="passPill"></span></div>
+    <div class="bar-right"><button class="pass-pill" id="passPill" type="button" aria-label="Open your passport"></button></div>
   </div>
   <div class="view" id="view"></div>
 </div>
@@ -752,17 +956,17 @@ const Atlas = {
   has(st, id){ const p=this.passport(); return !!(p[st] && p[st][id]); },
   stamp(st, id){
     if(this.has(st,id)) return false;
-    const p=this.passport(); (p[st]=p[st]||{})[id]=1;
+    const p=this.passport(); (p[st]=p[st]||{})[id]=Date.now();
     try{ localStorage.setItem("atlas.passport", JSON.stringify(p)); }catch(e){}
     const def=this.stations[st]; const s=def && def.stamps.find(x=>x.id===id);
     if(s) this.toast("Passport stamp: "+s.label); this.refreshBar();
-    document.querySelectorAll(`.stp[data-st="${st}"][data-id="${id}"]`).forEach(e=>e.classList.add("on"));
+    document.querySelectorAll(`.stp[data-st="${st}"][data-id="${id}"]`).forEach(e=>{ e.classList.add("on","fresh"); if(window.Plate) Plate.restamp(e,st,id); });
     return true;
   },
   count(st){ const def=this.stations[st]; if(!def||!def.stamps) return [0,0]; return [def.stamps.filter(s=>this.has(st,s.id)).length, def.stamps.length]; },
   totals(){ let a=0,b=0; this.order.forEach(id=>{ const [x,y]=this.count(id); a+=x; b+=y; }); return [a,b]; },
   toast(msg){ const t=document.getElementById("toast"); if(!t) return; t.textContent=msg; t.classList.add("show"); clearTimeout(this._tt); this._tt=setTimeout(()=>t.classList.remove("show"),2600); },
-  refreshBar(){ const [a,b]=this.totals(); const pill=document.getElementById("passPill"); if(pill) pill.innerHTML=`Passport <b>${a}/${b}</b><span class="meter"><i style="width:${b?100*a/b:0}%"></i></span>`; },
+  refreshBar(){ const [a,b]=this.totals(); const pill=document.getElementById("passPill"); if(pill){ pill.innerHTML=`Passport <b>${a}/${b}</b><span class="meter"><i style="width:${b?100*a/b:0}%"></i></span>`; pill.onclick=()=>this.go("passport"); } },
   zone(def){ const r=(def&&def.region)||""; return /Regular/.test(r)?"reg":/Context-free/.test(r)?"cf":"re"; },
   roman(n){ return [[10,"X"],[9,"IX"],[5,"V"],[4,"IV"],[1,"I"]].reduce((o,[v,r])=>{ while(n>=v){ o+=r; n-=v; } return o; },""); },
   zoneName:{reg:"Type 3 · Regular",cf:"Type 2 · Context-free",re:"Type 0 · Recursively enumerable"},
@@ -774,46 +978,48 @@ const Atlas = {
     this.cleanups.splice(0).forEach(fn=>{ try{ fn(); }catch(e){} });
     const id=location.hash.slice(1); const view=document.getElementById("view"); view.innerHTML="";
     const def=this.stations[id];
-    view.dataset.zone = def && def.mount ? this.zone(def) : "";
-    if(def && def.mount){ this.mountStation(def, view); } else { Home.mount(view); }
+    view.dataset.zone = def && def.mount ? this.zone(def) : ""; view.dataset.page = def && def.mount ? "plate" : (id==="passport"||id==="notation") ? id : "home";
+    if(def && def.mount){ this.mountStation(def, view); } else if(id==="passport"){ Plate.passport(view); } else if(id==="notation"){ Plate.notation(view); } else { Home.mount(view); }
     window.scrollTo(0,0); this.refreshBar();
   },
-  mountStation(def, view){
-    const built=this.order.filter(i=>this.stations[i].mount); const k=built.indexOf(def.id);
-    const crumb=h("div","crumb"); const back=h("button",null,"← Atlas"); back.type="button"; back.onclick=()=>this.go("home"); crumb.appendChild(back);
-    crumb.appendChild(h("span",null,"· "+esc(def.region)+" · "+esc(def.sessions)));
-    view.appendChild(crumb);
-    const head=h("header","st-head",`<div class="st-meta"><span class="plate-no">Plate ${this.roman(this.order.indexOf(def.id)+1)}</span><span class="zone-chip">${esc(this.zoneName[this.zone(def)])}</span><span class="eyebrow">${esc(def.module)}</span></div><h1>${esc(def.title)}</h1><p class="sub">${esc(def.blurb)}</p>`);
-    view.appendChild(head); view.appendChild(this.stampRow(def.id));
-    const body=h("div","view st-body"); view.appendChild(body);
-    def.mount(body);
-    const np=h("div","nextprev");
-    const mk=(i,lbl)=>{ const b=h("button","btn",lbl); b.type="button"; b.onclick=()=>this.go(i); return b; };
-    np.appendChild(k>0 ? mk(built[k-1],"← "+esc(this.stations[built[k-1]].title)) : mk("home","← Atlas"));
-    np.appendChild(k<built.length-1 ? mk(built[k+1],esc(this.stations[built[k+1]].title)+" →") : mk("home","Back to the atlas →"));
-    view.appendChild(np);
-  }
+  mountStation(def, view){ Plate.mount(def, view); }
 };
 
 /* ---- section helper: a titled block ---- */
-function block(parent, kicker, title, id){ const b=h("section","blk"); if(id) b.id="blk-"+id; b.appendChild(h("div","kicker",esc(kicker))); b.appendChild(h("h2",null,esc(title))); parent.appendChild(b); return b; }
+const BLOCK_KIND={"The idea":"idea","Lab":"lab","Warm-up":"lab","How it goes wrong":"claims"};
+function block(parent, kicker, title, id){ const b=h("section","blk k-"+(BLOCK_KIND[kicker]||"challenge")); if(id) b.id="blk-"+id; b.appendChild(h("div","kicker",esc(kicker))); b.appendChild(h("h2",null,esc(title))); parent.appendChild(b); return b; }
 
 /* ---- quick-fire: "A student claims ..." (her midterm format) ---- */
 function quickFire(parent, items, onAll){
-  const grid=h("div","qf"); parent.appendChild(grid); let answered=0, correct=0;
-  items.forEach(it=>{
+  const deck=h("div","deck"); parent.appendChild(deck);
+  const tally=h("div","tally"); deck.appendChild(tally);
+  const grid=h("div","qf"); deck.appendChild(grid);
+  const nav=h("div","deck-nav"); deck.appendChild(nav);
+  const prev=h("button","btn","← Previous"), count=h("span","deck-count"), next=h("button","btn","Next claim →"), all=h("button","btn ghost","Show all");
+  [prev,next,all].forEach(b=>b.type="button"); nav.append(prev,count,next,all);
+  let answered=0, correct=0, cur=0; const cards=[], dots=[];
+  function show(k){ cur=Math.max(0,Math.min(items.length-1,k)); cards.forEach((c,x)=>c.classList.toggle("cur",x===cur)); dots.forEach((d,x)=>d.classList.toggle("cur",x===cur));
+    count.textContent=`Claim ${cur+1} of ${items.length}`; prev.disabled=cur===0; next.disabled=cur===items.length-1;
+    next.classList.toggle("primary", !!cards[cur].dataset.done && cur<items.length-1);
+    grid.dataset.left=String(Math.min(2,items.length-1-cur)); }
+  items.forEach((it,x)=>{
+    const d=h("button","tdot",String(x+1)); d.type="button"; d.setAttribute("aria-label","Claim "+(x+1)); d.onclick=()=>{ deck.classList.remove("all"); all.textContent="Show all"; show(x); }; tally.appendChild(d); dots.push(d);
     const c=h("div","qf-card"); c.appendChild(h("div","who","A student claims"));
     c.appendChild(h("p","claim",it.claim));
     const row=h("div","row"); const b1=h("button","btn","That is right"), b2=h("button","btn","That is wrong"); b1.type=b2.type="button";
     row.appendChild(b1); row.appendChild(b2); c.appendChild(row);
     const done=(saidRight)=>{ if(c.dataset.done) return; c.dataset.done=1; b1.disabled=b2.disabled=true; const ok=saidRight===it.ok;
-      c.classList.add(ok?"right":"wrong"); answered++; if(ok) correct++;
+      c.classList.add(ok?"right":"wrong","turn"); d.classList.add(ok?"ok":"no"); answered++; if(ok) correct++;
       c.appendChild(h("div","res",(ok?"Correct. ":"Not quite. ")+"The claim is "+(it.ok?"true.":"false.")));
       c.appendChild(h("p","why",it.why));
-      if(answered===items.length && onAll) onAll(correct, items.length); };
+      show(cur);
+      if(answered===items.length){ tally.appendChild(h("span","tally-sum",`${correct} of ${items.length} right`)); if(onAll) onAll(correct, items.length); } };
     b1.onclick=()=>done(true); b2.onclick=()=>done(false);
-    grid.appendChild(c);
+    grid.appendChild(c); cards.push(c);
   });
+  prev.onclick=()=>show(cur-1); next.onclick=()=>show(cur+1);
+  all.onclick=()=>{ const on=deck.classList.toggle("all"); all.textContent=on?"One at a time":"Show all"; };
+  show(0);
 }
 
 /* ---- finite-automaton diagram (states in a row; her drawing conventions) ---- */
@@ -1006,6 +1212,12 @@ function coastPath(x,y,w,hh,r,off,amp,seed){
     out+=`C${f(b[0]+(c[0]-a[0])/6)} ${f(b[1]+(c[1]-a[1])/6)} ${f(c[0]-(e[0]-b[0])/6)} ${f(c[1]-(e[1]-b[1])/6)} ${f(c[0])} ${f(c[1])}`; }
   return out+"Z"; }
 
+const MAP_REGS=[
+  ["r0","re",10,10,1100,500,"Type 0 · Recursively enumerable","Turing machine · unbounded tape","⟨M,w⟩ : M halts on w"],
+  ["r1","cs",24,62,932,434,"Type 1 · Context-sensitive","Linear-bounded automaton · bounded tape","aⁿbⁿcⁿ"],
+  ["r2","cf",38,114,762,368,"Type 2 · Context-free","Pushdown automaton · a stack","aⁿbⁿ"],
+  ["r3","reg",52,166,422,302,"Type 3 · Regular","Finite automaton · no memory beyond the state","even number of a's"]];
+
 const Home = {
   mount(view){
     const hero=h("section","hero");
@@ -1088,6 +1300,145 @@ const Home = {
         cards.appendChild(c); }); });
   }
 };
+
+/* Atlas plates: the stop page template, rubber stamps, the passport booklet and the notation key */
+"use strict";
+const Plate = (()=>{
+  let uid=0;
+  const hash=s=>{ let x=0; for(const c of s) x=(x*31+c.charCodeAt(0))|0; return Math.abs(x); };
+  const DATE=t=>{ const d=new Date(t); return d.getDate()+" "+["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][d.getMonth()]+" "+d.getFullYear(); };
+
+  /* the memory each class has, drawn small: states, a stack, a tape */
+  const MOTIF={
+    reg:`<svg viewBox="0 0 96 20" aria-hidden="true"><circle cx="9" cy="10" r="6"/><path d="M15 10H35"/><path d="M31 7l4 3-4 3"/><circle cx="43" cy="10" r="6"/><path d="M49 10H69"/><path d="M65 7l4 3-4 3"/><circle cx="80" cy="10" r="6"/><circle cx="80" cy="10" r="8.5"/></svg>`,
+    cf:`<svg viewBox="0 0 96 20" aria-hidden="true"><rect x="30" y="2" width="36" height="4.5" rx="1.5"/><rect x="30" y="8" width="36" height="4.5" rx="1.5"/><rect x="30" y="14" width="36" height="4.5" rx="1.5"/><path d="M8 10H24M72 10H88"/></svg>`,
+    re:`<svg viewBox="0 0 96 20" aria-hidden="true"><path d="M2 5H94M2 15H94M14 5V15M28 5V15M42 5V15M56 5V15M70 5V15M84 5V15"/><path d="M45 1l4 3 4-3" class="head"/></svg>`};
+  const motif=z=>`<span class="motif">${MOTIF[z]||MOTIF.re}</span>`;
+
+  /* a rubber stamp: stop name round the top, what you did round the bottom, the plate numeral in the middle */
+  function stampSVG(def, s, val){
+    const id="stp"+(++uid), on=!!val, rot=(hash(def.id+s.id)%15)-7, top=def.short.toUpperCase(), bot=s.label.toUpperCase();
+    const fb=Math.min(8.6, 168/Math.max(bot.length,1)), ft=Math.min(9, 150/Math.max(top.length,1));
+    const date = on && val>1 ? `<text y="15" class="sd" text-anchor="middle">${DATE(val)}</text>` : "";
+    return `<svg viewBox="-50 -50 100 100" class="stamp-svg" style="--rot:${rot}deg" role="img" aria-label="${esc(s.label)}${on?"":" (not yet)"}">
+      <defs><path id="${id}t" d="M-34 0A34 34 0 0 1 34 0"/><path id="${id}b" d="M-39 0A39 39 0 0 0 39 0"/></defs>
+      <circle r="46" class="o1"/><circle r="29" class="o2"/>
+      <text class="st" style="font-size:${ft}px"><textPath href="#${id}t" startOffset="50%" text-anchor="middle">${esc(top)}</textPath></text>
+      <text class="sb" style="font-size:${fb}px"><textPath href="#${id}b" startOffset="50%" text-anchor="middle">${esc(bot)}</textPath></text>
+      <text y="${date?3:7}" class="sn" text-anchor="middle">${Atlas.roman(Atlas.order.indexOf(def.id)+1)}</text>${date}</svg>`; }
+  function stampEl(def, s){ const val=(Atlas.passport()[def.id]||{})[s.id]; const e=h("span","stp"+(val?" on":""),stampSVG(def,s,val));
+    e.dataset.st=def.id; e.dataset.id=s.id; e.dataset.zone=Atlas.zone(def); e.title=s.label; return e; }
+  function restamp(e, st, id){ const def=Atlas.stations[st], s=def.stamps.find(x=>x.id===id); if(s) e.innerHTML=stampSVG(def,s,(Atlas.passport()[st]||{})[id]); }
+
+  /* "you are here": the whole chart, small */
+  function locator(def){
+    const s=svg("svg",{viewBox:"0 0 1120 520",class:"locator",role:"img","aria-label":"Where "+def.short+" sits on the map"});
+    MAP_REGS.forEach(([c,z,x,y,w,hh],ri)=>svg("path",{d:coastPath(x,y,w,hh,26,0,5,ri*1.9),class:"region "+c},s));
+    const pts=Atlas.order.map(i=>Atlas.stations[i]);
+    svg("polyline",{points:pts.map(p=>p.x+","+p.y).join(" "),class:"route"},s);
+    pts.forEach(p=>svg("circle",{cx:p.x,cy:p.y,r:p.id===def.id?0:14,class:"ldot","data-zone":Atlas.zone(p)},s));
+    svg("circle",{cx:def.x,cy:def.y,r:46,class:"here-ring"},s); svg("circle",{cx:def.x,cy:def.y,r:26,class:"here"},s);
+    return s; }
+
+  function mount(def, view){
+    const z=Atlas.zone(def), n=Atlas.order.indexOf(def.id)+1;
+    view.dataset.wall=def.wall?"1":""; view.dataset.edge=def.id==="halt"?"1":""; view.dataset.wide=def.id==="pda"?"1":"";
+    const wrap=h("div","plate-wrap"); view.appendChild(wrap);
+    const side=h("aside","margin"); const main=h("div","plate-main"); wrap.appendChild(side); wrap.appendChild(main);
+
+    const head=h("header","plate-head");
+    head.innerHTML=`<div class="crumb"><button type="button">← The map</button><span>${esc(def.region)} · ${esc(def.sessions)}</span></div>
+      <div class="plate-title">${motif(z)}<span class="plate-no">Plate ${Atlas.roman(n)}</span></div>
+      <div class="eyebrow">${esc(def.module)}</div><h1>${esc(def.title)}</h1><p class="sub">${esc(def.blurb)}</p>`;
+    head.querySelector(".crumb button").onclick=()=>Atlas.go("home");
+    main.appendChild(head);
+    const body=h("div","view st-body"); main.appendChild(body);
+    def.mount(body);
+
+    /* number the challenges when a stop has several */
+    const blks=[...body.querySelectorAll(":scope > .blk")];
+    const ch=blks.filter(b=>b.querySelector(".kicker").textContent==="Challenge");
+    if(ch.length>1) ch.forEach((b,i)=>b.querySelector(".kicker").textContent=`Challenge ${i+1} of ${ch.length}`);
+
+    const built=Atlas.order.filter(i=>Atlas.stations[i].mount), k=built.indexOf(def.id);
+    const np=h("nav","nextprev"); np.setAttribute("aria-label","Neighbouring plates");
+    const mk=(i,dir)=>{ const d=Atlas.stations[i]; const b=h("button","np "+dir,`<small>${dir==="prev"?"← Previous plate":"Next plate →"}</small><b>${esc(d.title)}</b><span>Plate ${Atlas.roman(Atlas.order.indexOf(i)+1)} · ${esc(d.sessions)}</span>`); b.type="button"; b.dataset.zone=Atlas.zone(d); b.onclick=()=>Atlas.go(i); return b; };
+    const home=()=>{ const b=h("button","np home","<small>The end of the route</small><b>Back to the map</b><span>Every plate, one chart</span>"); b.type="button"; b.onclick=()=>Atlas.go("home"); return b; };
+    np.appendChild(k>0?mk(built[k-1],"prev"):home()); np.appendChild(k<built.length-1?mk(built[k+1],"next"):home());
+    main.appendChild(np);
+
+    /* the margin: where you are, what is on this plate, what you have stamped */
+    const loc=h("button","locwrap"); loc.type="button"; loc.title="Back to the map"; loc.appendChild(locator(def)); loc.onclick=()=>Atlas.go("home"); side.appendChild(loc);
+    side.appendChild(h("div","m-meta",`<span class="zone-chip">${esc(Atlas.zoneName[z])}</span><span class="m-ses">${esc(def.sessions)}</span>`));
+    const toc=h("details","toc"); toc.open=matchMedia("(min-width:1001px)").matches;
+    toc.innerHTML=`<summary>On this plate <span>${blks.length} sections</span></summary>`; const ol=h("ol"); toc.appendChild(ol); side.appendChild(toc);
+    const links=blks.map((b,i)=>{ const li=h("li"); const a=h("button",null,`<span class="tk">§ ${i+1}</span><span class="tt">${esc(b.querySelector(".kicker").textContent)}</span><span class="th">${esc(b.querySelector("h2").textContent)}</span>`); a.type="button"; a.dataset.kind=(b.className.match(/k-(\w+)/)||[])[1]||"";
+      a.onclick=()=>{ b.scrollIntoView({behavior:reduceMotion?"auto":"smooth",block:"start"}); if(!matchMedia("(min-width:1001px)").matches) toc.open=false; }; li.appendChild(a); ol.appendChild(li); return a; });
+    if("IntersectionObserver" in window){ const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ const i=blks.indexOf(e.target); links.forEach((l,x)=>l.classList.toggle("on",x===i)); } }),{rootMargin:"-25% 0px -65% 0px"});
+      blks.forEach(b=>io.observe(b)); Atlas.onCleanup(()=>io.disconnect()); }
+    if(def.stamps.length){ const ps=h("div","m-stamps"); const [a,b]=Atlas.count(def.id);
+      ps.appendChild(h("div","m-lbl",`Passport <button type="button" class="linkish">${a} of ${b} stamped →</button>`)); ps.querySelector("button").onclick=()=>Atlas.go("passport");
+      const row=h("div","stamps"); def.stamps.forEach(s=>row.appendChild(stampEl(def,s))); ps.appendChild(row); side.appendChild(ps); }
+  }
+
+  /* ---------- the passport booklet ---------- */
+  function passport(view){
+    const [a,b]=Atlas.totals();
+    const cover=h("header","pp-cover",`<div class="pp-crest">${MOTIF.reg}${MOTIF.cf}${MOTIF.re}</div>
+      <div class="eyebrow">CSCE 4201 · Theory of Computing · Fall 2026</div><h1>Passport</h1>
+      <p class="sub">One stamp for every challenge finished at a stop. Your stamps are saved in this browser, on this device only.</p>
+      <div class="pp-total"><b>${a}</b> of ${b} stamps<span class="meter"><i style="width:${b?100*a/b:0}%"></i></span></div>`);
+    view.appendChild(cover);
+    const book=h("div","pp-book"); view.appendChild(book);
+    [["reg","Type 3 · Regular"],["cf","Type 2 · Context-free"],["re","Type 0 · Recursively enumerable"]].forEach(([z,name])=>{
+      const pg=h("section","pp-page"); pg.dataset.zone=z; const stops=Atlas.order.map(i=>Atlas.stations[i]).filter(d=>Atlas.zone(d)===z);
+      const got=stops.reduce((t,d)=>t+Atlas.count(d.id)[0],0), all=stops.reduce((t,d)=>t+Atlas.count(d.id)[1],0);
+      pg.innerHTML=`<header class="pp-ph">${motif(z)}<h2>${esc(name)}</h2><span>${got} of ${all}</span></header>`;
+      stops.forEach(d=>{ const r=h("div","pp-stop"); const [x,y]=Atlas.count(d.id);
+        const t=h("button","pp-title",`<span class="plate-no">Plate ${Atlas.roman(Atlas.order.indexOf(d.id)+1)}</span><b>${esc(d.title)}</b><span class="m-ses">${esc(d.sessions)} · ${x}/${y}</span>`); t.type="button"; t.onclick=()=>Atlas.go(d.id); r.appendChild(t);
+        const row=h("div","stamps"); d.stamps.forEach(s=>row.appendChild(stampEl(d,s))); r.appendChild(row); pg.appendChild(r); });
+      book.appendChild(pg); });
+    view.appendChild(h("p","pp-foot","Unstamped spaces are drawn in outline: they are the challenges still open. Stamps earned from now on also record the date."));
+  }
+
+  /* ---------- the notation key: every symbol the plates use, and where it lives ---------- */
+  const KEY=[
+    ["Finite automata",[
+      ["M = ( Q , Σ , δ , q₀ , F )","A DFA: states, alphabet, transition function, start state, accepting states.","dfa"],
+      ["δ : Q × Σ → Q","Deterministic: exactly one arrow per state and symbol.","dfa"],
+      ["δ : Q × Σ → P(Q)","Nondeterministic: a set of states, possibly empty.","nfa"],
+      ["ε-CL(q)","Every state reachable from q by zero or more ε-arrows.","nfa"],
+      ["M = ( Q, Σ, Δ, δ, λ, q₀ )","Moore and Mealy machines: Δ is the output alphabet, λ the output function. No F.","mm"],
+      ["λ′(q, a) = λ( δ(q, a) )","Moore to Mealy: move each state's output onto the arrows entering it.","mm"],
+      ["δ([p, q], x) = [ δ₁(p, x), δ₂(q, x) ]","The product construction: feed the symbol to both components.","closure"]]],
+    ["Regular expressions and pumping",[
+      ["r + s · rs · r*","Union, concatenation, star. Precedence, highest first: star, concatenation, union.","regex"],
+      ["r*r ≠ r*","They differ on exactly one string, ε.","regex"],
+      ["|xy| ≤ p","The pumping lemma: w = xyz with |y| ≥ 1, and y inside the first p symbols.","pumping"],
+      ["xyⁱz ∉ L","You win when one i pumps w out of the language.","pumping"]]],
+    ["Grammars and pushdown automata",[
+      ["G = ( V, T, P, S )","A grammar: variables, terminals, productions, start symbol.","cfg"],
+      ["A → BC or A → a","Chomsky normal form.","cnf"],
+      ["S₀ → ε","Allowed in Sipser's version, with S₀ on no right-hand side.","cnf"],
+      ["M = (Q, Σ, Γ, δ, q₀, Z₀, F)","A pushdown automaton. IDs (q, w, α) put the top of the stack on the left; ⊢ is one move.","pda"],
+      ["V(i, j)","The set of variables that derive the substring of length j starting at position i.","cyk"],
+      ["|vxy| ≤ n","Pumping for CFLs: w = uvxyz, |vy| ≥ 1, pump v and y the same m times.","cflpump"]]],
+    ["Turing machines and the limit",[
+      ["M = (Q, Σ, Γ, δ, q₀, B, F)","A Turing machine: B is the blank.","tm"],
+      ["δ : Q × Γ → Q × Γ × {L, R}","One move reads, writes, moves and changes state. There is no stay direction.","tm"],
+      ["αqβ","A configuration: tape to the left, the state, then the tape from the head rightwards.","tm"],
+      ["HALT = { ⟨M, w⟩ : M halts on w }","Recognisable, not decidable.","halt"],
+      ["decidable ⊆ recursively enumerable","And the containment is proper.","halt"]]]];
+  function notation(view){
+    view.appendChild(h("header","pp-cover nk-cover",`<div class="eyebrow">CSCE 4201 · Theory of Computing · Fall 2026</div><h1>Notation key</h1>
+      <p class="sub">Every symbol the plates use, in the course's notation, with the plate where it does its work.</p>`));
+    const book=h("div","nk-book"); view.appendChild(book);
+    KEY.forEach(([sec,rows])=>{ const s=h("section","nk-sec"); s.appendChild(h("h2",null,esc(sec))); const dl=h("dl"); s.appendChild(dl);
+      rows.forEach(([sym,txt,st])=>{ const d=Atlas.stations[st]; const dt=h("dt","mono",esc(sym)); const dd=h("dd",null,`${esc(txt)} `); const b=h("button","linkish",`Plate ${Atlas.roman(Atlas.order.indexOf(st)+1)}, ${esc(d.short)} →`); b.type="button"; b.onclick=()=>Atlas.go(st); dd.appendChild(b); dt.dataset.zone=Atlas.zone(d); dl.append(dt,dd); });
+      book.appendChild(s); });
+  }
+  return {mount, passport, notation, restamp, motif, stampSVG, KEY};
+})();
 
 /* Station: DFAs (S1–S2) */
 "use strict";
