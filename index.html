@@ -473,6 +473,65 @@ table.diag tr.drow th{color:var(--accept)}
 .btn.mini{padding:3px 10px;min-width:38px}
 .inputbox{flex-wrap:wrap;max-width:100%}
 
+/* ================= Survey atlas layer =================
+   Each language class is a territory with its own hue. Amber (--now) stays reserved for "the current step";
+   green/red stay reserved for accept/reject. */
+:root{
+  --z-reg:#2f6bd0; --z-reg-soft:#e4edfb; --z-cf:#7550d4; --z-cf-soft:#eee8fc; --z-cs:#b0477c; --z-cs-soft:#f8e8f0; --z-re:#47547a; --z-re-soft:#eceff5;
+  --p-you:#0e8fa6; --p-adv:#b14fc4;
+  --shadow:0 1px 2px rgba(20,27,51,.05),0 4px 14px rgba(20,27,51,.05);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --z-reg:#6b9ff2; --z-reg-soft:#152340; --z-cf:#a68af7; --z-cf-soft:#211a3e; --z-cs:#e47fb0; --z-cs-soft:#33192a; --z-re:#97a2c4; --z-re-soft:#182036;
+  --p-you:#2bb5cc; --p-adv:#cf7ae0; --shadow:none; } }
+:root[data-theme="dark"]{
+  --z-reg:#6b9ff2; --z-reg-soft:#152340; --z-cf:#a68af7; --z-cf-soft:#211a3e; --z-cs:#e47fb0; --z-cs-soft:#33192a; --z-re:#97a2c4; --z-re-soft:#182036;
+  --p-you:#2bb5cc; --p-adv:#cf7ae0; --shadow:none; }
+[data-zone="reg"]{--zone:var(--z-reg);--zone-soft:var(--z-reg-soft)}
+[data-zone="cf"]{--zone:var(--z-cf);--zone-soft:var(--z-cf-soft)}
+[data-zone="re"]{--zone:var(--z-re);--zone-soft:var(--z-re-soft)}
+:root{--zone:var(--ink);--zone-soft:var(--surface-2)}
+.view[data-zone="reg"]{--zone:var(--z-reg);--zone-soft:var(--z-reg-soft)}
+.view[data-zone="cf"]{--zone:var(--z-cf);--zone-soft:var(--z-cf-soft)}
+.view[data-zone="re"]{--zone:var(--z-re);--zone-soft:var(--z-re-soft)}
+
+.panel,.qf-card,.card{box-shadow:var(--shadow)}
+.bar{border-bottom:1px solid var(--line);margin-bottom:8px}
+.logo .mark i{background:var(--z-reg)} .logo .mark i:nth-child(2){background:var(--z-cf)} .logo .mark i:nth-child(3){background:var(--z-re)}
+
+/* station header */
+.crumb{margin-top:6px}
+.crumb button{color:var(--zone)}
+.st-head{padding:6px 0 4px}
+.st-meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.zone-chip{font-size:11.5px;font-weight:700;letter-spacing:.04em;color:var(--zone);background:var(--zone-soft);border:1px solid color-mix(in srgb,var(--zone) 30%,transparent);border-radius:999px;padding:3px 10px}
+.st-head h1{font-size:clamp(32px,5vw,56px);margin:2px 0 10px}
+.st-head h1::after{content:"";display:block;width:56px;height:5px;border-radius:3px;background:var(--zone);margin-top:14px}
+.st-head .sub{font-size:16px;max-width:64ch}
+.stamps{align-items:center;gap:6px}
+.stamps-lbl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.stp{font-size:12px;padding:3px 9px;border-width:1px;border-radius:999px}
+
+/* numbered sections */
+.st-body{counter-reset:sec;gap:44px;margin-top:18px}
+.st-body > .blk{counter-increment:sec}
+.st-body > .blk + .blk{border-top:1px solid var(--line);padding-top:36px}
+.st-body > .blk > .kicker{display:flex;align-items:center;gap:10px;color:var(--zone)}
+.st-body > .blk > .kicker::before{content:counter(sec,decimal-leading-zero);font-family:var(--mono);font-size:12px;letter-spacing:0;color:var(--paper);background:var(--zone);border-radius:6px;padding:1px 7px}
+.st-body > .blk > h2{font-size:clamp(22px,2.6vw,30px);margin:-4px 0 2px;text-wrap:balance}
+.nextprev{border-top:1px solid var(--line);padding-top:20px;margin-top:28px}
+.nextprev .btn{padding:12px 18px}
+
+/* tabs: wrap on wide screens, scroll with a fade on narrow ones */
+@media (min-width:641px){ .machines{flex-wrap:wrap;overflow:visible} }
+@media (max-width:640px){
+  .machines{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent);padding-right:36px;scroll-padding-right:36px}
+  .bar .meter{display:none}
+  .bar{flex-wrap:nowrap}
+  .pass-pill{white-space:nowrap}
+}
+.st-body .recipe li::before{background:var(--zone);color:var(--paper)}
+
 </style>
 <div class="site">
   <div class="bar">
@@ -514,7 +573,9 @@ const Atlas = {
   totals(){ let a=0,b=0; this.order.forEach(id=>{ const [x,y]=this.count(id); a+=x; b+=y; }); return [a,b]; },
   toast(msg){ const t=document.getElementById("toast"); if(!t) return; t.textContent=msg; t.classList.add("show"); clearTimeout(this._tt); this._tt=setTimeout(()=>t.classList.remove("show"),2600); },
   refreshBar(){ const [a,b]=this.totals(); const pill=document.getElementById("passPill"); if(pill) pill.innerHTML=`Passport <b>${a}/${b}</b><span class="meter"><i style="width:${b?100*a/b:0}%"></i></span>`; },
-  stampRow(st){ const def=this.stations[st]; const row=h("div","stamps"); def.stamps.forEach(s=>{ const e=h("span","stp"+(this.has(st,s.id)?" on":""),"◉ "+esc(s.label)); e.dataset.st=st; e.dataset.id=s.id; row.appendChild(e); }); return row; },
+  zone(def){ const r=(def&&def.region)||""; return /Regular/.test(r)?"reg":/Context-free/.test(r)?"cf":"re"; },
+  zoneName:{reg:"Type 3 · Regular",cf:"Type 2 · Context-free",re:"Type 0 · Recursively enumerable"},
+  stampRow(st){ const def=this.stations[st]; const row=h("div","stamps"); row.appendChild(h("span","stamps-lbl","Passport")); def.stamps.forEach(s=>{ const e=h("span","stp"+(this.has(st,s.id)?" on":""),"◉ "+esc(s.label)); e.dataset.st=st; e.dataset.id=s.id; row.appendChild(e); }); return row; },
   /* ---- router ---- */
   go(id){ if(location.hash.slice(1)===id) this.route(); else location.hash=id; },
   onCleanup(fn){ this.cleanups.push(fn); },
@@ -522,6 +583,7 @@ const Atlas = {
     this.cleanups.splice(0).forEach(fn=>{ try{ fn(); }catch(e){} });
     const id=location.hash.slice(1); const view=document.getElementById("view"); view.innerHTML="";
     const def=this.stations[id];
+    view.dataset.zone = def && def.mount ? this.zone(def) : "";
     if(def && def.mount){ this.mountStation(def, view); } else { Home.mount(view); }
     window.scrollTo(0,0); this.refreshBar();
   },
@@ -530,9 +592,9 @@ const Atlas = {
     const crumb=h("div","crumb"); const back=h("button",null,"← Atlas"); back.type="button"; back.onclick=()=>this.go("home"); crumb.appendChild(back);
     crumb.appendChild(h("span",null,"· "+esc(def.region)+" · "+esc(def.sessions)));
     view.appendChild(crumb);
-    const head=h("header","st-head",`<div class="eyebrow">${esc(def.module)}</div><h1>${esc(def.title)}</h1><p class="sub">${esc(def.blurb)}</p>`);
+    const head=h("header","st-head",`<div class="st-meta"><span class="zone-chip">${esc(this.zoneName[this.zone(def)])}</span><span class="eyebrow">${esc(def.module)}</span></div><h1>${esc(def.title)}</h1><p class="sub">${esc(def.blurb)}</p>`);
     view.appendChild(head); view.appendChild(this.stampRow(def.id));
-    const body=h("div","view"); view.appendChild(body);
+    const body=h("div","view st-body"); view.appendChild(body);
     def.mount(body);
     const np=h("div","nextprev");
     const mk=(i,lbl)=>{ const b=h("button","btn",lbl); b.type="button"; b.onclick=()=>this.go(i); return b; };

@@ -28,7 +28,9 @@ const Atlas = {
   totals(){ let a=0,b=0; this.order.forEach(id=>{ const [x,y]=this.count(id); a+=x; b+=y; }); return [a,b]; },
   toast(msg){ const t=document.getElementById("toast"); if(!t) return; t.textContent=msg; t.classList.add("show"); clearTimeout(this._tt); this._tt=setTimeout(()=>t.classList.remove("show"),2600); },
   refreshBar(){ const [a,b]=this.totals(); const pill=document.getElementById("passPill"); if(pill) pill.innerHTML=`Passport <b>${a}/${b}</b><span class="meter"><i style="width:${b?100*a/b:0}%"></i></span>`; },
-  stampRow(st){ const def=this.stations[st]; const row=h("div","stamps"); def.stamps.forEach(s=>{ const e=h("span","stp"+(this.has(st,s.id)?" on":""),"◉ "+esc(s.label)); e.dataset.st=st; e.dataset.id=s.id; row.appendChild(e); }); return row; },
+  zone(def){ const r=(def&&def.region)||""; return /Regular/.test(r)?"reg":/Context-free/.test(r)?"cf":"re"; },
+  zoneName:{reg:"Type 3 · Regular",cf:"Type 2 · Context-free",re:"Type 0 · Recursively enumerable"},
+  stampRow(st){ const def=this.stations[st]; const row=h("div","stamps"); row.appendChild(h("span","stamps-lbl","Passport")); def.stamps.forEach(s=>{ const e=h("span","stp"+(this.has(st,s.id)?" on":""),"◉ "+esc(s.label)); e.dataset.st=st; e.dataset.id=s.id; row.appendChild(e); }); return row; },
   /* ---- router ---- */
   go(id){ if(location.hash.slice(1)===id) this.route(); else location.hash=id; },
   onCleanup(fn){ this.cleanups.push(fn); },
@@ -36,6 +38,7 @@ const Atlas = {
     this.cleanups.splice(0).forEach(fn=>{ try{ fn(); }catch(e){} });
     const id=location.hash.slice(1); const view=document.getElementById("view"); view.innerHTML="";
     const def=this.stations[id];
+    view.dataset.zone = def && def.mount ? this.zone(def) : "";
     if(def && def.mount){ this.mountStation(def, view); } else { Home.mount(view); }
     window.scrollTo(0,0); this.refreshBar();
   },
@@ -44,9 +47,9 @@ const Atlas = {
     const crumb=h("div","crumb"); const back=h("button",null,"← Atlas"); back.type="button"; back.onclick=()=>this.go("home"); crumb.appendChild(back);
     crumb.appendChild(h("span",null,"· "+esc(def.region)+" · "+esc(def.sessions)));
     view.appendChild(crumb);
-    const head=h("header","st-head",`<div class="eyebrow">${esc(def.module)}</div><h1>${esc(def.title)}</h1><p class="sub">${esc(def.blurb)}</p>`);
+    const head=h("header","st-head",`<div class="st-meta"><span class="zone-chip">${esc(this.zoneName[this.zone(def)])}</span><span class="eyebrow">${esc(def.module)}</span></div><h1>${esc(def.title)}</h1><p class="sub">${esc(def.blurb)}</p>`);
     view.appendChild(head); view.appendChild(this.stampRow(def.id));
-    const body=h("div","view"); view.appendChild(body);
+    const body=h("div","view st-body"); view.appendChild(body);
     def.mount(body);
     const np=h("div","nextprev");
     const mk=(i,lbl)=>{ const b=h("button","btn",lbl); b.type="button"; b.onclick=()=>this.go(i); return b; };
