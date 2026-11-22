@@ -223,3 +223,11 @@ table.tmd td.hole{background:var(--now-soft)} table.tmd td.hole select{font-size
 .qf-card .row.route{flex-wrap:wrap}
 .qf-card .row.route .btn{font-size:13px}
 .btn.sel{outline:2px solid var(--ink);outline-offset:1px}
+.ordlist{display:flex;flex-direction:column;gap:6px}
+.opt.ordl{text-align:left;white-space:normal;width:100%}
+ol.proofdone{margin:10px 0;padding-left:22px} ol.proofdone li{margin:4px 0;color:var(--accept)}
+table.diag td{text-align:center;font-family:var(--mono);font-weight:700}
+table.diag td.dg{background:var(--now-soft);outline:2px solid var(--now);outline-offset:-2px}
+table.diag tr.drow th{color:var(--accept)}
+.btn.mini{padding:3px 10px;min-width:38px}
+.inputbox{flex-wrap:wrap;max-width:100%}

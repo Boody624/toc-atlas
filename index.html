@@ -464,6 +464,14 @@ table.tmd td.hole{background:var(--now-soft)} table.tmd td.hole select{font-size
 .qf-card .row.route{flex-wrap:wrap}
 .qf-card .row.route .btn{font-size:13px}
 .btn.sel{outline:2px solid var(--ink);outline-offset:1px}
+.ordlist{display:flex;flex-direction:column;gap:6px}
+.opt.ordl{text-align:left;white-space:normal;width:100%}
+ol.proofdone{margin:10px 0;padding-left:22px} ol.proofdone li{margin:4px 0;color:var(--accept)}
+table.diag td{text-align:center;font-family:var(--mono);font-weight:700}
+table.diag td.dg{background:var(--now-soft);outline:2px solid var(--now);outline-offset:-2px}
+table.diag tr.drow th{color:var(--accept)}
+.btn.mini{padding:3px 10px;min-width:38px}
+.inputbox{flex-wrap:wrap;max-width:100%}
 
 </style>
 <div class="site">
@@ -1389,7 +1397,7 @@ const alt=(x,y)=>x.t==="empty"?y:y.t==="empty"?x:show(x)===show(y)?x:{t:"alt",l:
 const cat=(x,y)=>x.t==="empty"||y.t==="empty"?Emp:x.t==="eps"?y:y.t==="eps"?x:{t:"cat",l:x,r:y};
 const star=x=>x.t==="empty"||x.t==="eps"?Eps:x.t==="star"?x:{t:"star",r:x};
 
-function field(parent,label,value,id){ const ib=h("div","inputbox"); ib.innerHTML=`<label for="${id}">${label}</label><input id="${id}" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="60" style="width:min(26ch,58vw)">`; parent.appendChild(ib); const inp=ib.querySelector("input"); inp.value=value||"";
+function field(parent,label,value,id){ const ib=h("div","inputbox"); ib.innerHTML=`<label for="${id}">${label}</label><input id="${id}" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="60" style="width:min(26ch,48vw)">`; parent.appendChild(ib); const inp=ib.querySelector("input"); inp.value=value||"";
   [E,O].forEach(c=>{ const b=h("button","ex",c); b.type="button"; b.title="Insert "+c; b.setAttribute("aria-label","Insert "+c); b.onclick=()=>{ const p=inp.selectionStart??inp.value.length; inp.value=inp.value.slice(0,p)+c+inp.value.slice(p); inp.focus(); inp.setSelectionRange(p+1,p+1); inp.dispatchEvent(new Event("input")); }; ib.appendChild(b); });
   return inp; }
 
@@ -2496,6 +2504,144 @@ Atlas.stations.tm.mount=function(root){
   ], (c,n)=>{ if(c>=n-1) Atlas.stamp("tm","claims"); else Atlas.toast(`${c} of ${n} right. Reload the stop to try again.`); });
 };
 Atlas.tm={TM,run,cfg,qn};
+})();
+
+/* Station: the halting problem (S25 definitions; S26 statement, standard diagonal argument) */
+"use strict";
+(function(){
+const SUB={"0":"₀","1":"₁","2":"₂","3":"₃","4":"₄","5":"₅","6":"₆","7":"₇","8":"₈","9":"₉"};
+const qn=q=>q.replace(/\d/g,d=>SUB[d]);
+const trim=st=>{ const t=st.tape.slice(); while(t.length&&t[t.length-1]==="B") t.pop(); return t; };
+/* Two sound loop certificates: an exact repeated configuration, or the head drifting right into blank tape in a repeated state without ever looking back. */
+function certify(steps){
+  const seen=new Map();
+  for(let i=0;i<steps.length;i++){ const s=steps[i], key=s.q+"|"+s.h+"|"+trim(s).join(""); if(seen.has(key)) return {kind:"repeat",i:seen.get(key),j:i}; seen.set(key,i); }
+  const past=s=>trim(s).length<=s.h;
+  for(let j=0;j<steps.length;j++){ if(!past(steps[j])) continue; let lo=steps[j].h;
+    for(let i=j-1;i>=0;i--){ lo=Math.min(lo,steps[i].h); if(steps[i].q===steps[j].q && past(steps[i]) && steps[i].h<steps[j].h && lo>=steps[i].h) return {kind:"drift",i,j}; } }
+  return null;
+}
+const PAIRS=[
+  {name:"Last year's aⁿbⁿ machine", w:"aab", rows:["q0: a=q1,X,R Y=q3,Y,R","q1: a=q1,a,R b=q2,Y,L Y=q1,Y,R","q2: a=q2,a,L X=q0,X,R Y=q2,Y,L","q3: Y=q3,Y,R B=q4,B,R"], acc:["q4"], ans:"reject",
+   why:"It crosses one a and one b, returns, crosses the second a, and then q₁ runs into the blank looking for a b. No entry: halt and reject."},
+  {name:"The one-line loop, with its blank entry", w:"a", rows:["q0: a=q0,a,R B=q0,B,R"], acc:[], ans:"loop",
+   why:"Once the head is past the input it reads B in q₀ forever and moves right forever."},
+  {name:"The bouncer", w:"a", rows:["q0: a=q1,a,R","q1: B=q0,B,L"], acc:[], ans:"loop",
+   why:"Right onto the blank, left back onto the a, and the configuration q₀a is back exactly. The same configuration twice means the same future, forever."},
+  {name:"Last year's aⁿbⁿ machine, longer input", w:"aaaaaabbbbbb", rows:["q0: a=q1,X,R Y=q3,Y,R","q1: a=q1,a,R b=q2,Y,L Y=q1,Y,R","q2: a=q2,a,L X=q0,X,R Y=q2,Y,L","q3: Y=q3,Y,R B=q4,B,R"], acc:["q4"], ans:"accept", slow:true,
+   why:"It accepts after 2n² + 2n + 1 = 85 moves. Had you stopped watching at move 40 you would have guessed “runs forever”. Still running is not the same as never stopping."},
+  {name:"The grower", w:"X", rows:["q0: X=q1,X,R","q1: a=q1,a,R B=q2,a,L","q2: a=q2,a,L X=q1,X,R"], acc:[], ans:"loop", hard:true,
+   why:"Each trip walks to the end of the a's, writes one more a, and walks back to the X. The tape grows, so no configuration ever repeats, and the head keeps coming back, so it never drifts off either. Neither certificate fires: you had to argue it. There is no state with no entry that it can reach, and no accepting state at all."}
+];
+const ent=e=>`(${qn(e[0])}, ${e[1]}, ${e[2]})`;
+
+Atlas.stations.halt.stamps=[{id:"predict",label:"Called the outcomes"},{id:"diag",label:"Built D"},{id:"self",label:"Ran D on itself"},{id:"order",label:"Ordered the proof"},{id:"sort",label:"Sorted the classes"},{id:"claims",label:"Halting claims"}];
+Atlas.stations.halt.mount=function(root){
+  const T=Atlas.tm;
+  /* ---------- idea ---------- */
+  const b1=block(root,"The idea","Accept, reject, or neither","idea");
+  b1.appendChild(h("div","note",`Session 26's slides were not posted when this stop was built. It uses Session 25's definitions and the standard diagonal argument (Sipser 4.2, Linz 12.1).`));
+  const three=h("div","three"); b1.appendChild(three);
+  three.appendChild(h("div","panel",`<div class="ph"><h2>Recognise or decide</h2></div><div class="prose"><p>M <b>recognises</b> L if L(M) = L. On a string outside L it may reject <b>or run forever</b>.</p><p>M <b>decides</b> L if it recognises L and halts on every input.</p><p><code>decidable ⊆ recursively enumerable</code>, and the containment is proper.</p></div>`));
+  three.appendChild(h("div","panel",`<div class="ph"><h2>The separating language</h2></div><div class="prose"><p><code>HALT = { ⟨M, w⟩ : M halts on w }</code></p><p>Recognisable: simulate M on w and accept if it halts.</p><p>Not decidable: no machine answers it for <b>every</b> M and w. The simulation never knows when to give up.</p></div>`));
+  three.appendChild(h("div","panel",`<div class="ph"><h2>Evidence is not proof</h2></div><div class="prose"><p>“It halted on every input up to length 9” is about finitely many strings. A decider is a claim about all of them.</p><p>What proves halting is a quantity that strictly decreases, such as the unmarked symbols in the aⁿbⁿ machine. The halting problem says no algorithm finds such an argument for every machine.</p></div>`));
+
+  /* ---------- predict ---------- */
+  const b2=block(root,"Lab","Will it halt? Call it, then run it","predict");
+  b2.appendChild(h("p","idea",`Read each δ and its input. Decide the outcome before you press anything. The simulator runs up to 2000 moves and looks for a certificate that the machine loops.`));
+  const grid=h("div","qf"); b2.appendChild(grid); let pd=0, pk=0;
+  PAIRS.forEach(P=>{ const M=T.TM({start:"q0",accept:P.acc,rows:P.rows}); const c=h("div","qf-card");
+    c.appendChild(h("div","who",esc(P.name)));
+    const lines=[]; Object.keys(M.delta).forEach(q=>Object.keys(M.delta[q]).forEach(s=>lines.push(`δ(${qn(q)}, ${s}) = ${ent(M.delta[q][s])}`)));
+    c.appendChild(h("div","trace",lines.map(esc).join("<br>")+(P.acc.length?`<br>F = { ${P.acc.map(qn).join(", ")} }`:"<br>F = ∅")));
+    c.appendChild(h("p","claim",`Input <b class="mono">${esc(P.w)}</b>, start in q₀`));
+    const row=h("div","row route"); c.appendChild(row);
+    [["accept","Accepts"],["reject","Rejects"],["loop","Runs forever"]].forEach(([k,l])=>{ const b=h("button","btn",l); b.type="button"; row.appendChild(b);
+      b.onclick=()=>{ row.querySelectorAll("button").forEach(x=>x.disabled=true); b.classList.add("sel"); const r=T.run(M,P.w,2000); const ok=k===P.ans; pd++; if(ok) pk++;
+        const moves=r.steps.length-1; let how;
+        if(r.out==="accept") how=`Accepted after ${moves} moves.`;
+        else if(r.out==="reject") how=`Halted after ${moves} moves in ${qn(r.why?r.why.q:"q?")} reading ${r.why?r.why.s:"?"}: no entry, so reject.`;
+        else { const cert=certify(r.steps.slice(0,400)); how=cert?(cert.kind==="repeat"?`Certified loop: the configuration at move ${cert.i} comes back exactly at move ${cert.j}.`:`Certified loop: at moves ${cert.i} and ${cert.j} it is in ${qn(r.steps[cert.j].q)} on blank tape, further right, and never looked back in between.`):`Still running after 2000 moves, and neither certificate fires. The simulator cannot tell; you can.`; }
+        if(P.slow){ const early=T.run(M,P.w,40); if(early.out==="loop") how+=` After 40 moves it was still running.`; }
+        c.classList.add(ok?"right":"wrong"); c.appendChild(h("div","res",(ok?"Correct. ":"Not quite. ")+how)); c.appendChild(h("p","why",esc(P.why)));
+        if(pd===PAIRS.length){ if(pk>=4) Atlas.stamp("halt","predict"); else Atlas.toast(`${pk} of ${PAIRS.length}. Reload the stop to try again.`); } }; });
+    grid.appendChild(c); });
+
+  /* ---------- diagonal ---------- */
+  const b3=block(root,"Challenge","The table no machine can fill","diag");
+  b3.appendChild(h("p","idea",`Suppose a decider H for HALT exists. Then we could fill this table: row Mᵢ, column ⟨Mⱼ⟩, does Mᵢ halt on the description of Mⱼ? Build the machine D: on input ⟨Mᵢ⟩ it asks H, then does the <b>opposite</b> of Mᵢ on its own description. Click D's cells.</p>`.replace("</p>","")));
+  const TAB=[["H","∞","H","H","∞"],["∞","∞","H","∞","H"],["H","H","H","∞","∞"],["∞","H","∞","∞","H"],["H","∞","∞","H","H"]];
+  const tw=h("div","tablewrap"); b3.appendChild(tw); const tb=h("table","dt diag"); tw.appendChild(tb);
+  const D=TAB.map(()=>null);
+  const msg=h("div"); b3.appendChild(msg);
+  function draw(){ tb.innerHTML=`<tr><th></th>${TAB.map((_,j)=>`<th>⟨M${SUB[j+1]}⟩</th>`).join("")}</tr>`+TAB.map((r,i)=>`<tr><th>M${SUB[i+1]}</th>${r.map((v,j)=>`<td class="${i===j?"dg":""}">${v}</td>`).join("")}</tr>`).join("")+
+      `<tr class="drow"><th>D</th>${D.map((v,j)=>`<td><button type="button" class="btn mini" data-j="${j}">${v||"?"}</button></td>`).join("")}</tr>`;
+    tb.querySelectorAll("button").forEach(b=>b.onclick=()=>{ const j=+b.dataset.j; D[j]=D[j]==="H"?"∞":"H"; draw(); check(); }); }
+  function check(){ if(D.some(v=>!v)){ msg.innerHTML=""; return; }
+    const bad=D.map((v,j)=>v===TAB[j][j]?j:-1).filter(j=>j>=0);
+    if(bad.length){ msg.innerHTML=`<div class="note bad">D must differ from M${SUB[bad[0]+1]} on ⟨M${SUB[bad[0]+1]}⟩: the diagonal cell says ${TAB[bad[0]][bad[0]]}, so D does the opposite.</div>`; return; }
+    msg.innerHTML=`<div class="note good"><b>D differs from every Mᵢ on input ⟨Mᵢ⟩.</b> So D is not any row of the table. But D is a Turing machine (it only runs H and then halts or loops), so it must be a row of a table that lists every machine. That row is ⟨D⟩'s own: what does D do on ⟨D⟩?</div>`;
+    Atlas.stamp("halt","diag"); self.style.display=""; }
+  const self=h("div","panel"); self.style.display="none"; b3.appendChild(self);
+  self.innerHTML=`<div class="ph"><h2>Run D on ⟨D⟩</h2></div><p class="idea">D on ⟨D⟩ asks H whether D halts on ⟨D⟩, then does the opposite. Pick a case.</p>`;
+  const so=h("div","opts"); self.appendChild(so); const sr=h("div"); self.appendChild(sr); const tried=new Set();
+  [["halts","Suppose D halts on ⟨D⟩","Then H accepts ⟨D, ⟨D⟩⟩, so D does the opposite and <b>loops</b>. It halts and loops: impossible."],
+   ["loops","Suppose D runs forever on ⟨D⟩","Then H rejects ⟨D, ⟨D⟩⟩, so D does the opposite and <b>halts</b>. It loops and halts: impossible."]].forEach(([k,l,t])=>{
+    const b=h("button","opt",l); b.type="button"; so.appendChild(b); b.onclick=()=>{ tried.add(k); b.classList.add("sel");
+      sr.innerHTML=`<div class="note bad">${t}</div>`+(tried.size===2?`<div class="note good">Both cases contradict. Nothing was wrong with D's construction, so the assumption is what fails: <b>no Turing machine H decides HALT.</b> ∎</div>`:"");
+      if(tried.size===2) Atlas.stamp("halt","self"); }; });
+  draw();
+
+  /* ---------- order the proof ---------- */
+  const b4=block(root,"Challenge","Put the proof in order","order");
+  b4.appendChild(h("p","idea",`Click the lines in the order they belong in a written proof.`));
+  const LINES=["Suppose, for contradiction, that a Turing machine H decides HALT: it always halts, and accepts ⟨M, w⟩ exactly when M halts on w.",
+    "Build D: on input ⟨M⟩, run H on ⟨M, ⟨M⟩⟩.",
+    "If H accepts, D loops forever. If H rejects, D halts.",
+    "Run D on its own description ⟨D⟩.",
+    "D halts on ⟨D⟩ ⟺ H rejects ⟨D, ⟨D⟩⟩ ⟺ D does not halt on ⟨D⟩.",
+    "Contradiction. No such H exists, so HALT is undecidable. ∎"];
+  const op=h("div","ordlist"); b4.appendChild(op); const done=h("ol","proofdone"); b4.appendChild(done); const om=h("div"); b4.appendChild(om);
+  let next=0, miss=0; const sh=LINES.map((l,i)=>i).sort(()=>Math.random()-.5); if(sh.every((v,i)=>v===i)) sh.reverse();
+  sh.forEach(i=>{ const b=h("button","opt ordl",esc(LINES[i])); b.type="button"; op.appendChild(b);
+    b.onclick=()=>{ if(i===next){ b.remove(); done.appendChild(h("li",null,esc(LINES[i]))); next++; om.innerHTML="";
+        if(next===LINES.length){ om.innerHTML=`<div class="note good">The proof is in order${miss?` (${miss} wrong click${miss>1?"s":""})`:""}. Note the shape: the same as every pumping proof, an assumption that is refuted at the end.</div>`; Atlas.stamp("halt","order"); } }
+      else { miss++; om.innerHTML=`<div class="note bad">Not yet. ${next===0?"A proof by contradiction starts with what it supposes.":"What does the line before need next?"}</div>`; } }; });
+
+  /* ---------- sort ---------- */
+  const b5=block(root,"The map's last region","Decidable, recognisable, or neither","sort");
+  b5.appendChild(h("p","idea",`Going up the hierarchy buys expressive power and costs decidability (Session 22). Place each problem.`));
+  const BINS=["Decidable","Recognisable, not decidable","Not even recognisable"];
+  const SO=[
+    {l:"{ aⁿbⁿcⁿ }", a:0, why:"Session 25's three-marker machine halts on every input."},
+    {l:"Is w ∈ L(G), for a CFG G?", a:0, why:"Convert to CNF and run CYK, O(n³). Session 24."},
+    {l:"Do two DFAs accept the same language?", a:0, why:"Minimise both and compare. Every DFA question was decidable."},
+    {l:"Is L(G) empty, for a CFG G?", a:0, why:"Empty exactly when S is not generating. Session 18's Lemma 1."},
+    {l:"HALT = { ⟨M, w⟩ : M halts on w }", a:1, why:"Simulate and accept if it halts: that recognises it. The diagonal argument shows nothing decides it."},
+    {l:"Is the CFG G ambiguous?", a:1, why:"Undecidable (Session 22's list). Searching strings for two leftmost derivations finds ambiguity when it exists, so it is recognisable."},
+    {l:"HALT′ = { ⟨M, w⟩ : M does not halt on w }", a:2, why:"If HALT and its complement were both recognisable, run both recognisers side by side: one must accept, and that would decide HALT."}
+  ];
+  const sg=h("div","qf"); b5.appendChild(sg); let sd=0, sk=0;
+  SO.forEach(it=>{ const c=h("div","qf-card"); c.appendChild(h("div","who","Which class?")); c.appendChild(h("p","claim",esc(it.l)));
+    const row=h("div","row route"); c.appendChild(row);
+    BINS.forEach((o,i)=>{ const bt=h("button","btn",o); bt.type="button"; row.appendChild(bt);
+      bt.onclick=()=>{ row.querySelectorAll("button").forEach(x=>x.disabled=true); bt.classList.add("sel"); const ok=i===it.a; sd++; if(ok) sk++;
+        c.classList.add(ok?"right":"wrong"); c.appendChild(h("div","res",(ok?"Correct. ":"Not quite. ")+BINS[it.a]+".")); c.appendChild(h("p","why",esc(it.why)));
+        if(sd===SO.length){ if(sk>=5) Atlas.stamp("halt","sort"); else Atlas.toast(`${sk} of ${SO.length}. Reload the stop to try again.`); } }; }); sg.appendChild(c); });
+
+  /* ---------- claims ---------- */
+  const b6=block(root,"How it goes wrong","Right or wrong? Decide before you look.","claims");
+  quickFire(b6,[
+    {claim:"“My machine halted on every input up to length 9, so it is a decider.”", ok:false, why:"Finitely many tests are evidence. A decider halts on all infinitely many inputs; that needs an argument, such as a count that strictly decreases."},
+    {claim:"“A machine that runs forever on w has rejected w.”", ok:false, why:"It has done neither. Rejecting is halting in a state with no entry. Running forever is the third outcome."},
+    {claim:"“Simulate M on w and report what happens: that decides HALT.”", ok:false, why:"That recognises HALT. When M runs forever the simulation runs forever too, so it never says no."},
+    {claim:"“Undecidable means that for some machines nobody can tell whether they halt.”", ok:false, why:"It means no single algorithm answers correctly for every ⟨M, w⟩. Particular instances, like the bouncer, are easy."},
+    {claim:"“Every decidable language is recursively enumerable.”", ok:true, why:"A decider recognises its language too. The converse fails, and HALT is the witness."},
+    {claim:"“Membership is decidable for CFGs but not for Turing machines.”", ok:true, why:"CYK answers w ∈ L(G). For TMs, w ∈ L(M) is as hard as halting: going up a level cost membership."},
+    {claim:"“A faster computer with more memory could decide HALT.”", ok:false, why:"The argument never mentions speed or memory. D defeats every H, however it is built."},
+    {claim:"“D's construction is the faulty step, not the assumption about H.”", ok:false, why:"D only runs H and then halts or loops: a legal machine if H is. The only assumption made was that H exists."}
+  ],(c,n)=>{ if(c>=n-1) Atlas.stamp("halt","claims"); else Atlas.toast(`${c} of ${n} right. Reload the stop to try again.`); });
+};
 })();
 
 const THEATRE_HTML="<div class=\"app\" id=\"app\" style=\"padding:0;max-width:none;margin:0;width:100%\">\n  <div class=\"row\" style=\"justify-content:flex-end\"><button class=\"btn\" id=\"fsBtn\" type=\"button\" title=\"Fullscreen for the projector\">Present fullscreen</button></div>\n\n  <nav class=\"machines\" id=\"tabs\" role=\"tablist\" aria-label=\"Machines\"></nav>\n\n  <section class=\"panel mcard\" id=\"mcard\">\n    <div>\n      <div class=\"lang\" id=\"mLang\"></div>\n      <p class=\"idea\" id=\"mIdea\"></p>\n      <div class=\"tuple\" id=\"mTuple\"></div>\n      <div class=\"chips\" id=\"mChips\"></div>\n    </div>\n    <div>\n      <div class=\"dlabel\">Transitions \u03b4</div>\n      <ul class=\"delta\" id=\"mDelta\"></ul>\n    </div>\n  </section>\n\n  <section class=\"panel editor\" id=\"editor\" hidden>\n    <div>\n      <div class=\"ph\"><h2>Write your own machine</h2><span class=\"hint\">Same notation as the slides</span></div>\n      <textarea id=\"src\" spellcheck=\"false\" aria-label=\"Machine definition\"></textarea>\n      <div style=\"display:flex;gap:8px;margin-top:8px;flex-wrap:wrap\">\n        <button class=\"btn primary\" id=\"buildBtn\" type=\"button\">Build and run</button>\n        <button class=\"btn\" id=\"loadBtn\" type=\"button\">Start from the a\u207fb\u207f machine</button>\n      </div>\n      <div class=\"errors\" id=\"errs\"></div>\n    </div>\n    <div class=\"help\">\n      <p>One transition per line, written the way the slides write them:</p>\n      <p><code>\u03b4(q0, a, Z) = (q0, XZ)</code><br><code>\u03b4(q0, \u03b5, X) = {(q1, X), (q2, \u03b5)}</code></p>\n      <p>The pushed string is written <b>top first</b>, so <code>XZ</code> puts X above Z. Use <code>\u03b5</code> (or <code>eps</code>) for \"read nothing\" and for \"push nothing\".</p>\n      <p>Three header lines: <code>start: q0</code>, <code>bottom: Z</code>, and either <code>accept: q2</code> (final state) or <code>accept: empty stack</code>. Lines starting with <code>#</code> are comments.</p>\n      <p>The page draws the diagram, checks both determinism rules, and runs every branch.</p>\n    </div>\n  </section>\n\n  <section class=\"controls\" aria-label=\"Run controls\">\n    <div class=\"inputbox\"><label for=\"inp\">Input w</label><input id=\"inp\" autocomplete=\"off\" spellcheck=\"false\" maxlength=\"14\"></div>\n    <div class=\"examples\" id=\"examples\"></div>\n    <div class=\"transport\">\n      <span class=\"counter\" id=\"counter\">move 0/0</span>\n      <button class=\"ibtn\" id=\"bReset\" type=\"button\" title=\"Back to the start (Home)\" aria-label=\"Back to the start\"><svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M6 5h2v14H6zM20 5v14L9 12z\"/></svg></button>\n      <button class=\"ibtn\" id=\"bBack\" type=\"button\" title=\"One move back (\u2190)\" aria-label=\"One move back\"><svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M18 5v14L7 12z\"/></svg></button>\n      <button class=\"ibtn play\" id=\"bPlay\" type=\"button\" title=\"Play / pause (Space)\" aria-label=\"Play\"><svg viewBox=\"0 0 24 24\" fill=\"currentColor\" id=\"playIcon\"><path d=\"M7 4v16l13-8z\"/></svg></button>\n      <button class=\"ibtn\" id=\"bStep\" type=\"button\" title=\"One move forward (\u2192)\" aria-label=\"One move forward\"><svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M6 5v14l11-7z\"/></svg></button>\n      <button class=\"ibtn\" id=\"bEnd\" type=\"button\" title=\"Jump to the verdict (End)\" aria-label=\"Jump to the verdict\"><svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M16 5h2v14h-2zM4 5v14l11-7z\"/></svg></button>\n      <label class=\"speed\" for=\"speed\">Speed <input type=\"range\" id=\"speed\" min=\"0.4\" max=\"3\" step=\"0.1\" value=\"1\"></label>\n    </div>\n  </section>\n\n  <main class=\"stage\">\n    <section class=\"panel run\" aria-label=\"The machine\">\n      <div class=\"ph\"><h2>The machine</h2><span class=\"hint\" id=\"modeHint\"></span></div>\n      <div class=\"tape\" id=\"tape\" aria-label=\"Input tape\"></div>\n      <div class=\"diagram\" id=\"diagram\"></div>\n      <div class=\"narr\" aria-live=\"polite\"><span class=\"step\" id=\"nStep\">start</span><p id=\"nText\"></p></div>\n      <div class=\"stamp\" id=\"verdictStamp\" hidden></div>\n    </section>\n\n    <section class=\"panel stackp\" aria-label=\"The stack\">\n      <div class=\"ph\"><h2>The stack</h2></div>\n      <div class=\"tower-wrap\"><div style=\"width:30px\"></div><div class=\"tower\" id=\"tower\"></div></div>\n      <div class=\"written\">Written top first, as in the IDs:<code id=\"written\"></code></div>\n    </section>\n\n    <section class=\"panel tracep\" aria-label=\"The trace\">\n      <div class=\"ph\"><h2>The trace</h2><span class=\"hint\">( q , unread w , stack ) \u00b7 top on the LEFT</span></div>\n      <div class=\"trace\" id=\"trace\"></div>\n    </section>\n  </main>\n\n  <section class=\"lower\">\n    <section class=\"panel\" aria-label=\"Every branch\">\n      <div class=\"ph\"><h2>Every branch the machine could take</h2><span class=\"hint\">Click any node to follow that branch</span></div>\n      <div class=\"tree-wrap\" id=\"treeWrap\"></div>\n      <div class=\"mvstats\" id=\"mvstats\"></div>\n    </section>\n    <section class=\"panel\" aria-label=\"Stack over time\">\n      <div class=\"ph\"><h2>The stack over time</h2><span class=\"hint\">One column per ID on this branch</span></div>\n      <div class=\"sky-wrap\" id=\"skyWrap\"></div>\n      <div class=\"legend\" id=\"legend\"></div>\n    </section>\n  </section>\n\n  <footer>\n    <span>Notation from CSCE 4201 S20: M = (Q, \u03a3, \u0393, \u03b4, q\u2080, Z\u2080, F), IDs (q, w, \u03b1) with the top of the stack written on the left, \u22a2 for one move. A branch with no applicable transition is stuck, and stuck means reject.</span>\n    <span><kbd>Space</kbd> play \u00b7 <kbd>\u2192</kbd> step \u00b7 <kbd>\u2190</kbd> back \u00b7 <kbd>Home</kbd> restart \u00b7 <kbd>End</kbd> verdict</span>\n  </footer>\n</div>\n\n";

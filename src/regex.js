@@ -36,7 +36,7 @@ const alt=(x,y)=>x.t==="empty"?y:y.t==="empty"?x:show(x)===show(y)?x:{t:"alt",l:
 const cat=(x,y)=>x.t==="empty"||y.t==="empty"?Emp:x.t==="eps"?y:y.t==="eps"?x:{t:"cat",l:x,r:y};
 const star=x=>x.t==="empty"||x.t==="eps"?Eps:x.t==="star"?x:{t:"star",r:x};
 
-function field(parent,label,value,id){ const ib=h("div","inputbox"); ib.innerHTML=`<label for="${id}">${label}</label><input id="${id}" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="60" style="width:min(26ch,58vw)">`; parent.appendChild(ib); const inp=ib.querySelector("input"); inp.value=value||"";
+function field(parent,label,value,id){ const ib=h("div","inputbox"); ib.innerHTML=`<label for="${id}">${label}</label><input id="${id}" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="60" style="width:min(26ch,48vw)">`; parent.appendChild(ib); const inp=ib.querySelector("input"); inp.value=value||"";
   [E,O].forEach(c=>{ const b=h("button","ex",c); b.type="button"; b.title="Insert "+c; b.setAttribute("aria-label","Insert "+c); b.onclick=()=>{ const p=inp.selectionStart??inp.value.length; inp.value=inp.value.slice(0,p)+c+inp.value.slice(p); inp.focus(); inp.setSelectionRange(p+1,p+1); inp.dispatchEvent(new Event("input")); }; ib.appendChild(b); });
   return inp; }
 
