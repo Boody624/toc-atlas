@@ -34,7 +34,7 @@ assert 'h(' not in re.sub(r'[\w.$]h\(|h_\(','',tj) or True
 pda='const THEATRE_HTML='+__import__('json').dumps(tb)+';\n'+tj
 css=R('theatre.css')+'\n'+R('site.css')
 js='\n'.join([R('core.js'),R('home.js'),R('plate.js'),R('dfa.js'),R('min.js'),R('nfa.js'),R('mm.js'),R('regex.js'),R('closure.js'),R('pumping.js'),R('cfg.js'),R('cnf.js'),R('cyk.js'),R('cflpump.js'), R('tm.js'),R('halt.js'),pda,
- 'document.getElementById("logoBtn").onclick=()=>Atlas.go("home");\nwindow.addEventListener("hashchange",()=>Atlas.route());\nAtlas.route();'])
+ 'document.getElementById("logoBtn").onclick=()=>Atlas.go("home");\ndocument.getElementById("nkBtn").onclick=()=>Atlas.go("notation");\nwindow.addEventListener("hashchange",()=>Atlas.route());\nAtlas.route();'])
 head='<title>Automata Atlas</title>\n<meta name="claude:viewport-fit-sides" content="cover">\n<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;0,9..144,800;1,9..144,500;1,9..144,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap">\n'
 frag=head+'<style>\n'+css+'\n</style>\n'+R('shell.html')+'\n<script>\n'+js+'\n</script>\n'
 (out/'artifact.html').write_text(frag)
