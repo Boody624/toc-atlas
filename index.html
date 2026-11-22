@@ -11,32 +11,32 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;0,9..144,800;1,9..144,500;1,9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap">
 <style>
 
 /* Layout: a "stage" — the machine (tape + diagram) on the left, the stack tower in the middle,
    the written trace on the right; below it the multiverse of branches and the stack skyline,
    both sharing one time axis (move number). Cool paper + ink, amber marks "now". */
 :root{
-  --paper:#f3f5fa; --surface:#ffffff; --surface-2:#f7f8fc; --ink:#141b33; --muted:#5b6482; --faint:#a3aac2; --line:#dde2ee;
-  --now:#e2961c; --now-soft:#fdf0d8; --accept:#139169; --accept-soft:#dcf3ea; --reject:#cf3f55; --reject-soft:#fbe3e7;
+  --paper:#efe6d0; --surface:#fbf7ee; --surface-2:#f4eddd; --ink:#2b2219; --muted:#6c604f; --faint:#b0a389; --line:#dccfb3;
+  --now:#d4861a; --now-soft:#f8e5c0; --accept:#2e7a4e; --accept-soft:#dcebd8; --reject:#b5402f; --reject-soft:#f5ddd4;
   --sym-X:#6a55e0; --sym-Z:#56607e; --sym-A:#2c78dc; --sym-B:#e06b23; --sym-P:#139169; --sym-N:#cf3f55;
   --sym-1:#0e8fa6; --sym-2:#b14fc4; --sym-3:#8a6d16; --sym-4:#3a8f2f;
   --plate-ink:#ffffff;
-  --display:"Bricolage Grotesque", "Space Grotesk", system-ui, sans-serif;
+  --display:"Fraunces", "Iowan Old Style", Georgia, serif;
   --body:"Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
   --r:14px;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --paper:#0d1222; --surface:#151c31; --surface-2:#1a2239; --ink:#e7ebf7; --muted:#9aa3c0; --faint:#5d6688; --line:#29324e;
-  --now:#f3ac3c; --now-soft:#3a2d14; --accept:#2fc392; --accept-soft:#11352a; --reject:#ef6177; --reject-soft:#3b1a22;
+  --paper:#11151d; --surface:#191e28; --surface-2:#1f2532; --ink:#f0e7d3; --muted:#aa9e88; --faint:#646a78; --line:#2f3543;
+  --now:#f0a843; --now-soft:#3b2c15; --accept:#5cbf88; --accept-soft:#16301f; --reject:#ee7b67; --reject-soft:#3a1e19;
   --sym-X:#8a78ff; --sym-Z:#6d7799; --sym-A:#4a92f0; --sym-B:#f0843d; --sym-P:#22a87c; --sym-N:#e2546b;
   --sym-1:#22a9c0; --sym-2:#c46ad6; --sym-3:#b0912e; --sym-4:#4fae43;
   color-scheme:dark; } }
 :root[data-theme="dark"]{
-  --paper:#0d1222; --surface:#151c31; --surface-2:#1a2239; --ink:#e7ebf7; --muted:#9aa3c0; --faint:#5d6688; --line:#29324e;
-  --now:#f3ac3c; --now-soft:#3a2d14; --accept:#2fc392; --accept-soft:#11352a; --reject:#ef6177; --reject-soft:#3b1a22;
+  --paper:#11151d; --surface:#191e28; --surface-2:#1f2532; --ink:#f0e7d3; --muted:#aa9e88; --faint:#646a78; --line:#2f3543;
+  --now:#f0a843; --now-soft:#3b2c15; --accept:#5cbf88; --accept-soft:#16301f; --reject:#ee7b67; --reject-soft:#3a1e19;
   --sym-X:#8a78ff; --sym-Z:#6d7799; --sym-A:#4a92f0; --sym-B:#f0843d; --sym-P:#22a87c; --sym-N:#e2546b;
   --sym-1:#22a9c0; --sym-2:#c46ad6; --sym-3:#b0912e; --sym-4:#4fae43;
   color-scheme:dark; }
@@ -489,16 +489,16 @@ table.diag tr.drow th{color:var(--accept)}
    Each language class is a territory with its own hue. Amber (--now) stays reserved for "the current step";
    green/red stay reserved for accept/reject. */
 :root{
-  --z-reg:#2f6bd0; --z-reg-soft:#e4edfb; --z-cf:#7550d4; --z-cf-soft:#eee8fc; --z-cs:#b0477c; --z-cs-soft:#f8e8f0; --z-re:#47547a; --z-re-soft:#eceff5;
-  --p-you:#0e8fa6; --p-adv:#b14fc4;
-  --shadow:0 1px 2px rgba(20,27,51,.05),0 4px 14px rgba(20,27,51,.05);
+  --z-reg:#256a87; --z-reg-soft:#dde8e6; --z-cf:#8a4a8c; --z-cf-soft:#ecdfe3; --z-cs:#b0566a; --z-cs-soft:#f3e0dc; --z-re:#6d5a40; --z-re-soft:#e9dfca;
+  --p-you:#1f7d86; --p-adv:#a3437f;
+  --shadow:0 1px 0 rgba(80,60,30,.06),0 6px 18px -8px rgba(80,60,30,.18);
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --z-reg:#6b9ff2; --z-reg-soft:#152340; --z-cf:#a68af7; --z-cf-soft:#211a3e; --z-cs:#e47fb0; --z-cs-soft:#33192a; --z-re:#97a2c4; --z-re-soft:#182036;
-  --p-you:#2bb5cc; --p-adv:#cf7ae0; --shadow:none; } }
+  --z-reg:#6fb4cf; --z-reg-soft:#142630; --z-cf:#c993cc; --z-cf-soft:#271a2b; --z-cs:#e18e9c; --z-cs-soft:#2e1b20; --z-re:#c7b08a; --z-re-soft:#1e1c19;
+  --p-you:#55c2c9; --p-adv:#e488c4; --shadow:none; } }
 :root[data-theme="dark"]{
-  --z-reg:#6b9ff2; --z-reg-soft:#152340; --z-cf:#a68af7; --z-cf-soft:#211a3e; --z-cs:#e47fb0; --z-cs-soft:#33192a; --z-re:#97a2c4; --z-re-soft:#182036;
-  --p-you:#2bb5cc; --p-adv:#cf7ae0; --shadow:none; }
+  --z-reg:#6fb4cf; --z-reg-soft:#142630; --z-cf:#c993cc; --z-cf-soft:#271a2b; --z-cs:#e18e9c; --z-cs-soft:#2e1b20; --z-re:#c7b08a; --z-re-soft:#1e1c19;
+  --p-you:#55c2c9; --p-adv:#e488c4; --shadow:none; }
 [data-zone="reg"]{--zone:var(--z-reg);--zone-soft:var(--z-reg-soft)}
 [data-zone="cf"]{--zone:var(--z-cf);--zone-soft:var(--z-cf-soft)}
 [data-zone="re"]{--zone:var(--z-re);--zone-soft:var(--z-re-soft)}
@@ -621,6 +621,67 @@ table.cyk th{font-family:var(--mono)}
   .setpick.mini button{padding:1px 5px}
 }
 
+/* ================= Chart layer: parchment, serif lettering, engraved rules ================= */
+:root{--grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .36 0 0 0 0 .26 0 0 0 0 .12 0 0 0 .13 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --route:#a4512f; --rule:color-mix(in srgb,var(--ink) 55%,transparent)}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --route:#e0895f;
+  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .95 0 0 0 0 .9 0 0 0 0 .8 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); } }
+:root[data-theme="dark"]{ --route:#e0895f;
+  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .95 0 0 0 0 .9 0 0 0 0 .8 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+html,body{background-color:var(--paper);background-image:var(--grain),radial-gradient(ellipse at 50% 0%,transparent 40%,color-mix(in srgb,var(--ink) 7%,transparent) 100%);background-attachment:fixed}
+.panel,.qf-card,.card,.move .body{background-image:linear-gradient(var(--surface),var(--surface))}
+h1,h2,h3,.ph h2,.big{font-family:var(--display);font-optical-sizing:auto}
+h1{font-weight:700;letter-spacing:-.025em;line-height:.98}
+h1 em{font-style:italic;font-weight:500;color:var(--zone,var(--ink))}
+.ph h2{font-weight:700;font-size:17px;letter-spacing:0}
+.eyebrow,.blk > .kicker,.qf-card .who,.stamps-lbl{font-family:var(--body);letter-spacing:.16em}
+/* engraved double rule on the big frames */
+.panel{border-color:var(--line);border-radius:6px}
+.mappanel,.st-head{position:relative}
+.mappanel{border:1.5px solid var(--rule);box-shadow:inset 0 0 0 4px var(--surface),inset 0 0 0 5px color-mix(in srgb,var(--ink) 30%,transparent),var(--shadow);padding:20px 22px 16px}
+.qf-card,.card,.move .body{border-radius:6px}
+.btn,.opt,.tab,select,.txt,.inputbox input{border-radius:6px}
+.btn.primary,.tab[aria-selected="true"],.steps-nav button.on{background:var(--ink);color:var(--paper)}
+.tab{background:var(--surface)}
+/* bar: a compass mark */
+.bar{border-bottom:1.5px solid var(--rule);box-shadow:0 3px 0 -2px var(--rule)}
+.logo{font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:-.01em}
+.logo .mark{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--ink);display:grid;place-items:center;position:relative;flex-direction:row}
+.logo .mark i{position:absolute;width:3px;height:22px;border-radius:2px;left:50%;top:50%;margin:-11px 0 0 -1.5px;background:var(--route)!important;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.logo .mark i:nth-child(2){transform:rotate(90deg);background:var(--ink)!important;height:16px;margin-top:-8px}
+.logo .mark i:nth-child(3){display:none}
+.pass-pill{border-radius:6px;border-color:var(--rule);font-family:var(--display);font-style:italic;font-weight:500;font-size:13.5px}
+.pass-pill b{font-style:normal;font-size:12.5px}
+/* home hero */
+.hero h1{font-size:clamp(44px,7.4vw,96px)}
+.hero .lede{font-family:var(--display);font-size:19px;line-height:1.45;color:var(--muted);font-weight:500}
+.facts li{border-left:0;padding:0 0 0 30px;position:relative}
+.facts li::before{content:"✦";position:absolute;left:4px;top:1px;color:var(--route);font-size:14px}
+.facts li b{font-family:var(--display);font-style:italic;font-size:16px;font-weight:700}
+h2.sec{font-family:var(--display);font-size:clamp(26px,3vw,36px);font-weight:700}
+.cg-h .zone-chip{font-family:var(--display);font-style:italic;font-size:14px;letter-spacing:0;background:none;border:0;padding:0}
+.cg-h{border-bottom:1px solid var(--line);padding-bottom:6px}
+/* cards as atlas plates */
+.card{border-top:1px solid var(--line);position:relative;padding:16px 18px}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:6px 0 0 6px;background:var(--zone)}
+.card h3{font-size:19px;font-weight:700;padding-right:44px}
+.card .plate{position:absolute;right:16px;top:12px;font-family:var(--display);font-style:italic;font-size:15px;color:var(--faint)}
+.card:hover .plate{color:var(--zone)}
+/* stop header as a plate */
+.st-head h1{font-size:clamp(38px,6vw,72px)}
+.st-head h1::after{width:100%;max-width:520px;height:0;border-top:1.5px solid var(--rule);border-bottom:1px solid var(--rule);padding-top:3px;background:none;border-radius:0}
+.plate-no{font-family:var(--display);font-style:italic;font-size:15px;color:var(--muted)}
+.zone-chip{border-radius:4px}
+.st-head .sub{font-family:var(--display);font-size:18px;font-weight:500;line-height:1.45}
+.st-body > .blk > .kicker::before{content:"§ " counter(sec);font-family:var(--display);font-style:italic;font-weight:700;font-size:16px;letter-spacing:0;color:var(--zone);background:none;padding:0}
+.st-body > .blk + .blk{border-top:0;padding-top:12px;background:linear-gradient(90deg,transparent,var(--rule) 15%,var(--rule) 85%,transparent) top/100% 1px no-repeat}
+.st-body > .blk > h2{font-weight:700;letter-spacing:-.015em}
+.recipe li::before{border-radius:50%;font-family:var(--display);font-style:italic}
+.qf-card .who{color:var(--route)}
+.qf-card .claim{font-family:var(--display);font-size:17px;font-weight:500}
+.note{border-radius:0 6px 6px 0}
+.st-head h1::after{margin-top:24px}
+
 </style>
 <div class="site">
   <div class="bar">
@@ -663,6 +724,7 @@ const Atlas = {
   toast(msg){ const t=document.getElementById("toast"); if(!t) return; t.textContent=msg; t.classList.add("show"); clearTimeout(this._tt); this._tt=setTimeout(()=>t.classList.remove("show"),2600); },
   refreshBar(){ const [a,b]=this.totals(); const pill=document.getElementById("passPill"); if(pill) pill.innerHTML=`Passport <b>${a}/${b}</b><span class="meter"><i style="width:${b?100*a/b:0}%"></i></span>`; },
   zone(def){ const r=(def&&def.region)||""; return /Regular/.test(r)?"reg":/Context-free/.test(r)?"cf":"re"; },
+  roman(n){ return [[10,"X"],[9,"IX"],[5,"V"],[4,"IV"],[1,"I"]].reduce((o,[v,r])=>{ while(n>=v){ o+=r; n-=v; } return o; },""); },
   zoneName:{reg:"Type 3 · Regular",cf:"Type 2 · Context-free",re:"Type 0 · Recursively enumerable"},
   stampRow(st){ const def=this.stations[st]; const row=h("div","stamps"); row.appendChild(h("span","stamps-lbl","Passport")); def.stamps.forEach(s=>{ const e=h("span","stp"+(this.has(st,s.id)?" on":""),"◉ "+esc(s.label)); e.dataset.st=st; e.dataset.id=s.id; row.appendChild(e); }); return row; },
   /* ---- router ---- */
@@ -681,7 +743,7 @@ const Atlas = {
     const crumb=h("div","crumb"); const back=h("button",null,"← Atlas"); back.type="button"; back.onclick=()=>this.go("home"); crumb.appendChild(back);
     crumb.appendChild(h("span",null,"· "+esc(def.region)+" · "+esc(def.sessions)));
     view.appendChild(crumb);
-    const head=h("header","st-head",`<div class="st-meta"><span class="zone-chip">${esc(this.zoneName[this.zone(def)])}</span><span class="eyebrow">${esc(def.module)}</span></div><h1>${esc(def.title)}</h1><p class="sub">${esc(def.blurb)}</p>`);
+    const head=h("header","st-head",`<div class="st-meta"><span class="plate-no">Plate ${this.roman(this.order.indexOf(def.id)+1)}</span><span class="zone-chip">${esc(this.zoneName[this.zone(def)])}</span><span class="eyebrow">${esc(def.module)}</span></div><h1>${esc(def.title)}</h1><p class="sub">${esc(def.blurb)}</p>`);
     view.appendChild(head); view.appendChild(this.stampRow(def.id));
     const body=h("div","view st-body"); view.appendChild(body);
     def.mount(body);
@@ -894,7 +956,7 @@ const Home = {
   mount(view){
     const hero=h("section","hero");
     hero.innerHTML=`<div><div class="eyebrow">CSCE 4201 · Theory of Computing · Fall 2026</div>
-      <h1>Automata Atlas</h1>
+      <h1>Automata <em>Atlas</em></h1>
       <p class="lede">The whole course on one map. Every session is a stop where you can run the machine, break it, and play the in-class activity. What separates the regions is memory.</p></div>
       <ul class="facts">
         <li><b>Not all problems are solvable.</b>Some well-posed yes/no questions have no algorithm at all.</li>
@@ -957,7 +1019,7 @@ const Home = {
       mine.forEach(p=>{ const built=!!p.mount; const [a,b]=Atlas.count(p.id);
         const c=h(built?"button":"div","card"+(built?"":" soon")); if(built){ c.type="button"; c.onclick=()=>Atlas.go(p.id); }
         const dots=p.stamps.map(st=>`<i class="${Atlas.has(p.id,st.id)?"on":""}"></i>`).join("");
-        c.innerHTML=`<span class="ses">${esc(p.sessions)} · ${esc(p.region)}</span><h3>${esc(p.title)}</h3><p>${esc(p.blurb)}</p>
+        c.innerHTML=`<span class="plate">${Atlas.roman(Atlas.order.indexOf(p.id)+1)}</span><span class="ses">${esc(p.sessions)} · ${esc(p.region)}</span><h3>${esc(p.title)}</h3><p>${esc(p.blurb)}</p>
           <div class="foot">${built?`<span class="go">Open stop →</span>`:`<span class="tag">Coming next</span>`}<span class="dots" title="${a} of ${b} stamps">${dots}</span></div>`;
         cards.appendChild(c); }); });
   }

@@ -38,7 +38,7 @@ const Home = {
   mount(view){
     const hero=h("section","hero");
     hero.innerHTML=`<div><div class="eyebrow">CSCE 4201 · Theory of Computing · Fall 2026</div>
-      <h1>Automata Atlas</h1>
+      <h1>Automata <em>Atlas</em></h1>
       <p class="lede">The whole course on one map. Every session is a stop where you can run the machine, break it, and play the in-class activity. What separates the regions is memory.</p></div>
       <ul class="facts">
         <li><b>Not all problems are solvable.</b>Some well-posed yes/no questions have no algorithm at all.</li>
@@ -101,7 +101,7 @@ const Home = {
       mine.forEach(p=>{ const built=!!p.mount; const [a,b]=Atlas.count(p.id);
         const c=h(built?"button":"div","card"+(built?"":" soon")); if(built){ c.type="button"; c.onclick=()=>Atlas.go(p.id); }
         const dots=p.stamps.map(st=>`<i class="${Atlas.has(p.id,st.id)?"on":""}"></i>`).join("");
-        c.innerHTML=`<span class="ses">${esc(p.sessions)} · ${esc(p.region)}</span><h3>${esc(p.title)}</h3><p>${esc(p.blurb)}</p>
+        c.innerHTML=`<span class="plate">${Atlas.roman(Atlas.order.indexOf(p.id)+1)}</span><span class="ses">${esc(p.sessions)} · ${esc(p.region)}</span><h3>${esc(p.title)}</h3><p>${esc(p.blurb)}</p>
           <div class="foot">${built?`<span class="go">Open stop →</span>`:`<span class="tag">Coming next</span>`}<span class="dots" title="${a} of ${b} stamps">${dots}</span></div>`;
         cards.appendChild(c); }); });
   }

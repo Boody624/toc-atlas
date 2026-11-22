@@ -29,6 +29,7 @@ const Atlas = {
   toast(msg){ const t=document.getElementById("toast"); if(!t) return; t.textContent=msg; t.classList.add("show"); clearTimeout(this._tt); this._tt=setTimeout(()=>t.classList.remove("show"),2600); },
   refreshBar(){ const [a,b]=this.totals(); const pill=document.getElementById("passPill"); if(pill) pill.innerHTML=`Passport <b>${a}/${b}</b><span class="meter"><i style="width:${b?100*a/b:0}%"></i></span>`; },
   zone(def){ const r=(def&&def.region)||""; return /Regular/.test(r)?"reg":/Context-free/.test(r)?"cf":"re"; },
+  roman(n){ return [[10,"X"],[9,"IX"],[5,"V"],[4,"IV"],[1,"I"]].reduce((o,[v,r])=>{ while(n>=v){ o+=r; n-=v; } return o; },""); },
   zoneName:{reg:"Type 3 · Regular",cf:"Type 2 · Context-free",re:"Type 0 · Recursively enumerable"},
   stampRow(st){ const def=this.stations[st]; const row=h("div","stamps"); row.appendChild(h("span","stamps-lbl","Passport")); def.stamps.forEach(s=>{ const e=h("span","stp"+(this.has(st,s.id)?" on":""),"◉ "+esc(s.label)); e.dataset.st=st; e.dataset.id=s.id; row.appendChild(e); }); return row; },
   /* ---- router ---- */
@@ -47,7 +48,7 @@ const Atlas = {
     const crumb=h("div","crumb"); const back=h("button",null,"← Atlas"); back.type="button"; back.onclick=()=>this.go("home"); crumb.appendChild(back);
     crumb.appendChild(h("span",null,"· "+esc(def.region)+" · "+esc(def.sessions)));
     view.appendChild(crumb);
-    const head=h("header","st-head",`<div class="st-meta"><span class="zone-chip">${esc(this.zoneName[this.zone(def)])}</span><span class="eyebrow">${esc(def.module)}</span></div><h1>${esc(def.title)}</h1><p class="sub">${esc(def.blurb)}</p>`);
+    const head=h("header","st-head",`<div class="st-meta"><span class="plate-no">Plate ${this.roman(this.order.indexOf(def.id)+1)}</span><span class="zone-chip">${esc(this.zoneName[this.zone(def)])}</span><span class="eyebrow">${esc(def.module)}</span></div><h1>${esc(def.title)}</h1><p class="sub">${esc(def.blurb)}</p>`);
     view.appendChild(head); view.appendChild(this.stampRow(def.id));
     const body=h("div","view st-body"); view.appendChild(body);
     def.mount(body);
