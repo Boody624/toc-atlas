@@ -208,3 +208,14 @@ table.cyk tr.wrow td{border:none;background:none;height:auto} table.cyk tr.wrow 
 table.cyk tr.wrow b{font-size:17px}
 .setpick.mini{gap:3px;justify-content:center} .setpick.mini button{padding:2px 6px;font-size:12px}
 .tab.donetab{border-color:var(--accept)}
+/* Turing machines */
+.tmtape{justify-content:flex-start;overflow-x:auto;padding-bottom:6px}
+.tmtape .cell.blank{color:var(--faint)}
+table.tmd{font-size:12.5px} table.tmd td{white-space:nowrap;min-width:5.5em}
+table.tmd td.hit{background:var(--now-soft);outline:2px solid var(--now);font-weight:700}
+table.tmd td.miss{background:var(--reject-soft);outline:2px solid var(--reject)}
+table.tmd.pick td{cursor:pointer} table.tmd.pick td:hover{background:var(--surface-2)}
+table.tmd td.hole{background:var(--now-soft)} table.tmd td.hole select{font-size:12px;margin:1px}
+.trace{font-family:var(--mono);font-size:14px;line-height:1.75;max-height:340px;overflow-y:auto}
+.trace div{white-space:nowrap} .trace div.cur{background:var(--now-soft);border-radius:6px;padding:0 4px}
+.trace small{color:var(--muted);margin-left:10px;font-size:11.5px} .trace .qs,.narr .qs{color:var(--sym-X)}
