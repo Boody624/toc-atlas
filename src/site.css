@@ -219,3 +219,7 @@ table.tmd td.hole{background:var(--now-soft)} table.tmd td.hole select{font-size
 .trace{font-family:var(--mono);font-size:14px;line-height:1.75;max-height:340px;overflow-y:auto}
 .trace div{white-space:nowrap} .trace div.cur{background:var(--now-soft);border-radius:6px;padding:0 4px}
 .trace small{color:var(--muted);margin-left:10px;font-size:11.5px} .trace .qs,.narr .qs{color:var(--sym-X)}
+.wstr .xm{border:2px dashed var(--now)}
+.qf-card .row.route{flex-wrap:wrap}
+.qf-card .row.route .btn{font-size:13px}
+.btn.sel{outline:2px solid var(--ink);outline-offset:1px}
