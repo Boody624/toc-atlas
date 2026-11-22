@@ -40,14 +40,15 @@ Atlas.stations.cyk.mount=function(root){
 
   /* ---------- lab ---------- */
   const b2=block(root,"Lab","Watch the table fill, one cell at a time","lab");
-  const mt=h("div","machines"); b2.appendChild(mt); const host=h("div","panel"); b2.appendChild(host); let timer=null; Atlas.onCleanup(()=>clearInterval(timer));
+  const mt=h("div","machines"); b2.appendChild(mt); const host=h("div","panel cyk-lab"); b2.appendChild(host); let timer=null; Atlas.onCleanup(()=>clearInterval(timer));
   function show(G,w){ clearInterval(timer); timer=null; [...mt.children].forEach(t=>t.setAttribute("aria-selected",t.dataset.id===G.id?"true":"false")); w=w||G.ex[0];
     const R=cyk(G.g,w), order=[]; for(let j=1;j<=R.n;j++) for(let i=1;i<=R.n-j+1;i++) order.push([i,j]); let t=0;
-    host.innerHTML=`<div class="ph"><h2>${Object.entries(G.g.rules).map(([A,rs])=>`${A} → ${rs.map(r=>r.join("")).join(" | ")}`).join(" &nbsp; ")}</h2><span class="hint">Grouped by right-hand side: ${esc(G.group)}</span></div>`;
+    const sym=x=>isVar(x)?`<span class="v">${esc(x)}</span>`:esc(x);
+    host.innerHTML=`<div class="ph"><h2 class="gline">${Object.entries(G.g.rules).map(([A,rs])=>`<span class="gp">${sym(A)} → ${rs.map(r=>r.map(sym).join("")).join(" <i>|</i> ")}</span>`).join(" ")}</h2><span class="hint">Grouped by right-hand side: ${esc(G.group)}</span></div>`;
     const top=h("div","controls"); host.appendChild(top); const ib=h("div","inputbox"); ib.innerHTML=`<label for="cykIn">w =</label><input id="cykIn" autocomplete="off" spellcheck="false" maxlength="8">`; top.appendChild(ib); const inp=ib.querySelector("input"); inp.value=w;
     const exs=h("div","examples"); top.appendChild(exs); G.ex.forEach(x=>{ const ok=cyk(G.g,x).ok; const b=h("button","ex"+(x===w?" on":""),`${esc(x)}<small class="${ok?"y":"n"}">${ok?"✓":"✗"}</small>`); b.type="button"; b.onclick=()=>show(G,x); exs.appendChild(b); });
     inp.addEventListener("change",()=>{ const v=[...inp.value].filter(c=>"ab".includes(c)).join(""); if(v) show(G,v); });
-    const row=h("div","row"); top.appendChild(row); const bB=h("button","btn","Back"), bS=h("button","btn primary","Fill next cell"), bR=h("button","btn","Next row"), bP=h("button","btn","Play"); [bB,bS,bR,bP].forEach(b=>{ b.type="button"; row.appendChild(b); });
+    const row=h("div","row ctl"); top.appendChild(row); const bB=h("button","btn","Back"), bS=h("button","btn primary","Fill next cell"), bR=h("button","btn","Next row"), bP=h("button","btn","Play"); [bB,bS,bR,bP].forEach(b=>{ b.type="button"; row.appendChild(b); });
     const tw=h("div","tablewrap"); host.appendChild(tw); const tab=grid(w,()=>{}); tw.appendChild(tab);
     const narr=h("div","narr"); narr.innerHTML=`<span class="step">V</span><p></p>`; host.appendChild(narr); const pv=h("div"); host.appendChild(pv);
     function render(){ tab.querySelectorAll("td[data-k]").forEach(td=>{ const [i,j]=td.dataset.k.split(",").map(Number); const idx=order.findIndex(([a,b])=>a===i&&b===j); td.className=""; td.innerHTML=idx<t?esc(setS(R.V[td.dataset.k])):""; if(idx<t&&!R.V[td.dataset.k].length) td.classList.add("empty"); });
