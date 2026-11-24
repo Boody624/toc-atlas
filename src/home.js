@@ -95,7 +95,8 @@ const Home = {
     svg("circle",{r:2.2,class:"c-dark"},cr);
 
     /* the sea around the land: depth soundings, contour lines and a few waves */
-    const sea=svg("g",{class:"seabed","aria-hidden":"true"},s);
+    const sc=svg("clipPath",{id:"seaclip"},defs); svg("rect",{x:0,y:0,width:1120,height:150},sc);
+    const sea=svg("g",{class:"seabed","aria-hidden":"true","clip-path":"url(#seaclip)"},s);
     [16,30].forEach((o,k)=>svg("path",{d:coastPath(10,10,1100,500,26,o,4+k*2,k*3.1+.7),class:"depth d"+k,transform:"translate(0 100)"},sea));
     [[38,40],[172,72],[232,26],[96,92],[892,30],[960,86],[1010,104],[30,262],[1098,250]].forEach(([x,y],i)=>{
       const g=svg("g",{class:"wave",style:`animation-delay:${-i*1.3}s`},sea); svg("path",{d:`M${x} ${y}q5 -5 10 0t10 0t10 0`},g); });
@@ -127,7 +128,7 @@ const Home = {
       const low=p.y>300; note.style.top=low?"":`calc(${100*(p.y+100)/622}% - 20px)`; note.style.bottom=low?`calc(${100-100*(p.y+100)/622}% - 20px)`:""; };
     pts.forEach((p,i)=>{
       const built=!!p.mount; const [a,b]=Atlas.count(p.id); const done=built && b>0 && a===b;
-      const g=svg("g",{class:"stop"+(built?"":" soon")+(done?" done":""),"data-zone":Atlas.zone(p),tabindex:"0",role:"link","aria-label":`Plate ${plateNo(p)}, ${p.title}`+(b?`, ${a} of ${b} stamps`:""),style:animate?`animation-delay:${.25+i*.16}s`:""},land);
+      const g=svg("g",{class:"stop"+(built?"":" soon")+(done?" done":"")+(p.lab==="r"?" lr":""),"data-zone":Atlas.zone(p),tabindex:"0",role:"link","aria-label":`Plate ${plateNo(p)}, ${p.title}`+(b?`, ${a} of ${b} stamps`:""),style:animate?`animation-delay:${.25+i*.16}s`:""},land);
       if(p===nextStop) svg("circle",{cx:p.x,cy:p.y,r:RR,class:"halo"},g);
       svg("circle",{cx:p.x,cy:p.y,r:RR,class:"ring"},g);
       if(a) svg("circle",{cx:p.x,cy:p.y,r:RR,class:"prog","stroke-dasharray":`${CIRC*a/b} ${CIRC}`,transform:`rotate(-90 ${p.x} ${p.y})`},g);

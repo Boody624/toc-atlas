@@ -861,3 +861,12 @@ table.gz{width:100%;border-collapse:collapse}
 .plate-head .plate-title .plate-no{color:var(--zone)}
 @media (max-width:640px){ .plate-head{padding:16px 14px 14px} }
 [data-wall="1"] .plate-head{background:linear-gradient(125deg,var(--zone-soft) 0%,color-mix(in srgb,var(--zone-soft) 45%,transparent) 55%,transparent 85%)}
+/* fixes: clean tints on lilac, label halos that match the land underneath, no stray marker */
+.plate-head,[data-wall="1"] .plate-head{background:color-mix(in srgb,var(--zone-soft) 55%,var(--surface))}
+.blk.k-idea .panel{background:var(--surface)}
+.np.cont{background:color-mix(in srgb,var(--zone-soft) 55%,var(--surface))}
+.stop.lr[data-zone="reg"] text{stroke:var(--z-cf-soft)}
+.stop.lr[data-zone="cf"] text{stroke:color-mix(in srgb,var(--z-cs-soft) 70%,var(--surface))}
+.voyage b{opacity:calc(var(--p,0) * 40)}
+.stp:not(.on){color:var(--muted)}
+.stp:not(.on) .stamp-svg{opacity:.55}
