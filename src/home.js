@@ -59,6 +59,15 @@ const Home = {
     const pts=Atlas.order.map(id=>Atlas.stations[id]);
     const open=p=>{ if(p.mount) Atlas.go(p.id); else Atlas.toast(p.short+" is being built next"); };
     const plateNo=p=>Atlas.roman(Atlas.order.indexOf(p.id)+1);
+    /* where to pick the route back up: the last stop you stamped if unfinished, else the next unfinished one */
+    const built=pts.filter(p=>p.mount), inc=p=>{ const [a,b]=Atlas.count(p.id); return a<b; };
+    const lastT=built.reduce((k,p,i)=>Atlas.count(p.id)[0]?i:k,-1);
+    const nextStop=(lastT>=0&&inc(built[lastT]))?built[lastT]:(built.slice(lastT+1).find(inc)||built.find(inc)||null);
+    const fresh=lastT<0;
+    const contBtn=()=>{ const b=h("button","np cont"); b.type="button";
+      if(nextStop){ b.dataset.zone=Atlas.zone(nextStop); b.innerHTML=`<small>${fresh?"Start the route":"Pick up the route"}</small><b>${esc(nextStop.title)}</b><span>Plate ${plateNo(nextStop)} · ${esc(nextStop.sessions)}${fresh?"":` · ${Atlas.count(nextStop.id)[0]} of ${Atlas.count(nextStop.id)[1]} stamped`}</span>`; b.onclick=()=>Atlas.go(nextStop.id); }
+      else { b.innerHTML=`<small>Route complete</small><b>Every stamp collected</b><span>Open the passport</span>`; b.onclick=()=>Atlas.go("passport"); }
+      return b; };
     view.appendChild(h("h1","sr-only","Automata Atlas"));
 
     /* ---------- the chart ---------- */
@@ -79,12 +88,18 @@ const Home = {
     svg("text",{x:560,y:60,"text-anchor":"middle",class:"ct-title"},ct,"Automata Atlas");
     svg("text",{x:560,y:80,"text-anchor":"middle",class:"ct-sub"},ct,"CSCE 4201 · THEORY OF COMPUTING · FALL 2026");
     [[262,54],[858,54]].forEach(([x,y],i)=>svg("path",{d:i?`M${x} ${y}h-14l-6 -5l-6 5h-20`:`M${x} ${y}h14l6 -5l6 5h20`,class:"ct-flourish"},s));
-    const cr=svg("g",{class:"compass",transform:"translate(1058 52)"},s);
+    const cr=svg("g",{class:"sway"},svg("g",{class:"compass",transform:"translate(1058 52)"},s));
     svg("circle",{r:30,class:"c-ring"},cr); svg("circle",{r:24,class:"c-ring thin"},cr);
     [45,135,225,315].forEach(a=>svg("path",{d:"M0 -18L3.5 0L0 3.5L-3.5 0Z",transform:`rotate(${a})`,class:"c-short"},cr));
     [0,90,180,270].forEach(a=>{ const g=svg("g",{transform:`rotate(${a})`},cr); svg("path",{d:"M0 -27L5 0L0 0Z",class:"c-dark"},g); svg("path",{d:"M0 -27L-5 0L0 0Z",class:"c-light"},g); });
     svg("circle",{r:2.2,class:"c-dark"},cr);
 
+    /* the sea around the land: depth soundings, contour lines and a few waves */
+    const sea=svg("g",{class:"seabed","aria-hidden":"true"},s);
+    [16,30].forEach((o,k)=>svg("path",{d:coastPath(10,10,1100,500,26,o,4+k*2,k*3.1+.7),class:"depth d"+k,transform:"translate(0 100)"},sea));
+    [[38,40],[172,72],[232,26],[96,92],[892,30],[960,86],[1010,104],[30,262],[1098,250]].forEach(([x,y],i)=>{
+      const g=svg("g",{class:"wave",style:`animation-delay:${-i*1.3}s`},sea); svg("path",{d:`M${x} ${y}q5 -5 10 0t10 0t10 0`},g); });
+    [[60,22,"14"],[148,40,"22"],[236,90,"9"],[880,74,"31"],[1000,24,"18"]].forEach(([x,y,t])=>svg("text",{x,y,class:"sounding"},sea,t));
     const land=svg("g",{transform:"translate(0 100)"},s);
     MAP_REGS.forEach(([c,z,x,y,w,hh,l,sub,lm],ri)=>{
       if(c!=="r0") svg("path",{d:coastPath(x,y,w,hh,26,7,2.5,ri*1.9+.4),class:"waterline "+c},land);
@@ -113,6 +128,7 @@ const Home = {
     pts.forEach((p,i)=>{
       const built=!!p.mount; const [a,b]=Atlas.count(p.id); const done=built && b>0 && a===b;
       const g=svg("g",{class:"stop"+(built?"":" soon")+(done?" done":""),"data-zone":Atlas.zone(p),tabindex:"0",role:"link","aria-label":`Plate ${plateNo(p)}, ${p.title}`+(b?`, ${a} of ${b} stamps`:""),style:animate?`animation-delay:${.25+i*.16}s`:""},land);
+      if(p===nextStop) svg("circle",{cx:p.x,cy:p.y,r:RR,class:"halo"},g);
       svg("circle",{cx:p.x,cy:p.y,r:RR,class:"ring"},g);
       if(a) svg("circle",{cx:p.x,cy:p.y,r:RR,class:"prog","stroke-dasharray":`${CIRC*a/b} ${CIRC}`,transform:`rotate(-90 ${p.x} ${p.y})`},g);
       svg("circle",{cx:p.x,cy:p.y,r:10,class:"dot"},g);
@@ -126,10 +142,15 @@ const Home = {
       g.addEventListener("mouseleave",()=>note.hidden=true); g.addEventListener("blur",()=>note.hidden=true);
     });
 
+    if(nextStop){ const p=nextStop, fx=p.x-11, fy=p.y-17; const fl=svg("g",{class:"nextflag","aria-hidden":"true",style:animate?`animation-delay:${.25+pts.indexOf(p)*.16+.3}s`:""},land);
+      svg("path",{d:`M${fx} ${fy}V${fy-30}`,class:"pole"},fl); const pf=svg("g",{class:"pf"},fl); svg("path",{d:`M${fx} ${fy-30}q9 -3 17 2t15 -1v14q-8 4 -15 1t-17 -2Z`,class:"pennant"},pf);
+      svg("text",{x:fx+16,y:fy-19.5,"text-anchor":"middle",class:"ftext"},pf,fresh?"START":"NEXT"); }
+
     /* under the chart: how to read it, and the three notes */
     const under=h("div","chart-notes"); chart.appendChild(under);
     under.appendChild(h("div","cn-lede",`<p>The whole course on one map. Every session is a stop where you can run the machine, break it, and play the in-class activity. What separates the regions is memory.</p>
       <div class="maplegend"><span><i class="lg-ring"></i>Ring: your passport progress</span><span><i class="lg-wall"></i>Mountains: the wall between two classes</span><span><i class="lg-route"></i>The route, in session order</span></div>`));
+    under.firstChild.insertBefore(contBtn(), under.firstChild.querySelector(".maplegend"));
     const ol=h("ol","cn-list"); under.appendChild(ol);
     [["Not all problems are solvable.","Some well-posed yes/no questions have no algorithm at all."],["Not all solvable problems are practical.",""],["Not all systems can be fully verified.","These are mathematical limits, not engineering weaknesses."]]
       .forEach(([b,t])=>ol.appendChild(h("li",null,`<b>${esc(b)}</b>${t?`<span>${esc(t)}</span>`:""}`)));
@@ -137,12 +158,13 @@ const Home = {
     /* phones: a strip map, one ribbon per class, read top to bottom */
     const strips=h("div","strips"); chart.appendChild(strips);
     strips.appendChild(h("div","strip-title",`<div class="eyebrow">CSCE 4201 · Theory of Computing · Fall 2026</div><div class="st-big">Automata <em>Atlas</em></div><p>The whole course on one map. Every session is a stop where you can run the machine, break it, and play the in-class activity. What separates the regions is memory.</p>`));
+    strips.appendChild(contBtn());
     [["reg",MAP_REGS[3]],["cf",MAP_REGS[2]],["cs",MAP_REGS[1]],["re",MAP_REGS[0]]].forEach(([z,r],si)=>{
       const st=h("section","strip"); st.dataset.zone=z;
       st.appendChild(h("header",null,`<span class="strip-no">Strip ${si+1}</span><b>${esc(r[6])}</b><small>${esc(r[7])} · landmark ${esc(r[8])}</small>`));
       const mine=pts.filter(p=>Atlas.zone(p)===z); const road=h("ol","road"); st.appendChild(road);
       if(!mine.length) road.appendChild(h("li","road-empty","No stops on this stretch of the route."));
-      mine.forEach((p,i)=>{ const [a,b]=Atlas.count(p.id); const li=h("li",i%2?"r":"l");
+      mine.forEach((p,i)=>{ const [a,b]=Atlas.count(p.id); const li=h("li",(i%2?"r":"l")+(p===nextStop?" next":""));
         const bt=h("button","town",`<span class="vmark" style="--pct:${b?100*a/b:0}%"></span><span class="tn"><span class="plate-no">Plate ${plateNo(p)}</span><b>${esc(p.short)}</b><span class="m-ses">${esc(p.sessions)}${b?` · ${a}/${b}`:""}</span></span>`); bt.type="button"; bt.onclick=()=>open(p); li.appendChild(bt); road.appendChild(li); });
       strips.appendChild(st);
       const w=mine.find(p=>p.wall); if(w) strips.appendChild(h("div","pass",`<span class="pass-peaks" aria-hidden="true"></span><span>The wall · ${esc(w.short)}</span>`));

@@ -21,6 +21,7 @@ const Atlas = {
     try{ localStorage.setItem("atlas.passport", JSON.stringify(p)); }catch(e){}
     const def=this.stations[st]; const s=def && def.stamps.find(x=>x.id===id);
     if(s) this.toast("Passport stamp: "+s.label); this.refreshBar();
+    const pill=document.getElementById("passPill"); if(pill && !reduceMotion){ pill.classList.remove("bump"); void pill.offsetWidth; pill.classList.add("bump"); }
     document.querySelectorAll(`.stp[data-st="${st}"][data-id="${id}"]`).forEach(e=>{ e.classList.add("on","fresh"); if(window.Plate) Plate.restamp(e,st,id); });
     return true;
   },
@@ -47,6 +48,7 @@ const Atlas = {
     view.dataset.zone = def && def.mount ? this.zone(def) : ""; view.dataset.page = def && def.mount ? "plate" : (id==="passport"||id==="notation") ? id : "home";
     if(def && def.mount){ this.mountStation(def, view); } else if(id==="passport"){ Plate.passport(view); } else if(id==="notation"){ Plate.notation(view); } else { Home.mount(view); }
     window.scrollTo(0,0); this.refreshBar();
+    const mk=document.querySelector(".logo .mark"); if(mk && this._routed && !reduceMotion){ mk.classList.remove("spin"); void mk.offsetWidth; mk.classList.add("spin"); }
   },
   mountStation(def, view){ Plate.mount(def, view); }
 };
@@ -64,7 +66,9 @@ function quickFire(parent, items, onAll){
   const prev=h("button","btn","← Previous"), count=h("span","deck-count"), next=h("button","btn","Next claim →"), all=h("button","btn ghost","Show all");
   [prev,next,all].forEach(b=>b.type="button"); nav.append(prev,count,next,all);
   let answered=0, correct=0, cur=0; const cards=[], dots=[];
-  function show(k){ cur=Math.max(0,Math.min(items.length-1,k)); cards.forEach((c,x)=>c.classList.toggle("cur",x===cur)); dots.forEach((d,x)=>d.classList.toggle("cur",x===cur));
+  function show(k){ const was=cur; cur=Math.max(0,Math.min(items.length-1,k));
+    if(was!==cur && !reduceMotion){ const c=cards[cur]; c.classList.remove("deal","back"); void c.offsetWidth; c.classList.add("deal"); if(cur<was) c.classList.add("back"); }
+    cards.forEach((c,x)=>c.classList.toggle("cur",x===cur)); dots.forEach((d,x)=>d.classList.toggle("cur",x===cur));
     count.textContent=`Claim ${cur+1} of ${items.length}`; prev.disabled=cur===0; next.disabled=cur===items.length-1;
     next.classList.toggle("primary", !!cards[cur].dataset.done && cur<items.length-1);
     grid.dataset.left=String(Math.min(2,items.length-1-cur)); }
@@ -75,7 +79,7 @@ function quickFire(parent, items, onAll){
     const row=h("div","row"); const b1=h("button","btn","That is right"), b2=h("button","btn","That is wrong"); b1.type=b2.type="button";
     row.appendChild(b1); row.appendChild(b2); c.appendChild(row);
     const done=(saidRight)=>{ if(c.dataset.done) return; c.dataset.done=1; b1.disabled=b2.disabled=true; const ok=saidRight===it.ok;
-      c.classList.add(ok?"right":"wrong","turn"); d.classList.add(ok?"ok":"no"); answered++; if(ok) correct++;
+      c.classList.remove("deal","back"); c.classList.add(ok?"right":"wrong","turn"); d.classList.add(ok?"ok":"no"); answered++; if(ok) correct++;
       c.appendChild(h("div","res",(ok?"Correct. ":"Not quite. ")+"The claim is "+(it.ok?"true.":"false.")));
       c.appendChild(h("p","why",it.why));
       show(cur);
@@ -84,6 +88,8 @@ function quickFire(parent, items, onAll){
     grid.appendChild(c); cards.push(c);
   });
   prev.onclick=()=>show(cur-1); next.onclick=()=>show(cur+1);
+  deck.addEventListener("keydown",e=>{ if(deck.classList.contains("all")||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if(e.key==="ArrowRight"&&cur<items.length-1){ e.preventDefault(); show(cur+1); } else if(e.key==="ArrowLeft"&&cur>0){ e.preventDefault(); show(cur-1); } });
   all.onclick=()=>{ const on=deck.classList.toggle("all"); all.textContent=on?"One at a time":"Show all"; };
   show(0);
 }

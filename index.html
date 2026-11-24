@@ -18,8 +18,8 @@
    the written trace on the right; below it the multiverse of branches and the stack skyline,
    both sharing one time axis (move number). Cool paper + ink, amber marks "now". */
 :root{
-  --paper:#efe6d0; --surface:#fbf7ee; --surface-2:#f4eddd; --ink:#2b2219; --muted:#6c604f; --faint:#b0a389; --line:#dccfb3;
-  --now:#d4861a; --now-soft:#f8e5c0; --accept:#2e7a4e; --accept-soft:#dcebd8; --reject:#b5402f; --reject-soft:#f5ddd4;
+  --paper:#f7f2e5; --surface:#fffdf6; --surface-2:#f1ebdb; --ink:#18213b; --muted:#555d78; --faint:#a4a8b9; --line:#e2dac6;
+  --now:#ec8a12; --now-soft:#feeac8; --accept:#11875b; --accept-soft:#d4f1e3; --reject:#d93a3f; --reject-soft:#fcdcda;
   --sym-X:#6a55e0; --sym-Z:#56607e; --sym-A:#2c78dc; --sym-B:#e06b23; --sym-P:#139169; --sym-N:#cf3f55;
   --sym-1:#0e8fa6; --sym-2:#b14fc4; --sym-3:#8a6d16; --sym-4:#3a8f2f;
   --plate-ink:#ffffff;
@@ -29,14 +29,14 @@
   --r:14px;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --paper:#11151d; --surface:#191e28; --surface-2:#1f2532; --ink:#f0e7d3; --muted:#aa9e88; --faint:#646a78; --line:#2f3543;
-  --now:#f0a843; --now-soft:#3b2c15; --accept:#5cbf88; --accept-soft:#16301f; --reject:#ee7b67; --reject-soft:#3a1e19;
+  --paper:#0b1326; --surface:#131d37; --surface-2:#1a2544; --ink:#f3eddd; --muted:#a8b0ca; --faint:#5c6789; --line:#283459;
+  --now:#ffb340; --now-soft:#3e2d10; --accept:#3fd49b; --accept-soft:#0f3329; --reject:#ff6b6b; --reject-soft:#3e1820;
   --sym-X:#8a78ff; --sym-Z:#6d7799; --sym-A:#4a92f0; --sym-B:#f0843d; --sym-P:#22a87c; --sym-N:#e2546b;
   --sym-1:#22a9c0; --sym-2:#c46ad6; --sym-3:#b0912e; --sym-4:#4fae43;
   color-scheme:dark; } }
 :root[data-theme="dark"]{
-  --paper:#11151d; --surface:#191e28; --surface-2:#1f2532; --ink:#f0e7d3; --muted:#aa9e88; --faint:#646a78; --line:#2f3543;
-  --now:#f0a843; --now-soft:#3b2c15; --accept:#5cbf88; --accept-soft:#16301f; --reject:#ee7b67; --reject-soft:#3a1e19;
+  --paper:#0b1326; --surface:#131d37; --surface-2:#1a2544; --ink:#f3eddd; --muted:#a8b0ca; --faint:#5c6789; --line:#283459;
+  --now:#ffb340; --now-soft:#3e2d10; --accept:#3fd49b; --accept-soft:#0f3329; --reject:#ff6b6b; --reject-soft:#3e1820;
   --sym-X:#8a78ff; --sym-Z:#6d7799; --sym-A:#4a92f0; --sym-B:#f0843d; --sym-P:#22a87c; --sym-N:#e2546b;
   --sym-1:#22a9c0; --sym-2:#c46ad6; --sym-3:#b0912e; --sym-4:#4fae43;
   color-scheme:dark; }
@@ -489,16 +489,19 @@ table.diag tr.drow th{color:var(--accept)}
    Each language class is a territory with its own hue. Amber (--now) stays reserved for "the current step";
    green/red stay reserved for accept/reject. */
 :root{
-  --z-reg:#256a87; --z-reg-soft:#dde8e6; --z-cf:#8a4a8c; --z-cf-soft:#ecdfe3; --z-cs:#b0566a; --z-cs-soft:#f3e0dc; --z-re:#6d5a40; --z-re-soft:#e9dfca;
-  --p-you:#1f7d86; --p-adv:#a3437f;
-  --shadow:0 1px 0 rgba(80,60,30,.06),0 6px 18px -8px rgba(80,60,30,.18);
+  --z-reg:#088a86; --z-reg-soft:#d3f0ea; --z-cf:#5d44d6; --z-cf-soft:#e6e0fc; --z-cs:#e2603f; --z-cs-soft:#fde2d6; --z-re:#b97a06; --z-re-soft:#f8ecca;
+  --p-you:#1c6ee0; --p-adv:#c92c7e;
+  --sea:#cfe7ee; --sea-2:#b6dbe6; --sea-ink:#2b7c9c;
+  --shadow:0 1px 0 rgba(20,30,70,.05),0 8px 22px -10px rgba(20,30,70,.22);
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --z-reg:#6fb4cf; --z-reg-soft:#142630; --z-cf:#c993cc; --z-cf-soft:#271a2b; --z-cs:#e18e9c; --z-cs-soft:#2e1b20; --z-re:#c7b08a; --z-re-soft:#1e1c19;
-  --p-you:#55c2c9; --p-adv:#e488c4; --shadow:none; } }
+  --z-reg:#33d6c5; --z-reg-soft:#0d2d38; --z-cf:#a493ff; --z-cf-soft:#211d4f; --z-cs:#ff8c69; --z-cs-soft:#3b1f22; --z-re:#f3bf4c; --z-re-soft:#2b2617;
+  --p-you:#5eaaff; --p-adv:#ff79bd;
+  --sea:#0c2140; --sea-2:#10294f; --sea-ink:#4ea6cc; --shadow:none; } }
 :root[data-theme="dark"]{
-  --z-reg:#6fb4cf; --z-reg-soft:#142630; --z-cf:#c993cc; --z-cf-soft:#271a2b; --z-cs:#e18e9c; --z-cs-soft:#2e1b20; --z-re:#c7b08a; --z-re-soft:#1e1c19;
-  --p-you:#55c2c9; --p-adv:#e488c4; --shadow:none; }
+  --z-reg:#33d6c5; --z-reg-soft:#0d2d38; --z-cf:#a493ff; --z-cf-soft:#211d4f; --z-cs:#ff8c69; --z-cs-soft:#3b1f22; --z-re:#f3bf4c; --z-re-soft:#2b2617;
+  --p-you:#5eaaff; --p-adv:#ff79bd;
+  --sea:#0c2140; --sea-2:#10294f; --sea-ink:#4ea6cc; --shadow:none; }
 [data-zone="reg"]{--zone:var(--z-reg);--zone-soft:var(--z-reg-soft)}
 [data-zone="cf"]{--zone:var(--z-cf);--zone-soft:var(--z-cf-soft)}
 [data-zone="re"]{--zone:var(--z-re);--zone-soft:var(--z-re-soft)}
@@ -622,12 +625,12 @@ table.cyk th{font-family:var(--mono)}
 }
 
 /* ================= Chart layer: parchment, serif lettering, engraved rules ================= */
-:root{--grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .36 0 0 0 0 .26 0 0 0 0 .12 0 0 0 .13 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  --route:#a4512f; --rule:color-mix(in srgb,var(--ink) 55%,transparent)}
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --route:#e0895f;
-  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .95 0 0 0 0 .9 0 0 0 0 .8 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); } }
-:root[data-theme="dark"]{ --route:#e0895f;
-  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .95 0 0 0 0 .9 0 0 0 0 .8 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+:root{--grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .1 0 0 0 0 .14 0 0 0 0 .3 0 0 0 .075 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --route:#d1246f; --rule:color-mix(in srgb,var(--ink) 55%,transparent)}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --route:#ff5c9f;
+  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .7 0 0 0 0 .8 0 0 0 0 1 0 0 0 .045 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); } }
+:root[data-theme="dark"]{ --route:#ff5c9f;
+  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .7 0 0 0 0 .8 0 0 0 0 1 0 0 0 .045 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 html,body{background-color:var(--paper);background-image:var(--grain)}
 .panel,.qf-card,.card,.move .body{background-image:linear-gradient(var(--surface),var(--surface))}
 h1,h2,h3,.ph h2,.big{font-family:var(--display);font-optical-sizing:auto}
@@ -724,9 +727,9 @@ h2.sec{font-family:var(--display);font-size:clamp(26px,3vw,36px);font-weight:700
 
 /* ================= Plates: reading on parchment, doing on drafting paper ================= */
 :root{--serif:"Source Serif 4","Iowan Old Style",Georgia,serif;
-  --draft:#fdfbf5; --grid:color-mix(in srgb,var(--zone,#256a87) 9%,transparent)}
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --draft:#171c26; --grid:color-mix(in srgb,var(--zone,#6fb4cf) 10%,transparent); } }
-:root[data-theme="dark"]{ --draft:#171c26; --grid:color-mix(in srgb,var(--zone,#6fb4cf) 10%,transparent); }
+  --draft:#fffef9; --grid:color-mix(in srgb,var(--zone,#256a87) 9%,transparent)}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --draft:#101a32; --grid:color-mix(in srgb,var(--zone,#6fb4cf) 10%,transparent); } }
+:root[data-theme="dark"]{ --draft:#101a32; --grid:color-mix(in srgb,var(--zone,#6fb4cf) 10%,transparent); }
 .prose,.idea,.sub,.secsub,.note,.qf-card .why,.narr p,.move .body p,.recipe li,.checks li,.pp-foot,.nk-book dd{font-family:var(--serif)}
 .prose{font-size:16.5px;line-height:1.6}
 .idea{font-size:15.5px;line-height:1.55}
@@ -948,7 +951,7 @@ h2.sec{font-family:var(--display);font-size:clamp(26px,3vw,36px);font-weight:700
 @keyframes reveal{to{stroke-dashoffset:0}}
 .drawing .stop{opacity:0;animation:arrive .45s ease-out forwards}
 @keyframes arrive{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}
-.stopnote{position:absolute;z-index:4;width:270px;background:var(--surface);border:1px solid var(--rule);border-top:4px solid var(--zone);border-radius:3px;box-shadow:0 10px 30px -12px rgba(40,25,10,.45);padding:12px 14px;display:flex;flex-direction:column;gap:3px;pointer-events:none}
+.stopnote{position:absolute;z-index:4;width:270px;background:var(--surface);border:1px solid var(--rule);border-top:4px solid var(--zone);border-radius:3px;box-shadow:0 14px 34px -14px rgba(15,25,60,.5);padding:12px 14px;display:flex;flex-direction:column;gap:3px;pointer-events:none}
 .stopnote b{font-family:var(--display);font-size:18px;line-height:1.2}
 .stopnote p{margin:6px 0 4px;font-family:var(--serif);font-size:14px;line-height:1.45}
 .stopnote .sn-foot{font-family:var(--display);font-style:italic;font-size:12.5px;color:var(--zone)}
@@ -1037,6 +1040,84 @@ table.gz{width:100%;border-collapse:collapse}
 @keyframes vt-out{to{opacity:0;transform:scale(.985)}}
 @keyframes vt-in{from{opacity:0;transform:translateY(10px)}}
 
+/* ================= Sea chart: colour, water and small motions ================= */
+.chartwrap{background:radial-gradient(120% 90% at 50% 40%,color-mix(in srgb,var(--sea) 70%,var(--surface)),var(--sea) 70%,var(--sea-2));border-color:color-mix(in srgb,var(--sea-ink) 55%,var(--ink));box-shadow:inset 0 0 0 5px var(--surface),inset 0 0 0 6px color-mix(in srgb,var(--sea-ink) 50%,transparent),var(--shadow)}
+.depth{fill:none;stroke:var(--sea-ink);stroke-opacity:.32;stroke-width:1}
+.depth.d1{stroke-dasharray:2 5;stroke-opacity:.28}
+.wave path{fill:none;stroke:var(--sea-ink);stroke-width:1.4;stroke-linecap:round;opacity:.5}
+.wave{animation:bob 7s ease-in-out infinite alternate}
+@keyframes bob{from{transform:translate(0,0)}to{transform:translate(7px,-2px)}}
+.sounding{font-family:var(--display);font-style:italic;font-size:11px;fill:var(--sea-ink);opacity:.65}
+.r0{fill:color-mix(in srgb,var(--z-re-soft) 80%,var(--surface))}
+.region{filter:drop-shadow(0 2px 0 color-mix(in srgb,var(--ink) 8%,transparent))}
+.compass .sway{animation:sway 9s ease-in-out infinite alternate;transform-origin:0 0}
+@keyframes sway{from{transform:rotate(-4deg)}to{transform:rotate(5deg)}}
+.stop .dot,.stop .ring,.stop .prog{transform-box:fill-box;transform-origin:center;transition:transform .22s cubic-bezier(.2,1.4,.4,1)}
+.stop:hover .dot,.stop:focus-visible .dot{transform:scale(1.22)}
+.stop:hover .ring,.stop:focus-visible .ring{transform:scale(1.08)}
+.stop .halo{fill:none;stroke:var(--route);stroke-width:3;transform-box:fill-box;transform-origin:center;animation:halo 2.4s ease-out infinite}
+@keyframes halo{0%{transform:scale(1);opacity:.75}100%{transform:scale(2.1);opacity:0}}
+.nextflag .pole{stroke:var(--ink);stroke-width:1.6;stroke-linecap:round}
+.nextflag .pennant{fill:var(--route)}
+.nextflag .ftext{fill:#fff;font-family:var(--body);font-weight:700;font-size:7.5px;letter-spacing:.12em}
+.nextflag .pf{transform-box:fill-box;transform-origin:0 50%;animation:flutter 2.6s ease-in-out infinite}
+@keyframes flutter{0%,100%{transform:skewY(0) scaleX(1)}50%{transform:skewY(-4deg) scaleX(.94)}}
+.drawing .nextflag{opacity:0;animation:arrive .45s ease-out forwards}
+/* continue */
+.np{transition:transform .2s ease,box-shadow .2s ease,border-color .2s}
+.np:hover{box-shadow:0 12px 26px -16px color-mix(in srgb,var(--zone) 80%,transparent)}
+.np.cont{background:linear-gradient(100deg,var(--zone-soft),var(--surface) 85%);border-left-width:6px;max-width:470px;margin:2px 0 16px}
+.np.cont small{color:var(--zone)}
+.np.cont{position:relative;padding-right:56px}
+.np.cont::after{content:"→";position:absolute;right:20px;top:50%;margin-top:-.65em;font-family:var(--display);font-size:26px;line-height:1.3;color:var(--zone);animation:nudge 1.8s ease-in-out infinite}
+@keyframes nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}
+.strips > .np.cont{margin:0 0 18px;max-width:none}
+.road li.next .vmark{animation:ping 2.4s ease-out infinite}
+@keyframes ping{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--route) 60%,transparent)}100%{box-shadow:0 0 0 12px transparent}}
+/* gazetteer */
+.gz tbody tr td:first-child{transition:box-shadow .2s}
+.gz tbody tr:hover td:first-child{box-shadow:inset 4px 0 0 var(--zone)}
+/* bar */
+.logo .mark.spin{animation:spin .8s cubic-bezier(.3,1.3,.5,1)}
+@keyframes spin{from{transform:rotate(-360deg)}}
+.pass-pill .meter i{transition:width .7s cubic-bezier(.2,.8,.2,1);background:var(--route)}
+.pass-pill.bump{animation:bump .7s cubic-bezier(.2,1.5,.4,1)}
+@keyframes bump{0%{transform:scale(1)}30%{transform:scale(1.1);box-shadow:0 0 0 6px color-mix(in srgb,var(--route) 22%,transparent)}100%{transform:scale(1)}}
+/* the voyage bar on plates */
+.voyage{position:fixed;left:0;right:0;top:0;height:3px;z-index:40;pointer-events:none}
+.voyage i{position:absolute;left:0;top:0;height:3px;width:calc(var(--p,0) * 100%);background:repeating-linear-gradient(90deg,var(--zone) 0 10px,transparent 10px 15px)}
+.voyage b{position:absolute;top:-3px;left:calc(var(--p,0) * 100% - 5px);width:9px;height:9px;border-radius:50%;background:var(--zone);box-shadow:0 0 0 2px var(--paper)}
+/* plates: sections settle in; stamps ripple */
+.rv{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+.rv.in{opacity:1;transform:none}
+.stp{position:relative}
+.stp.fresh::after{content:"";position:absolute;inset:6%;border-radius:50%;border:2.5px solid var(--zone);animation:ripple 1s ease-out .2s both;pointer-events:none}
+@keyframes ripple{from{transform:scale(.7);opacity:.9}to{transform:scale(1.8);opacity:0}}
+/* the deck: cards are dealt */
+.deck .qf-card.deal{animation:deal .4s cubic-bezier(.2,.8,.2,1)}
+.deck .qf-card.deal.back{animation-name:dealb}
+@keyframes deal{from{opacity:0;transform:translateX(34px) rotate(1.8deg)}}
+@keyframes dealb{from{opacity:0;transform:translateX(-34px) rotate(-1.8deg)}}
+.tdot.ok,.tdot.no{animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{0%{transform:scale(.55)}100%{transform:scale(1)}}
+.tdot{transition:transform .15s}
+.tdot:hover{transform:translateY(-2px)}
+@media (prefers-reduced-motion:reduce){
+  .wave,.compass .sway,.stop .halo,.nextflag .pf,.np.cont::after,.road li.next .vmark{animation:none}
+  .rv{opacity:1;transform:none}
+}
+/* plates take their territory's colour */
+.plate-head{position:relative;padding:22px 26px 18px;margin-top:2px;border-radius:6px;background:linear-gradient(125deg,var(--zone-soft) 0%,color-mix(in srgb,var(--zone-soft) 45%,transparent) 55%,transparent 85%);border-top:4px solid var(--zone)}
+.plate-head h1::after{border-color:color-mix(in srgb,var(--zone) 55%,var(--rule))}
+.locwrap{background:var(--sea);border-color:color-mix(in srgb,var(--sea-ink) 55%,var(--ink));box-shadow:inset 0 0 0 3px var(--surface),inset 0 0 0 4px color-mix(in srgb,var(--sea-ink) 40%,transparent)}
+.locator .r0{fill:color-mix(in srgb,var(--z-re-soft) 80%,var(--surface))}
+.blk.k-idea .panel{border-top:4px solid var(--zone);background:linear-gradient(color-mix(in srgb,var(--zone-soft) 55%,var(--surface)),var(--surface) 90px)}
+.toc li button.on,.toc button.on{background:color-mix(in srgb,var(--zone-soft) 80%,transparent)}
+[data-wall="1"] .plate-head::before{background:linear-gradient(90deg,var(--zone),var(--route));opacity:.85}
+.plate-head .plate-title .plate-no{color:var(--zone)}
+@media (max-width:640px){ .plate-head{padding:16px 14px 14px} }
+[data-wall="1"] .plate-head{background:linear-gradient(125deg,var(--zone-soft) 0%,color-mix(in srgb,var(--zone-soft) 45%,transparent) 55%,transparent 85%)}
+
 </style>
 <div class="site">
   <div class="bar">
@@ -1071,6 +1152,7 @@ const Atlas = {
     try{ localStorage.setItem("atlas.passport", JSON.stringify(p)); }catch(e){}
     const def=this.stations[st]; const s=def && def.stamps.find(x=>x.id===id);
     if(s) this.toast("Passport stamp: "+s.label); this.refreshBar();
+    const pill=document.getElementById("passPill"); if(pill && !reduceMotion){ pill.classList.remove("bump"); void pill.offsetWidth; pill.classList.add("bump"); }
     document.querySelectorAll(`.stp[data-st="${st}"][data-id="${id}"]`).forEach(e=>{ e.classList.add("on","fresh"); if(window.Plate) Plate.restamp(e,st,id); });
     return true;
   },
@@ -1097,6 +1179,7 @@ const Atlas = {
     view.dataset.zone = def && def.mount ? this.zone(def) : ""; view.dataset.page = def && def.mount ? "plate" : (id==="passport"||id==="notation") ? id : "home";
     if(def && def.mount){ this.mountStation(def, view); } else if(id==="passport"){ Plate.passport(view); } else if(id==="notation"){ Plate.notation(view); } else { Home.mount(view); }
     window.scrollTo(0,0); this.refreshBar();
+    const mk=document.querySelector(".logo .mark"); if(mk && this._routed && !reduceMotion){ mk.classList.remove("spin"); void mk.offsetWidth; mk.classList.add("spin"); }
   },
   mountStation(def, view){ Plate.mount(def, view); }
 };
@@ -1114,7 +1197,9 @@ function quickFire(parent, items, onAll){
   const prev=h("button","btn","← Previous"), count=h("span","deck-count"), next=h("button","btn","Next claim →"), all=h("button","btn ghost","Show all");
   [prev,next,all].forEach(b=>b.type="button"); nav.append(prev,count,next,all);
   let answered=0, correct=0, cur=0; const cards=[], dots=[];
-  function show(k){ cur=Math.max(0,Math.min(items.length-1,k)); cards.forEach((c,x)=>c.classList.toggle("cur",x===cur)); dots.forEach((d,x)=>d.classList.toggle("cur",x===cur));
+  function show(k){ const was=cur; cur=Math.max(0,Math.min(items.length-1,k));
+    if(was!==cur && !reduceMotion){ const c=cards[cur]; c.classList.remove("deal","back"); void c.offsetWidth; c.classList.add("deal"); if(cur<was) c.classList.add("back"); }
+    cards.forEach((c,x)=>c.classList.toggle("cur",x===cur)); dots.forEach((d,x)=>d.classList.toggle("cur",x===cur));
     count.textContent=`Claim ${cur+1} of ${items.length}`; prev.disabled=cur===0; next.disabled=cur===items.length-1;
     next.classList.toggle("primary", !!cards[cur].dataset.done && cur<items.length-1);
     grid.dataset.left=String(Math.min(2,items.length-1-cur)); }
@@ -1125,7 +1210,7 @@ function quickFire(parent, items, onAll){
     const row=h("div","row"); const b1=h("button","btn","That is right"), b2=h("button","btn","That is wrong"); b1.type=b2.type="button";
     row.appendChild(b1); row.appendChild(b2); c.appendChild(row);
     const done=(saidRight)=>{ if(c.dataset.done) return; c.dataset.done=1; b1.disabled=b2.disabled=true; const ok=saidRight===it.ok;
-      c.classList.add(ok?"right":"wrong","turn"); d.classList.add(ok?"ok":"no"); answered++; if(ok) correct++;
+      c.classList.remove("deal","back"); c.classList.add(ok?"right":"wrong","turn"); d.classList.add(ok?"ok":"no"); answered++; if(ok) correct++;
       c.appendChild(h("div","res",(ok?"Correct. ":"Not quite. ")+"The claim is "+(it.ok?"true.":"false.")));
       c.appendChild(h("p","why",it.why));
       show(cur);
@@ -1134,6 +1219,8 @@ function quickFire(parent, items, onAll){
     grid.appendChild(c); cards.push(c);
   });
   prev.onclick=()=>show(cur-1); next.onclick=()=>show(cur+1);
+  deck.addEventListener("keydown",e=>{ if(deck.classList.contains("all")||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+    if(e.key==="ArrowRight"&&cur<items.length-1){ e.preventDefault(); show(cur+1); } else if(e.key==="ArrowLeft"&&cur>0){ e.preventDefault(); show(cur-1); } });
   all.onclick=()=>{ const on=deck.classList.toggle("all"); all.textContent=on?"One at a time":"Show all"; };
   show(0);
 }
@@ -1339,6 +1426,15 @@ const Home = {
     const pts=Atlas.order.map(id=>Atlas.stations[id]);
     const open=p=>{ if(p.mount) Atlas.go(p.id); else Atlas.toast(p.short+" is being built next"); };
     const plateNo=p=>Atlas.roman(Atlas.order.indexOf(p.id)+1);
+    /* where to pick the route back up: the last stop you stamped if unfinished, else the next unfinished one */
+    const built=pts.filter(p=>p.mount), inc=p=>{ const [a,b]=Atlas.count(p.id); return a<b; };
+    const lastT=built.reduce((k,p,i)=>Atlas.count(p.id)[0]?i:k,-1);
+    const nextStop=(lastT>=0&&inc(built[lastT]))?built[lastT]:(built.slice(lastT+1).find(inc)||built.find(inc)||null);
+    const fresh=lastT<0;
+    const contBtn=()=>{ const b=h("button","np cont"); b.type="button";
+      if(nextStop){ b.dataset.zone=Atlas.zone(nextStop); b.innerHTML=`<small>${fresh?"Start the route":"Pick up the route"}</small><b>${esc(nextStop.title)}</b><span>Plate ${plateNo(nextStop)} · ${esc(nextStop.sessions)}${fresh?"":` · ${Atlas.count(nextStop.id)[0]} of ${Atlas.count(nextStop.id)[1]} stamped`}</span>`; b.onclick=()=>Atlas.go(nextStop.id); }
+      else { b.innerHTML=`<small>Route complete</small><b>Every stamp collected</b><span>Open the passport</span>`; b.onclick=()=>Atlas.go("passport"); }
+      return b; };
     view.appendChild(h("h1","sr-only","Automata Atlas"));
 
     /* ---------- the chart ---------- */
@@ -1359,12 +1455,18 @@ const Home = {
     svg("text",{x:560,y:60,"text-anchor":"middle",class:"ct-title"},ct,"Automata Atlas");
     svg("text",{x:560,y:80,"text-anchor":"middle",class:"ct-sub"},ct,"CSCE 4201 · THEORY OF COMPUTING · FALL 2026");
     [[262,54],[858,54]].forEach(([x,y],i)=>svg("path",{d:i?`M${x} ${y}h-14l-6 -5l-6 5h-20`:`M${x} ${y}h14l6 -5l6 5h20`,class:"ct-flourish"},s));
-    const cr=svg("g",{class:"compass",transform:"translate(1058 52)"},s);
+    const cr=svg("g",{class:"sway"},svg("g",{class:"compass",transform:"translate(1058 52)"},s));
     svg("circle",{r:30,class:"c-ring"},cr); svg("circle",{r:24,class:"c-ring thin"},cr);
     [45,135,225,315].forEach(a=>svg("path",{d:"M0 -18L3.5 0L0 3.5L-3.5 0Z",transform:`rotate(${a})`,class:"c-short"},cr));
     [0,90,180,270].forEach(a=>{ const g=svg("g",{transform:`rotate(${a})`},cr); svg("path",{d:"M0 -27L5 0L0 0Z",class:"c-dark"},g); svg("path",{d:"M0 -27L-5 0L0 0Z",class:"c-light"},g); });
     svg("circle",{r:2.2,class:"c-dark"},cr);
 
+    /* the sea around the land: depth soundings, contour lines and a few waves */
+    const sea=svg("g",{class:"seabed","aria-hidden":"true"},s);
+    [16,30].forEach((o,k)=>svg("path",{d:coastPath(10,10,1100,500,26,o,4+k*2,k*3.1+.7),class:"depth d"+k,transform:"translate(0 100)"},sea));
+    [[38,40],[172,72],[232,26],[96,92],[892,30],[960,86],[1010,104],[30,262],[1098,250]].forEach(([x,y],i)=>{
+      const g=svg("g",{class:"wave",style:`animation-delay:${-i*1.3}s`},sea); svg("path",{d:`M${x} ${y}q5 -5 10 0t10 0t10 0`},g); });
+    [[60,22,"14"],[148,40,"22"],[236,90,"9"],[880,74,"31"],[1000,24,"18"]].forEach(([x,y,t])=>svg("text",{x,y,class:"sounding"},sea,t));
     const land=svg("g",{transform:"translate(0 100)"},s);
     MAP_REGS.forEach(([c,z,x,y,w,hh,l,sub,lm],ri)=>{
       if(c!=="r0") svg("path",{d:coastPath(x,y,w,hh,26,7,2.5,ri*1.9+.4),class:"waterline "+c},land);
@@ -1393,6 +1495,7 @@ const Home = {
     pts.forEach((p,i)=>{
       const built=!!p.mount; const [a,b]=Atlas.count(p.id); const done=built && b>0 && a===b;
       const g=svg("g",{class:"stop"+(built?"":" soon")+(done?" done":""),"data-zone":Atlas.zone(p),tabindex:"0",role:"link","aria-label":`Plate ${plateNo(p)}, ${p.title}`+(b?`, ${a} of ${b} stamps`:""),style:animate?`animation-delay:${.25+i*.16}s`:""},land);
+      if(p===nextStop) svg("circle",{cx:p.x,cy:p.y,r:RR,class:"halo"},g);
       svg("circle",{cx:p.x,cy:p.y,r:RR,class:"ring"},g);
       if(a) svg("circle",{cx:p.x,cy:p.y,r:RR,class:"prog","stroke-dasharray":`${CIRC*a/b} ${CIRC}`,transform:`rotate(-90 ${p.x} ${p.y})`},g);
       svg("circle",{cx:p.x,cy:p.y,r:10,class:"dot"},g);
@@ -1406,10 +1509,15 @@ const Home = {
       g.addEventListener("mouseleave",()=>note.hidden=true); g.addEventListener("blur",()=>note.hidden=true);
     });
 
+    if(nextStop){ const p=nextStop, fx=p.x-11, fy=p.y-17; const fl=svg("g",{class:"nextflag","aria-hidden":"true",style:animate?`animation-delay:${.25+pts.indexOf(p)*.16+.3}s`:""},land);
+      svg("path",{d:`M${fx} ${fy}V${fy-30}`,class:"pole"},fl); const pf=svg("g",{class:"pf"},fl); svg("path",{d:`M${fx} ${fy-30}q9 -3 17 2t15 -1v14q-8 4 -15 1t-17 -2Z`,class:"pennant"},pf);
+      svg("text",{x:fx+16,y:fy-19.5,"text-anchor":"middle",class:"ftext"},pf,fresh?"START":"NEXT"); }
+
     /* under the chart: how to read it, and the three notes */
     const under=h("div","chart-notes"); chart.appendChild(under);
     under.appendChild(h("div","cn-lede",`<p>The whole course on one map. Every session is a stop where you can run the machine, break it, and play the in-class activity. What separates the regions is memory.</p>
       <div class="maplegend"><span><i class="lg-ring"></i>Ring: your passport progress</span><span><i class="lg-wall"></i>Mountains: the wall between two classes</span><span><i class="lg-route"></i>The route, in session order</span></div>`));
+    under.firstChild.insertBefore(contBtn(), under.firstChild.querySelector(".maplegend"));
     const ol=h("ol","cn-list"); under.appendChild(ol);
     [["Not all problems are solvable.","Some well-posed yes/no questions have no algorithm at all."],["Not all solvable problems are practical.",""],["Not all systems can be fully verified.","These are mathematical limits, not engineering weaknesses."]]
       .forEach(([b,t])=>ol.appendChild(h("li",null,`<b>${esc(b)}</b>${t?`<span>${esc(t)}</span>`:""}`)));
@@ -1417,12 +1525,13 @@ const Home = {
     /* phones: a strip map, one ribbon per class, read top to bottom */
     const strips=h("div","strips"); chart.appendChild(strips);
     strips.appendChild(h("div","strip-title",`<div class="eyebrow">CSCE 4201 · Theory of Computing · Fall 2026</div><div class="st-big">Automata <em>Atlas</em></div><p>The whole course on one map. Every session is a stop where you can run the machine, break it, and play the in-class activity. What separates the regions is memory.</p>`));
+    strips.appendChild(contBtn());
     [["reg",MAP_REGS[3]],["cf",MAP_REGS[2]],["cs",MAP_REGS[1]],["re",MAP_REGS[0]]].forEach(([z,r],si)=>{
       const st=h("section","strip"); st.dataset.zone=z;
       st.appendChild(h("header",null,`<span class="strip-no">Strip ${si+1}</span><b>${esc(r[6])}</b><small>${esc(r[7])} · landmark ${esc(r[8])}</small>`));
       const mine=pts.filter(p=>Atlas.zone(p)===z); const road=h("ol","road"); st.appendChild(road);
       if(!mine.length) road.appendChild(h("li","road-empty","No stops on this stretch of the route."));
-      mine.forEach((p,i)=>{ const [a,b]=Atlas.count(p.id); const li=h("li",i%2?"r":"l");
+      mine.forEach((p,i)=>{ const [a,b]=Atlas.count(p.id); const li=h("li",(i%2?"r":"l")+(p===nextStop?" next":""));
         const bt=h("button","town",`<span class="vmark" style="--pct:${b?100*a/b:0}%"></span><span class="tn"><span class="plate-no">Plate ${plateNo(p)}</span><b>${esc(p.short)}</b><span class="m-ses">${esc(p.sessions)}${b?` · ${a}/${b}`:""}</span></span>`); bt.type="button"; bt.onclick=()=>open(p); li.appendChild(bt); road.appendChild(li); });
       strips.appendChild(st);
       const w=mine.find(p=>p.wall); if(w) strips.appendChild(h("div","pass",`<span class="pass-peaks" aria-hidden="true"></span><span>The wall · ${esc(w.short)}</span>`));
@@ -1522,7 +1631,16 @@ const Plate = (()=>{
     const links=blks.map((b,i)=>{ const li=h("li"); const a=h("button",null,`<span class="tk">§ ${i+1}</span><span class="tt">${esc(b.querySelector(".kicker").textContent)}</span><span class="th">${esc(b.querySelector("h2").textContent)}</span>`); a.type="button"; a.dataset.kind=(b.className.match(/k-(\w+)/)||[])[1]||"";
       a.onclick=()=>{ b.scrollIntoView({behavior:reduceMotion?"auto":"smooth",block:"start"}); if(!matchMedia("(min-width:1001px)").matches) toc.open=false; }; li.appendChild(a); ol.appendChild(li); return a; });
     if("IntersectionObserver" in window){ const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ const i=blks.indexOf(e.target); links.forEach((l,x)=>l.classList.toggle("on",x===i)); } }),{rootMargin:"-25% 0px -65% 0px"});
-      blks.forEach(b=>io.observe(b)); Atlas.onCleanup(()=>io.disconnect()); }
+      blks.forEach(b=>io.observe(b)); Atlas.onCleanup(()=>io.disconnect());
+      /* sections settle onto the page the first time they scroll into view */
+      if(!reduceMotion){ const vh=innerHeight; blks.forEach(b=>{ if(b.getBoundingClientRect().top>vh*.9) b.classList.add("rv"); });
+        const ro=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("in"); ro.unobserve(e.target); } }),{rootMargin:"0px 0px -8% 0px"});
+        blks.filter(b=>b.classList.contains("rv")).forEach(b=>ro.observe(b)); Atlas.onCleanup(()=>ro.disconnect()); } }
+    /* the voyage bar: how far down this plate you have read */
+    const vg=h("div","voyage",`<i></i><b aria-hidden="true"></b>`); vg.dataset.zone=z; vg.setAttribute("aria-hidden","true"); document.body.appendChild(vg);
+    let raf=0; const upd=()=>{ raf=0; const m=document.documentElement.scrollHeight-innerHeight; vg.style.setProperty("--p", m>0?Math.min(1,scrollY/m):0); };
+    const onS=()=>{ if(!raf) raf=requestAnimationFrame(upd); }; addEventListener("scroll",onS,{passive:true}); addEventListener("resize",onS); upd();
+    Atlas.onCleanup(()=>{ removeEventListener("scroll",onS); removeEventListener("resize",onS); vg.remove(); });
     if(def.stamps.length){ const ps=h("div","m-stamps"); const [a,b]=Atlas.count(def.id);
       ps.appendChild(h("div","m-lbl",`Passport <button type="button" class="linkish">${a} of ${b} stamped →</button>`)); ps.querySelector("button").onclick=()=>Atlas.go("passport");
       const row=h("div","stamps"); def.stamps.forEach(s=>row.appendChild(stampEl(def,s))); ps.appendChild(row); side.appendChild(ps); }

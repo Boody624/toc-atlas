@@ -73,7 +73,16 @@ const Plate = (()=>{
     const links=blks.map((b,i)=>{ const li=h("li"); const a=h("button",null,`<span class="tk">§ ${i+1}</span><span class="tt">${esc(b.querySelector(".kicker").textContent)}</span><span class="th">${esc(b.querySelector("h2").textContent)}</span>`); a.type="button"; a.dataset.kind=(b.className.match(/k-(\w+)/)||[])[1]||"";
       a.onclick=()=>{ b.scrollIntoView({behavior:reduceMotion?"auto":"smooth",block:"start"}); if(!matchMedia("(min-width:1001px)").matches) toc.open=false; }; li.appendChild(a); ol.appendChild(li); return a; });
     if("IntersectionObserver" in window){ const io=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ const i=blks.indexOf(e.target); links.forEach((l,x)=>l.classList.toggle("on",x===i)); } }),{rootMargin:"-25% 0px -65% 0px"});
-      blks.forEach(b=>io.observe(b)); Atlas.onCleanup(()=>io.disconnect()); }
+      blks.forEach(b=>io.observe(b)); Atlas.onCleanup(()=>io.disconnect());
+      /* sections settle onto the page the first time they scroll into view */
+      if(!reduceMotion){ const vh=innerHeight; blks.forEach(b=>{ if(b.getBoundingClientRect().top>vh*.9) b.classList.add("rv"); });
+        const ro=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add("in"); ro.unobserve(e.target); } }),{rootMargin:"0px 0px -8% 0px"});
+        blks.filter(b=>b.classList.contains("rv")).forEach(b=>ro.observe(b)); Atlas.onCleanup(()=>ro.disconnect()); } }
+    /* the voyage bar: how far down this plate you have read */
+    const vg=h("div","voyage",`<i></i><b aria-hidden="true"></b>`); vg.dataset.zone=z; vg.setAttribute("aria-hidden","true"); document.body.appendChild(vg);
+    let raf=0; const upd=()=>{ raf=0; const m=document.documentElement.scrollHeight-innerHeight; vg.style.setProperty("--p", m>0?Math.min(1,scrollY/m):0); };
+    const onS=()=>{ if(!raf) raf=requestAnimationFrame(upd); }; addEventListener("scroll",onS,{passive:true}); addEventListener("resize",onS); upd();
+    Atlas.onCleanup(()=>{ removeEventListener("scroll",onS); removeEventListener("resize",onS); vg.remove(); });
     if(def.stamps.length){ const ps=h("div","m-stamps"); const [a,b]=Atlas.count(def.id);
       ps.appendChild(h("div","m-lbl",`Passport <button type="button" class="linkish">${a} of ${b} stamped →</button>`)); ps.querySelector("button").onclick=()=>Atlas.go("passport");
       const row=h("div","stamps"); def.stamps.forEach(s=>row.appendChild(stampEl(def,s))); ps.appendChild(row); side.appendChild(ps); }

@@ -3,8 +3,8 @@
    the written trace on the right; below it the multiverse of branches and the stack skyline,
    both sharing one time axis (move number). Cool paper + ink, amber marks "now". */
 :root{
-  --paper:#efe6d0; --surface:#fbf7ee; --surface-2:#f4eddd; --ink:#2b2219; --muted:#6c604f; --faint:#b0a389; --line:#dccfb3;
-  --now:#d4861a; --now-soft:#f8e5c0; --accept:#2e7a4e; --accept-soft:#dcebd8; --reject:#b5402f; --reject-soft:#f5ddd4;
+  --paper:#f7f2e5; --surface:#fffdf6; --surface-2:#f1ebdb; --ink:#18213b; --muted:#555d78; --faint:#a4a8b9; --line:#e2dac6;
+  --now:#ec8a12; --now-soft:#feeac8; --accept:#11875b; --accept-soft:#d4f1e3; --reject:#d93a3f; --reject-soft:#fcdcda;
   --sym-X:#6a55e0; --sym-Z:#56607e; --sym-A:#2c78dc; --sym-B:#e06b23; --sym-P:#139169; --sym-N:#cf3f55;
   --sym-1:#0e8fa6; --sym-2:#b14fc4; --sym-3:#8a6d16; --sym-4:#3a8f2f;
   --plate-ink:#ffffff;
@@ -14,14 +14,14 @@
   --r:14px;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --paper:#11151d; --surface:#191e28; --surface-2:#1f2532; --ink:#f0e7d3; --muted:#aa9e88; --faint:#646a78; --line:#2f3543;
-  --now:#f0a843; --now-soft:#3b2c15; --accept:#5cbf88; --accept-soft:#16301f; --reject:#ee7b67; --reject-soft:#3a1e19;
+  --paper:#0b1326; --surface:#131d37; --surface-2:#1a2544; --ink:#f3eddd; --muted:#a8b0ca; --faint:#5c6789; --line:#283459;
+  --now:#ffb340; --now-soft:#3e2d10; --accept:#3fd49b; --accept-soft:#0f3329; --reject:#ff6b6b; --reject-soft:#3e1820;
   --sym-X:#8a78ff; --sym-Z:#6d7799; --sym-A:#4a92f0; --sym-B:#f0843d; --sym-P:#22a87c; --sym-N:#e2546b;
   --sym-1:#22a9c0; --sym-2:#c46ad6; --sym-3:#b0912e; --sym-4:#4fae43;
   color-scheme:dark; } }
 :root[data-theme="dark"]{
-  --paper:#11151d; --surface:#191e28; --surface-2:#1f2532; --ink:#f0e7d3; --muted:#aa9e88; --faint:#646a78; --line:#2f3543;
-  --now:#f0a843; --now-soft:#3b2c15; --accept:#5cbf88; --accept-soft:#16301f; --reject:#ee7b67; --reject-soft:#3a1e19;
+  --paper:#0b1326; --surface:#131d37; --surface-2:#1a2544; --ink:#f3eddd; --muted:#a8b0ca; --faint:#5c6789; --line:#283459;
+  --now:#ffb340; --now-soft:#3e2d10; --accept:#3fd49b; --accept-soft:#0f3329; --reject:#ff6b6b; --reject-soft:#3e1820;
   --sym-X:#8a78ff; --sym-Z:#6d7799; --sym-A:#4a92f0; --sym-B:#f0843d; --sym-P:#22a87c; --sym-N:#e2546b;
   --sym-1:#22a9c0; --sym-2:#c46ad6; --sym-3:#b0912e; --sym-4:#4fae43;
   color-scheme:dark; }
