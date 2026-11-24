@@ -13,19 +13,8 @@
   --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
   --r:14px;
 }
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --paper:#17121f; --surface:#211a2d; --surface-2:#2a2239; --ink:#f1ebf6; --muted:#b2a7c4; --faint:#6a5f80; --line:#372d4a;
-  --now:#ffb05a; --now-soft:#3e2d10; --accept:#3fd49b; --accept-soft:#0f3329; --reject:#ff6b6b; --reject-soft:#3e1820;
-  --sym-X:#8a78ff; --sym-Z:#6d7799; --sym-A:#4a92f0; --sym-B:#f0843d; --sym-P:#22a87c; --sym-N:#e2546b;
-  --sym-1:#22a9c0; --sym-2:#c46ad6; --sym-3:#b0912e; --sym-4:#4fae43;
-  color-scheme:dark; } }
-:root[data-theme="dark"]{
-  --paper:#17121f; --surface:#211a2d; --surface-2:#2a2239; --ink:#f1ebf6; --muted:#b2a7c4; --faint:#6a5f80; --line:#372d4a;
-  --now:#ffb05a; --now-soft:#3e2d10; --accept:#3fd49b; --accept-soft:#0f3329; --reject:#ff6b6b; --reject-soft:#3e1820;
-  --sym-X:#8a78ff; --sym-Z:#6d7799; --sym-A:#4a92f0; --sym-B:#f0843d; --sym-P:#22a87c; --sym-N:#e2546b;
-  --sym-1:#22a9c0; --sym-2:#c46ad6; --sym-3:#b0912e; --sym-4:#4fae43;
-  color-scheme:dark; }
 
+:root{color-scheme:light}
 *{box-sizing:border-box}
 html,body{background:var(--paper)}
 body{color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5;margin:0}

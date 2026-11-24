@@ -253,14 +253,6 @@ table.diag tr.drow th{color:var(--accept)}
   --sea:#cfd8ee; --sea-2:#bcc8e6; --sea-ink:#4e5f9a;
   --shadow:0 1px 0 rgba(34,26,51,.05),0 8px 22px -10px rgba(34,26,51,.22);
 }
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --z-reg:#3fd6c3; --z-reg-soft:#12302f; --z-cf:#a891ff; --z-cf-soft:#2a2150; --z-cs:#ff7f9c; --z-cs-soft:#3d1c2a; --z-re:#f5c04f; --z-re-soft:#33281a;
-  --p-you:#3fd6c3; --p-adv:#ff7f9c;
-  --sea:#1d1b38; --sea-2:#16152c; --sea-ink:#8a90d6; --shadow:none; } }
-:root[data-theme="dark"]{
-  --z-reg:#3fd6c3; --z-reg-soft:#12302f; --z-cf:#a891ff; --z-cf-soft:#2a2150; --z-cs:#ff7f9c; --z-cs-soft:#3d1c2a; --z-re:#f5c04f; --z-re-soft:#33281a;
-  --p-you:#3fd6c3; --p-adv:#ff7f9c;
-  --sea:#1d1b38; --sea-2:#16152c; --sea-ink:#8a90d6; --shadow:none; }
 [data-zone="reg"]{--zone:var(--z-reg);--zone-soft:var(--z-reg-soft)}
 [data-zone="cf"]{--zone:var(--z-cf);--zone-soft:var(--z-cf-soft)}
 [data-zone="re"]{--zone:var(--z-re);--zone-soft:var(--z-re-soft)}
@@ -386,10 +378,6 @@ table.cyk th{font-family:var(--mono)}
 /* ================= Chart layer: parchment, serif lettering, engraved rules ================= */
 :root{--grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .12 0 0 0 0 .3 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --route:#e2582e; --rule:color-mix(in srgb,var(--ink) 55%,transparent)}
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --route:#ff8a5c;
-  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .8 0 0 0 0 1 0 0 0 .04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); } }
-:root[data-theme="dark"]{ --route:#ff8a5c;
-  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .8 0 0 0 0 1 0 0 0 .04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 html,body{background-color:var(--paper);background-image:var(--grain)}
 .panel,.qf-card,.card,.move .body{background-image:linear-gradient(var(--surface),var(--surface))}
 h1,h2,h3,.ph h2,.big{font-family:var(--display);font-optical-sizing:auto}
@@ -487,8 +475,6 @@ h2.sec{font-family:var(--display);font-size:clamp(26px,3vw,36px);font-weight:700
 /* ================= Plates: reading on parchment, doing on drafting paper ================= */
 :root{--serif:"Source Serif 4","Iowan Old Style",Georgia,serif;
   --draft:#fbfafc; --grid:color-mix(in srgb,var(--zone,#256a87) 9%,transparent)}
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --draft:#1c1628; --grid:color-mix(in srgb,var(--zone,#6fb4cf) 10%,transparent); } }
-:root[data-theme="dark"]{ --draft:#1c1628; --grid:color-mix(in srgb,var(--zone,#6fb4cf) 10%,transparent); }
 .prose,.idea,.sub,.secsub,.note,.qf-card .why,.narr p,.move .body p,.recipe li,.checks li,.pp-foot,.nk-book dd{font-family:var(--serif)}
 .prose{font-size:16.5px;line-height:1.6}
 .idea{font-size:15.5px;line-height:1.55}
@@ -588,7 +574,6 @@ h2.sec{font-family:var(--display);font-size:clamp(26px,3vw,36px);font-weight:700
 .stp:not(.on) .stamp-svg .o2{stroke-dasharray:none;opacity:.4}
 .stp:not(.on) .sn{opacity:.4}
 .stp.on{color:var(--zone)} .stp.on .stamp-svg{opacity:.92;mix-blend-mode:multiply}
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .stp.on .stamp-svg{mix-blend-mode:normal} }
 .stp.fresh .stamp-svg{animation:thunk .5s cubic-bezier(.2,1.5,.4,1)}
 @keyframes thunk{0%{transform:rotate(var(--rot)) scale(2.2);opacity:0}60%{opacity:1}100%{transform:rotate(var(--rot)) scale(1)}}
 .margin .stp{width:70px;height:70px}
