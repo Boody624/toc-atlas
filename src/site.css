@@ -248,19 +248,19 @@ table.diag tr.drow th{color:var(--accept)}
    Each language class is a territory with its own hue. Amber (--now) stays reserved for "the current step";
    green/red stay reserved for accept/reject. */
 :root{
-  --z-reg:#088a86; --z-reg-soft:#d3f0ea; --z-cf:#5d44d6; --z-cf-soft:#e6e0fc; --z-cs:#e2603f; --z-cs-soft:#fde2d6; --z-re:#b97a06; --z-re-soft:#f8ecca;
-  --p-you:#1c6ee0; --p-adv:#c92c7e;
-  --sea:#cfe7ee; --sea-2:#b6dbe6; --sea-ink:#2b7c9c;
-  --shadow:0 1px 0 rgba(20,30,70,.05),0 8px 22px -10px rgba(20,30,70,.22);
+  --z-reg:#00857a; --z-reg-soft:#d2ece8; --z-cf:#6a48c4; --z-cf-soft:#e4dcf6; --z-cs:#d8506f; --z-cs-soft:#f8dbe2; --z-re:#c07f00; --z-re-soft:#f3e7c8;
+  --p-you:#00857a; --p-adv:#d8506f;
+  --sea:#cfd8ee; --sea-2:#bcc8e6; --sea-ink:#4e5f9a;
+  --shadow:0 1px 0 rgba(34,26,51,.05),0 8px 22px -10px rgba(34,26,51,.22);
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --z-reg:#33d6c5; --z-reg-soft:#0d2d38; --z-cf:#a493ff; --z-cf-soft:#211d4f; --z-cs:#ff8c69; --z-cs-soft:#3b1f22; --z-re:#f3bf4c; --z-re-soft:#2b2617;
-  --p-you:#5eaaff; --p-adv:#ff79bd;
-  --sea:#0c2140; --sea-2:#10294f; --sea-ink:#4ea6cc; --shadow:none; } }
+  --z-reg:#3fd6c3; --z-reg-soft:#12302f; --z-cf:#a891ff; --z-cf-soft:#2a2150; --z-cs:#ff7f9c; --z-cs-soft:#3d1c2a; --z-re:#f5c04f; --z-re-soft:#33281a;
+  --p-you:#3fd6c3; --p-adv:#ff7f9c;
+  --sea:#1d1b38; --sea-2:#16152c; --sea-ink:#8a90d6; --shadow:none; } }
 :root[data-theme="dark"]{
-  --z-reg:#33d6c5; --z-reg-soft:#0d2d38; --z-cf:#a493ff; --z-cf-soft:#211d4f; --z-cs:#ff8c69; --z-cs-soft:#3b1f22; --z-re:#f3bf4c; --z-re-soft:#2b2617;
-  --p-you:#5eaaff; --p-adv:#ff79bd;
-  --sea:#0c2140; --sea-2:#10294f; --sea-ink:#4ea6cc; --shadow:none; }
+  --z-reg:#3fd6c3; --z-reg-soft:#12302f; --z-cf:#a891ff; --z-cf-soft:#2a2150; --z-cs:#ff7f9c; --z-cs-soft:#3d1c2a; --z-re:#f5c04f; --z-re-soft:#33281a;
+  --p-you:#3fd6c3; --p-adv:#ff7f9c;
+  --sea:#1d1b38; --sea-2:#16152c; --sea-ink:#8a90d6; --shadow:none; }
 [data-zone="reg"]{--zone:var(--z-reg);--zone-soft:var(--z-reg-soft)}
 [data-zone="cf"]{--zone:var(--z-cf);--zone-soft:var(--z-cf-soft)}
 [data-zone="re"]{--zone:var(--z-re);--zone-soft:var(--z-re-soft)}
@@ -384,12 +384,12 @@ table.cyk th{font-family:var(--mono)}
 }
 
 /* ================= Chart layer: parchment, serif lettering, engraved rules ================= */
-:root{--grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .1 0 0 0 0 .14 0 0 0 0 .3 0 0 0 .075 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  --route:#d1246f; --rule:color-mix(in srgb,var(--ink) 55%,transparent)}
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --route:#ff5c9f;
-  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .7 0 0 0 0 .8 0 0 0 0 1 0 0 0 .045 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); } }
-:root[data-theme="dark"]{ --route:#ff5c9f;
-  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .7 0 0 0 0 .8 0 0 0 0 1 0 0 0 .045 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+:root{--grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .12 0 0 0 0 .3 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --route:#e2582e; --rule:color-mix(in srgb,var(--ink) 55%,transparent)}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --route:#ff8a5c;
+  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .8 0 0 0 0 1 0 0 0 .04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); } }
+:root[data-theme="dark"]{ --route:#ff8a5c;
+  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .8 0 0 0 0 1 0 0 0 .04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
 html,body{background-color:var(--paper);background-image:var(--grain)}
 .panel,.qf-card,.card,.move .body{background-image:linear-gradient(var(--surface),var(--surface))}
 h1,h2,h3,.ph h2,.big{font-family:var(--display);font-optical-sizing:auto}
@@ -486,9 +486,9 @@ h2.sec{font-family:var(--display);font-size:clamp(26px,3vw,36px);font-weight:700
 
 /* ================= Plates: reading on parchment, doing on drafting paper ================= */
 :root{--serif:"Source Serif 4","Iowan Old Style",Georgia,serif;
-  --draft:#fffef9; --grid:color-mix(in srgb,var(--zone,#256a87) 9%,transparent)}
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --draft:#101a32; --grid:color-mix(in srgb,var(--zone,#6fb4cf) 10%,transparent); } }
-:root[data-theme="dark"]{ --draft:#101a32; --grid:color-mix(in srgb,var(--zone,#6fb4cf) 10%,transparent); }
+  --draft:#fbfafc; --grid:color-mix(in srgb,var(--zone,#256a87) 9%,transparent)}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --draft:#1c1628; --grid:color-mix(in srgb,var(--zone,#6fb4cf) 10%,transparent); } }
+:root[data-theme="dark"]{ --draft:#1c1628; --grid:color-mix(in srgb,var(--zone,#6fb4cf) 10%,transparent); }
 .prose,.idea,.sub,.secsub,.note,.qf-card .why,.narr p,.move .body p,.recipe li,.checks li,.pp-foot,.nk-book dd{font-family:var(--serif)}
 .prose{font-size:16.5px;line-height:1.6}
 .idea{font-size:15.5px;line-height:1.55}
@@ -710,7 +710,7 @@ h2.sec{font-family:var(--display);font-size:clamp(26px,3vw,36px);font-weight:700
 @keyframes reveal{to{stroke-dashoffset:0}}
 .drawing .stop{opacity:0;animation:arrive .45s ease-out forwards}
 @keyframes arrive{0%{opacity:0;transform:translateY(-6px)}100%{opacity:1;transform:none}}
-.stopnote{position:absolute;z-index:4;width:270px;background:var(--surface);border:1px solid var(--rule);border-top:4px solid var(--zone);border-radius:3px;box-shadow:0 14px 34px -14px rgba(15,25,60,.5);padding:12px 14px;display:flex;flex-direction:column;gap:3px;pointer-events:none}
+.stopnote{position:absolute;z-index:4;width:270px;background:var(--surface);border:1px solid var(--rule);border-top:4px solid var(--zone);border-radius:3px;box-shadow:0 14px 34px -14px rgba(34,26,51,.45);padding:12px 14px;display:flex;flex-direction:column;gap:3px;pointer-events:none}
 .stopnote b{font-family:var(--display);font-size:18px;line-height:1.2}
 .stopnote p{margin:6px 0 4px;font-family:var(--serif);font-size:14px;line-height:1.45}
 .stopnote .sn-foot{font-family:var(--display);font-style:italic;font-size:12.5px;color:var(--zone)}
